@@ -1,63 +1,92 @@
-// Firebase configuration
+// Firebase config (replace with your own if needed)
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
   databaseURL: "https://unonomercy-66ba7-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unonomercy-66ba7",
-  storageBucket: "unonomercy-66ba7.firebasestorage.app",
+  storageBucket: "unonomercy-66ba7.appspot.com",
   messagingSenderId: "243436738671",
   appId: "1:243436738671:web:8bfad4bc693acde225959a",
   measurementId: "G-2DP7FTJPCR"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Test connection
-db.ref(".info/connected").on("value", (snap) => {
-  console.log(snap.val() ? "✅ Connected to Firebase" : "❌ Not connected to Firebase");
-});
+let currentPlayerId = Math.random().toString(36).substring(2, 9);
+let currentRoomId = null;
 
-function joinGame() {
-  const playerName = document.getElementById("name").value.trim();
-  if (!playerName) {
-    alert("Please enter a name");
-    return;
-  }
+function createRoom() {
+  const roomId = document.getElementById('roomIdInput').value;
+  const maxPlayers = parseInt(document.getElementById('maxPlayersInput').value);
+  if (!roomId || !maxPlayers) return alert("Room ID and Max Players required");
 
-  const roomId = "default_room";
-  const playerRef = db.ref(`games/${roomId}/players/${playerName}`);
-  playerRef.set({ name: playerName });
-
-  // Listen for game state updates
-  db.ref(`games/${roomId}`).on("value", (snapshot) => {
-    const gameData = snapshot.val();
-    if (gameData) {
-      console.log("🎮 Game data:", gameData);
-      updateUI(gameData);
-    }
+  db.ref(`rooms/${roomId}`).set({
+    maxPlayers,
+    gameStarted: false,
+    direction: 'clockwise',
+    players: {
+      [currentPlayerId]: { cards: [], name: currentPlayerId }
+    },
+    turn: currentPlayerId
   });
 
-  document.getElementById("lobby").style.display = "none";
-  document.getElementById("gameArea").style.display = "block";
+  currentRoomId = roomId;
+  document.getElementById("roomLabel").innerText = `Room: ${roomId}`;
+  document.getElementById("lobby").style.display = 'none';
+  document.getElementById("game").style.display = 'block';
+  listenToRoom();
+}
+
+function joinRoom() {
+  const roomId = document.getElementById('roomIdInput').value;
+  currentRoomId = roomId;
+
+  db.ref(`rooms/${roomId}/players`).once('value', snapshot => {
+    const players = snapshot.val() || {};
+    const keys = Object.keys(players);
+    db.ref(`rooms/${roomId}/maxPlayers`).once('value', maxSnap => {
+      const max = maxSnap.val();
+      if (keys.length >= max) return alert("Room is full");
+
+      db.ref(`rooms/${roomId}/players/${currentPlayerId}`).set({ cards: [], name: currentPlayerId });
+
+      document.getElementById("roomLabel").innerText = `Room: ${roomId}`;
+      document.getElementById("lobby").style.display = 'none';
+      document.getElementById("game").style.display = 'block';
+      listenToRoom();
+    });
+  });
+}
+
+function listenToRoom() {
+  db.ref(`rooms/${currentRoomId}`).on('value', snapshot => {
+    const room = snapshot.val();
+    if (!room) return;
+
+    document.getElementById("turnLabel").innerText = `Current Turn: ${room.turn}`;
+
+    const hand = room.players[currentPlayerId]?.cards || [];
+    renderHand(hand);
+  });
 }
 
 function drawCard() {
-  alert("Draw card function not implemented yet.");
+  const newCard = `Card-${Math.floor(Math.random() * 100)}`;
+  db.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/cards`).once('value', snap => {
+    const cards = snap.val() || [];
+    cards.push(newCard);
+    db.ref(`rooms/${currentRoomId}/players/${currentPlayerId}/cards`).set(cards);
+  });
 }
 
-function updateUI(gameData) {
-  const playerHand = document.getElementById("playerHand");
-  const turnIndicator = document.getElementById("turnIndicator");
-
-  const players = gameData.players || {};
-  turnIndicator.textContent = `Players in game: ${Object.keys(players).join(", ")}`;
-
-  // Example card display
-  playerHand.innerHTML = '';
-  const sampleCard = document.createElement("div");
-  sampleCard.className = "card";
-  sampleCard.textContent = "Red 5";
-  playerHand.appendChild(sampleCard);
+function renderHand(cards) {
+  const handDiv = document.getElementById('playerHand');
+  handDiv.innerHTML = '';
+  cards.forEach(card => {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card';
+    cardDiv.innerText = card;
+    handDiv.appendChild(cardDiv);
+  });
 }
