@@ -1,135 +1,280 @@
 /* style.css */
+
 body {
   font-family: Arial, sans-serif;
-  background: #006400;
-  color: white;
+  background-color: #222;
+  color: #eee;
   margin: 0;
   padding: 0;
-  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
-#lobby, #game {
-  padding: 20px;
+
+h2, h3 {
+  margin: 10px 0;
 }
-#lobby {
-  max-width: 400px;
-  margin: 50px auto;
-  background: #004d00;
-  border-radius: 8px;
-}
+
 input, button {
-  width: 100%;
-  padding: 10px;
-  margin: 6px 0;
+  padding: 8px;
+  margin: 5px;
+  border-radius: 5px;
   border: none;
-  border-radius: 4px;
   font-size: 1rem;
 }
+
 button {
-  background: #228B22;
+  background-color: #0066cc;
   color: white;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
+
 button:hover {
-  background: #32CD32;
+  background-color: #004999;
 }
+
+#lobby {
+  margin-top: 50px;
+  text-align: center;
+}
+
 #game {
-  display: none;
-  max-width: 960px;
-  margin: 20px auto;
+  width: 90%;
+  max-width: 1000px;
+  margin-top: 20px;
 }
-#roomInfo {
-  margin-bottom: 10px;
-}
-#turnLabel {
+
+.turn-label {
   font-weight: bold;
-  margin-bottom: 10px;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #ffd700;
 }
-#playerHand {
+
+.game-area {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
-.card {
-  background: white;
-  color: black;
-  border-radius: 6px;
-  width: 60px;
-  height: 90px;
+
+.opponents {
+  width: 20%;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 200px;
+  overflow-y: auto;
+  color: #ccc;
+}
+
+.opponent {
+  padding: 6px;
+  border-bottom: 1px solid #555;
+}
+
+.center-area {
+  width: 40%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.discard-pile {
+  width: 100px;
+  height: 140px;
+  border-radius: 10px;
+  background-color: #444;
+  box-shadow: 0 0 10px #ffcc00;
+  margin-bottom: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.player-hand {
+  width: 35%;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 140px;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 8px;
+}
+
+.card {
+  min-width: 60px;
+  height: 90px;
+  border-radius: 8px;
+  color: white;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 0 5px rgba(0,0,0,0.5);
-  transition: transform 0.15s ease;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+  transition: transform 0.2s ease;
 }
+
 .card:hover {
   transform: scale(1.1);
+  z-index: 2;
 }
-.red { background: #ff4c4c; color: white; }
-.green { background: #3cb371; color: white; }
-.blue { background: #1e90ff; color: white; }
-.yellow { background: #ffd700; color: black; }
-.wild-card {
-  background: linear-gradient(45deg, black, white, black);
-  color: black;
+
+.card.red {
+  background-color: #e53935;
 }
-#discardPile {
-  margin-bottom: 20px;
+
+.card.green {
+  background-color: #43a047;
 }
-#discardPile .card {
-  width: 70px;
-  height: 100px;
-  margin: auto;
+
+.card.blue {
+  background-color: #1e88e5;
+}
+
+.card.yellow {
+  background-color: #fdd835;
+  color: #333;
+}
+
+.card.wild {
+  background: linear-gradient(45deg, #666 25%, #333 75%);
+  color: white;
+}
+
+/* Special card text outside */
+.card.special-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 3px #000;
   pointer-events: none;
-  cursor: default;
 }
-#opponentsContainer {
+
+/* Draw card button */
+.draw-btn {
+  padding: 10px 20px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  background-color: #00897b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.draw-btn:hover {
+  background-color: #005b4f;
+}
+
+.chat-activity {
   display: flex;
+  justify-content: space-between;
   gap: 20px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
-.opponent {
-  background: #2e8b57;
+
+.activity-log-container,
+.chat-container {
+  background-color: #333;
+  flex: 1;
+  min-width: 280px;
+  max-height: 250px;
+  border-radius: 8px;
   padding: 10px;
-  border-radius: 6px;
-  width: 150px;
-  text-align: center;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  user-select: none;
+  display: flex;
+  flex-direction: column;
 }
-.opponent.active-turn {
-  border: 3px solid #ffd700;
-  box-shadow: 0 0 15px #ffd700;
-}
-#activityLog, #chatMessages {
-  background: #003300;
-  height: 150px;
+
+.activity-log {
+  list-style: none;
+  padding-left: 0;
   overflow-y: auto;
-  padding: 10px;
-  border-radius: 6px;
+  flex-grow: 1;
   font-size: 0.9rem;
-  margin-bottom: 10px;
+  color: #ccc;
+  margin-top: 5px;
 }
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #222;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #eee;
+}
+
+.chat-messages div {
+  margin-bottom: 6px;
+  word-wrap: break-word;
+}
+
 #chatInput {
-  width: calc(100% - 90px);
-  display: inline-block;
-  vertical-align: top;
-  margin-right: 10px;
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 #sendChatBtn {
-  width: 70px;
-  display: inline-block;
-  vertical-align: top;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
-#drawCardBtn {
-  background: #ff4500;
-  margin-bottom: 20px;
+
+#sendChatBtn:hover {
+  background-color: #0d47a1;
 }
-#drawCardBtn:hover {
-  background: #ff6347;
+
+/* Scrollbars for chat and log */
+.activity-log::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar,
+.opponents::-webkit-scrollbar,
+.player-hand::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.activity-log::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb,
+.opponents::-webkit-scrollbar-thumb,
+.player-hand::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+.activity-log::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track,
+.opponents::-webkit-scrollbar-track,
+.player-hand::-webkit-scrollbar-track {
+  background-color: transparent;
 }
