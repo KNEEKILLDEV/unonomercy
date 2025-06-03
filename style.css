@@ -1,0 +1,42 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f5;
+  text-align: center;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+#playerHand, #discardPile {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.card {
+  width: 60px;
+  height: 90px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+.red { background-color: #f66; }
+.yellow { background-color: #ff0; color: #000; }
+.green { background-color: #6c6; }
+.blue { background-color: #69f; }
+.wild {
+  background: linear-gradient(45deg, #f00, #0f0, #00f, #ff0);
+  color: #000;
+}
