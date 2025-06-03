@@ -2,37 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNO No Mercy Multiplayer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNO No Mercy</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="lobby">
-    <h2>UNO No Mercy - Lobby</h2>
-    <input id="roomInput" type="text" placeholder="Room ID" />
-    <input id="maxPlayersInput" type="number" min="2" placeholder="Max Players" />
+    <h1>UNO No Mercy</h1>
+    <input id="playerNameInput" placeholder="Your name" />
+    <input id="roomInput" placeholder="Room ID" />
+    <input id="maxPlayersInput" placeholder="Max Players" type="number" min="2" max="10" />
     <button id="createRoomBtn">Create Room</button>
     <button id="joinRoomBtn">Join Room</button>
   </div>
 
-  <div id="game" style="display:none;">
-    <h2>Game Room</h2>
-    <div id="turnLabel">Waiting for players...</div>
-    <div>
-      <h3>Your Hand</h3>
+  <div id="game" style="display: none;">
+    <div class="top-bar">
+      <span>Room: <strong id="roomNameLabel"></strong></span>
+      <span>Current Turn: <strong id="turnLabel"></strong></span>
+    </div>
+
+    <div id="gameArea">
+      <div id="opponentsContainer"></div>
+
+      <div id="centerPlay">
+        <div id="discardPile" class="pile"></div>
+        <button id="drawCardBtn">Draw Card</button>
+      </div>
+
       <div id="playerHand" class="hand"></div>
     </div>
-    <div>
-      <h3>Discard Pile</h3>
-      <div id="discardPile" class="pile"></div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <h3>Activity Log</h3>
+        <ul id="activityLog"></ul>
+      </div>
+      <div class="panel">
+        <h3>Chat</h3>
+        <div id="chatMessages" class="chat-box"></div>
+        <input id="chatInput" placeholder="Type message..." />
+        <button id="sendChatBtn">Send</button>
+      </div>
     </div>
-    <button id="drawCardBtn">Draw Card</button>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
