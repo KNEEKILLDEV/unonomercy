@@ -2,31 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UNO No Mercy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNO No Mercy Multiplayer</title>
   <link rel="stylesheet" href="style.css" />
-  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script defer src="script.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>UNO No Mercy</h1>
-
-    <div id="lobby">
-      <input type="text" id="roomIdInput" placeholder="Enter Room ID" />
-      <input type="number" id="maxPlayersInput" placeholder="Max Players" />
-      <button onclick="createRoom()">Create Room</button>
-      <button onclick="joinRoom()">Join Room</button>
-    </div>
-
-    <div id="game" style="display:none;">
-      <h2 id="roomLabel">Room: </h2>
-      <h3 id="turnLabel">Waiting for players...</h3>
-      <div id="discardPile"></div>
-      <div id="playerHand"></div>
-      <button onclick="drawCard()">Draw Card</button>
-    </div>
+  <div id="lobby">
+    <h2>UNO No Mercy - Lobby</h2>
+    <input id="roomInput" type="text" placeholder="Room ID" />
+    <input id="maxPlayersInput" type="number" min="2" placeholder="Max Players" />
+    <button id="createRoomBtn">Create Room</button>
+    <button id="joinRoomBtn">Join Room</button>
   </div>
+
+  <div id="game" style="display:none;">
+    <h2>Game Room</h2>
+    <div id="turnLabel">Waiting for players...</div>
+    <div>
+      <h3>Your Hand</h3>
+      <div id="playerHand" class="hand"></div>
+    </div>
+    <div>
+      <h3>Discard Pile</h3>
+      <div id="discardPile" class="pile"></div>
+    </div>
+    <button id="drawCardBtn">Draw Card</button>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>
