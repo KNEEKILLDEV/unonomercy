@@ -2,35 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNO: No Mercy Multiplayer</title>
-
-  <!-- Link to your external CSS -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Firebase SDKs (compat version for easier integration) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <!-- Your game logic script -->
-  <script defer src="script.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNO No Mercy</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>UNO: No Mercy</h1>
-
-    <!-- Player join section -->
+  <div id="lobby">
+    <h1>UNO No Mercy</h1>
     <input type="text" id="name" placeholder="Enter your name" />
     <button onclick="joinGame()">Join Game</button>
-
-    <!-- Main game area (hidden until player joins) -->
-    <div id="gameArea" style="margin-top:20px;">
-      <div id="playerHand" class="hand"></div>
-      <div id="discardPile" class="pile"></div>
-
-      <button onclick="drawCard()">Draw Card</button>
-      <p id="turnIndicator"></p>
-    </div>
   </div>
+
+  <div id="gameArea" style="display:none;">
+    <h2 id="turnIndicator"></h2>
+    <div id="playerHand" class="card-container"></div>
+    <div id="discardPile" class="card-pile"></div>
+    <button onclick="drawCard()">Draw Card</button>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
