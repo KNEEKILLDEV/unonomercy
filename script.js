@@ -1,6 +1,6 @@
-// script.js
+// script.js - Complete Uno No Mercy Multiplayer Logic with Firebase
 
-// Firebase configuration
+// Firebase config and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -15,59 +15,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let playerId = "";
 let playerName = "";
+let playerId = "";
 let roomId = "";
+let playerHand = [];
+let currentTurnId = "";
+let turnDirection = 1; // 1 = clockwise, -1 = counterclockwise
+let gameStarted = false;
+let playersOrder = [];
 
-const colors = ["red", "green", "blue", "yellow"];
-const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Skip", "Reverse", "+2"];
-
-function generateId() {
-  return Math.random().toString(36).substring(2, 10);
-}
-
-function createDeck() {
-  let deck = [];
-  for (let color of colors) {
-    for (let value of values) {
-      deck.push({ color, value });
-      if (value !== "0") deck.push({ color, value });
-    }
-  }
-  for (let i = 0; i < 4; i++) {
-    deck.push({ color: "wild", value: "Wild" });
-    deck.push({ color: "wild", value: "+4" });
-  }
-  return deck.sort(() => Math.random() - 0.5);
-}
-
-function dealCards(deck, players) {
-  for (let pid in players) {
-    players[pid].hand = deck.splice(0, 7);
-  }
-  return deck;
-}
-
-function isPlayable(card, topCard) {
-  return (
-    card.color === topCard.color ||
-    card.value === topCard.value ||
-    card.color === "wild"
-  );
-}
-
-function nextPlayer(game, skip = 0, reverse = false) {
-  const playerIds = Object.keys(game.players);
-  let index = playerIds.indexOf(game.turn.id);
-  let dir = game.direction || 1;
-  if (reverse) dir *= -1;
-
-  index = (index + dir * (1 + skip) + playerIds.length) % playerIds.length;
-  const nextId = playerIds[index];
-  return { id: nextId, name: game.players[nextId].name, direction: dir };
-}
-
-// UI Elements
 const playerNameInput = document.getElementById("playerNameInput");
 const roomInput = document.getElementById("roomInput");
 const maxPlayersInput = document.getElementById("maxPlayersInput");
@@ -81,51 +37,79 @@ const lobbyDiv = document.getElementById("lobby");
 const gameDiv = document.getElementById("game");
 const roomNameLabel = document.getElementById("roomNameLabel");
 const turnLabel = document.getElementById("turnLabel");
-const playerHand = document.getElementById("playerHand");
+const playerHandDiv = document.getElementById("playerHand");
 const discardPile = document.getElementById("discardPile");
 const opponentsContainer = document.getElementById("opponentsContainer");
 const activityLog = document.getElementById("activityLog");
 const chatMessages = document.getElementById("chatMessages");
 
-function logActivity(msg) {
-  const li = document.createElement("li");
-  li.textContent = msg;
-  activityLog.appendChild(li);
+// Utility to shuffle an array
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
-function postChat(msg) {
-  const div = document.createElement("div");
-  div.textContent = msg;
-  chatMessages.appendChild(div);
+// Create full deck with special cards
+function createDeck() {
+  const colors = ["red", "green", "blue", "yellow"];
+  const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Skip", "Reverse", "+2"];
+  const deck = [];
+
+  for (const color of colors) {
+    for (const value of values) {
+      deck.push({ color, value });
+      if (value !== "0") deck.push({ color, value });
+    }
+  }
+
+  const wildCards = ["Wild", "+4"];
+  for (let i = 0; i < 4; i++) {
+    wildCards.forEach(value => deck.push({ color: "wild", value }));
+  }
+
+  return shuffle(deck);
 }
 
-function createCardElement(card, onClick) {
+// Generate unique ID
+function generateId() {
+  return Math.random().toString(36).substring(2, 10);
+}
+
+// UI Updates
+
+function createCardElement(card) {
   const div = document.createElement("div");
   div.className = `card ${card.color}`;
   div.textContent = card.value;
-  if (onClick) div.onclick = onClick;
+  if (card.color === "wild") div.classList.add("wild-card");
+
+  div.onclick = () => {
+    if (!gameStarted) return alert("Game has not started yet.");
+    if (currentTurnId !== playerId) return alert("It's not your turn!");
+    if (!canPlayCard(card)) return alert("You cannot play this card now.");
+    playCard(card);
+  };
   return div;
 }
 
-function renderHand(cards, topCard, turnId) {
-  playerHand.innerHTML = "";
-  cards.forEach(card => {
-    const playable = isPlayable(card, topCard);
-    const cardEl = createCardElement(card, () => {
-      if (playerId === turnId && playable) playCard(card);
-    });
-    if (!playable || playerId !== turnId) cardEl.classList.add("disabled");
-    playerHand.appendChild(cardEl);
-  });
+function renderPlayerHand(hand) {
+  playerHandDiv.innerHTML = "";
+  hand.forEach(card => playerHandDiv.appendChild(createCardElement(card)));
 }
 
 function renderOpponents(players) {
   opponentsContainer.innerHTML = "";
-  Object.entries(players).forEach(([id, player]) => {
-    if (id !== playerId) {
+  playersOrder.forEach(pid => {
+    if (pid !== playerId && players[pid]) {
       const div = document.createElement("div");
       div.className = "opponent";
-      div.textContent = `${player.name} - ${player.hand.length} cards`;
+      const name = players[pid].name;
+      const count = players[pid].hand.length;
+      div.innerHTML = `<strong>${name}</strong><br>${count} cards`;
+      if (pid === currentTurnId) div.classList.add("active-turn");
       opponentsContainer.appendChild(div);
     }
   });
@@ -133,151 +117,275 @@ function renderOpponents(players) {
 
 function renderDiscard(card) {
   discardPile.innerHTML = "";
-  discardPile.appendChild(createCardElement(card));
+  if (!card) return;
+  const discardCard = createCardElement(card);
+  discardPile.appendChild(discardCard);
+}
+
+function logActivity(msg) {
+  const li = document.createElement("li");
+  li.textContent = msg;
+  activityLog.appendChild(li);
+  activityLog.scrollTop = activityLog.scrollHeight;
+}
+
+function postChat(msg) {
+  const div = document.createElement("div");
+  div.textContent = msg;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Game logic
+
+// Checks if a card can be legally played on top of the current discard
+function canPlayCard(card) {
+  const topCard = currentGameState.discard;
+  if (!topCard) return true; // Should not happen normally
+  if (card.color === "wild") return true;
+  if (card.color === topCard.color) return true;
+  if (card.value === topCard.value) return true;
+  return false;
+}
+
+let currentGameState = null;
+
+function nextPlayerId() {
+  if (!playersOrder.length) return null;
+  let idx = playersOrder.indexOf(currentTurnId);
+  idx = (idx + turnDirection + playersOrder.length) % playersOrder.length;
+  return playersOrder[idx];
+}
+
+function updateTurn(nextTurnId) {
+  currentTurnId = nextTurnId;
+  db.ref(`rooms/${roomId}/turn`).set({ id: currentTurnId, name: currentGameState.players[currentTurnId].name });
+}
+
+function drawCardForPlayer(pid, count = 1) {
+  let deck = currentGameState.deck.slice();
+  let players = {...currentGameState.players};
+  const drawnCards = [];
+
+  for (let i = 0; i < count; i++) {
+    if (deck.length === 0) {
+      // reshuffle discard pile except top card
+      let newDeck = currentGameState.discardPileBackup || [];
+      deck = shuffle(newDeck);
+      db.ref(`rooms/${roomId}/discardPileBackup`).set([]);
+    }
+    if (deck.length === 0) break; // no cards left
+
+    const card = deck.shift();
+    drawnCards.push(card);
+    players[pid].hand.push(card);
+  }
+
+  db.ref(`rooms/${roomId}/deck`).set(deck);
+  db.ref(`rooms/${roomId}/players/${pid}/hand`).set(players[pid].hand);
+  return drawnCards;
+}
+
+function applyCardEffect(card, playerWhoPlayed) {
+  switch (card.value) {
+    case "Skip":
+      // Skip next player
+      currentTurnId = nextPlayerId();
+      currentTurnId = nextPlayerId(); // skip one player extra
+      break;
+    case "Reverse":
+      turnDirection = -turnDirection;
+      // If 2 players only, Reverse acts as Skip
+      if (playersOrder.length === 2) {
+        currentTurnId = nextPlayerId();
+        currentTurnId = nextPlayerId();
+      } else {
+        currentTurnId = nextPlayerId();
+      }
+      break;
+    case "+2":
+      {
+        let next = nextPlayerId();
+        drawCardForPlayer(next, 2);
+        currentTurnId = nextPlayerId();
+      }
+      break;
+    case "+4":
+      {
+        let next = nextPlayerId();
+        drawCardForPlayer(next, 4);
+        currentTurnId = nextPlayerId();
+      }
+      break;
+    default:
+      currentTurnId = nextPlayerId();
+  }
+  updateTurn(currentTurnId);
+  db.ref(`rooms/${roomId}/discard`).set(card);
+  logActivity(`${playerWhoPlayed} played ${card.color} ${card.value}`);
 }
 
 function playCard(card) {
-  db.ref(`rooms/${roomId}`).once("value").then(snap => {
-    const game = snap.val();
-    if (game.turn.id !== playerId) return;
+  if (!canPlayCard(card)) {
+    alert("Illegal move! Cannot play this card.");
+    return;
+  }
 
-    const playerHandRef = db.ref(`rooms/${roomId}/players/${playerId}/hand`);
-    playerHandRef.once("value").then(handSnap => {
-      const hand = handSnap.val();
-      const idx = hand.findIndex(c => c.color === card.color && c.value === card.value);
-      if (idx === -1) return;
+  // Remove card from player's hand
+  const handIndex = playerHand.findIndex(c => c.color === card.color && c.value === card.value);
+  if (handIndex === -1) return alert("You don't have this card.");
 
-      hand.splice(idx, 1);
-      const updates = {};
-      updates[`rooms/${roomId}/players/${playerId}/hand`] = hand;
-      updates[`rooms/${roomId}/discard`] = card;
+  playerHand.splice(handIndex, 1);
+  db.ref(`rooms/${roomId}/players/${playerId}/hand`).set(playerHand);
 
-      let next = nextPlayer(game);
-      let drawCount = 0;
+  // Update discard pile and effects
+  applyCardEffect(card, playerName);
 
-      switch (card.value) {
-        case "Skip":
-          next = nextPlayer(game, 1);
-          break;
-        case "Reverse":
-          next = nextPlayer(game, 0, true);
-          updates[`rooms/${roomId}/direction`] = -game.direction || -1;
-          break;
-        case "+2":
-          drawCount = 2;
-          break;
-        case "+4":
-          drawCount = 4;
-          break;
-      }
-
-      if (drawCount > 0) {
-        const deck = game.deck;
-        const drawn = deck.splice(0, drawCount);
-        updates[`rooms/${roomId}/deck`] = deck;
-        const nextHand = game.players[next.id].hand.concat(drawn);
-        updates[`rooms/${roomId}/players/${next.id}/hand`] = nextHand;
-        logActivity(`${next.name} draws ${drawCount} cards`);
-      }
-
-      updates[`rooms/${roomId}/turn`] = { id: next.id, name: next.name };
-
-      if (hand.length === 0) {
-        alert(`${playerName} wins!`);
-        updates[`rooms/${roomId}/status`] = "ended";
-      }
-
-      db.ref().update(updates);
-    });
-  });
+  // Check if player won
+  if (playerHand.length === 0) {
+    alert(`${playerName} has won the game!`);
+    logActivity(`${playerName} has won the game!`);
+    gameStarted = false;
+  }
 }
 
-drawCardBtn.onclick = () => {
-  db.ref(`rooms/${roomId}`).once("value").then(snap => {
-    const game = snap.val();
-    if (game.turn.id !== playerId) return;
+// Listen for game state updates
+db.ref(`rooms`).on("value", snapshot => {
+  if (!roomId || !playerId) return;
+  const game = snapshot.child(roomId).val();
+  if (!game || !game.players || !game.players[playerId]) return;
 
-    const deck = game.deck;
-    const card = deck.shift();
-    db.ref(`rooms/${roomId}/deck`).set(deck);
-    db.ref(`rooms/${roomId}/players/${playerId}/hand`).once("value", snap => {
-      const hand = snap.val() || [];
-      hand.push(card);
-      db.ref(`rooms/${roomId}/players/${playerId}/hand`).set(hand);
-    });
+  currentGameState = game;
+  playerHand = game.players[playerId].hand || [];
+  playersOrder = Object.keys(game.players);
 
-    const next = nextPlayer(game);
-    db.ref(`rooms/${roomId}/turn`).set(next);
-  });
-};
+  gameStarted = true;
+  currentTurnId = game.turn.id;
+  turnDirection = game.turnDirection || 1;
 
-sendChatBtn.onclick = () => {
-  const msg = `${playerName}: ${chatInput.value}`;
-  db.ref(`rooms/${roomId}/chat`).push(msg);
-  chatInput.value = "";
-};
+  renderPlayerHand(playerHand);
+  renderDiscard(game.discard);
+  renderOpponents(game.players);
+  turnLabel.textContent = game.turn.name;
+  roomNameLabel.textContent = roomId;
+});
 
+// Create room
 createRoomBtn.onclick = () => {
   playerName = playerNameInput.value.trim();
   roomId = roomInput.value.trim();
   const maxPlayers = parseInt(maxPlayersInput.value);
-  if (!playerName || !roomId || !maxPlayers) return;
-
+  if (!playerName || !roomId || !maxPlayers || maxPlayers < 2 || maxPlayers > 10) {
+    alert("Please enter valid name, room, and max players (2-10).");
+    return;
+  }
   playerId = generateId();
+  const deck = createDeck();
   const players = {};
   players[playerId] = { name: playerName, hand: [] };
-
-  const deck = createDeck();
   const discard = deck.pop();
-  const newDeck = dealCards(deck, players);
-
   db.ref(`rooms/${roomId}`).set({
     players,
-    deck: newDeck,
+    deck,
     discard,
     turn: { id: playerId, name: playerName },
+    turnDirection: 1,
     maxPlayers,
-    direction: 1,
-    status: "waiting"
+    chat: [],
+    log: []
   });
-
-  roomNameLabel.textContent = roomId;
+  db.ref(`rooms/${roomId}/players/${playerId}`).update({ id: playerId });
   lobbyDiv.style.display = "none";
   gameDiv.style.display = "block";
+  roomNameLabel.textContent = roomId;
+  turnLabel.textContent = playerName;
 };
 
+// Join room
 joinRoomBtn.onclick = () => {
   playerName = playerNameInput.value.trim();
   roomId = roomInput.value.trim();
-  if (!playerName || !roomId) return;
-
+  if (!playerName || !roomId) {
+    alert("Enter your name and room.");
+    return;
+  }
   playerId = generateId();
-  db.ref(`rooms/${roomId}/players/${playerId}`).set({ name: playerName, hand: [] });
 
-  db.ref(`rooms/${roomId}/deck`).once("value", snap => {
-    const deck = snap.val() || [];
+  // Load game to add player
+  db.ref(`rooms/${roomId}`).once("value").then(snapshot => {
+    const game = snapshot.val();
+    if (!game) {
+      alert("Room not found.");
+      return;
+    }
+    if (Object.keys(game.players).length >= game.maxPlayers) {
+      alert("Room full.");
+      return;
+    }
+
+    // Deal 7 cards to new player
+    let deck = game.deck.slice();
     const hand = deck.splice(0, 7);
-    db.ref(`rooms/${roomId}/players/${playerId}/hand`).set(hand);
-    db.ref(`rooms/${roomId}/deck`).set(deck);
-  });
 
-  roomNameLabel.textContent = roomId;
-  lobbyDiv.style.display = "none";
-  gameDiv.style.display = "block";
+    // Update DB
+    const updates = {};
+    updates[`rooms/${roomId}/players/${playerId}`] = { name: playerName, hand };
+    updates[`rooms/${roomId}/deck`] = deck;
+    db.ref().update(updates);
+
+    lobbyDiv.style.display = "none";
+    gameDiv.style.display = "block";
+    roomNameLabel.textContent = roomId;
+    turnLabel.textContent = game.turn.name;
+  });
 };
 
-// Game Listener
-firebase.database().ref("rooms").on("value", snapshot => {
-  if (!roomId || !playerId) return;
-  const game = snapshot.child(roomId).val();
-  if (!game || !game.players[playerId]) return;
+// Draw card button
+drawCardBtn.onclick = () => {
+  if (currentTurnId !== playerId) {
+    alert("It's not your turn.");
+    return;
+  }
 
-  renderHand(game.players[playerId].hand, game.discard, game.turn.id);
-  renderDiscard(game.discard);
-  renderOpponents(game.players);
-  turnLabel.textContent = game.turn.name;
+  if (!gameStarted) {
+    alert("Game has not started.");
+    return;
+  }
+
+  drawCardForPlayer(playerId, 1);
+  logActivity(`${playerName} drew a card.`);
+  // After drawing, player turn usually ends unless a card is played.
+  currentTurnId = nextPlayerId();
+  updateTurn(currentTurnId);
+};
+
+// Chat sending on button and Enter key
+function sendChatMessage() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  const message = `${playerName}: ${msg}`;
+  db.ref(`rooms/${roomId}/chat`).push(message);
+  chatInput.value = "";
+}
+
+sendChatBtn.onclick = sendChatMessage;
+chatInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    sendChatMessage();
+  }
 });
 
-firebase.database().ref(`rooms/${roomId}/chat`).on("child_added", snap => {
+// Listen for chat updates
+db.ref(`rooms/${roomId}/chat`).on("child_added", snap => {
   postChat(snap.val());
 });
+
+// Activity log helper: listen for discard pile changes to log moves
+db.ref(`rooms/${roomId}/discard`).on("value", snap => {
+  const card = snap.val();
+  if (!card) return;
+  logActivity(`Discard pile updated: ${card.color} ${card.value}`);
+});
+
+// Prevent illegal moves by validating card play in playCard function
+

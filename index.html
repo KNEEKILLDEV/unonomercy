@@ -1,54 +1,49 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UNO No Mercy</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Uno No Mercy Multiplayer</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="lobby">
-    <h1>UNO No Mercy</h1>
-    <input id="playerNameInput" placeholder="Your name" />
-    <input id="roomInput" placeholder="Room ID" />
-    <input id="maxPlayersInput" placeholder="Max Players" type="number" min="2" max="10" />
-    <button id="createRoomBtn">Create Room</button>
-    <button id="joinRoomBtn">Join Room</button>
+
+<div id="lobby">
+  <h2>Join or Create Game Room</h2>
+  <input type="text" id="playerNameInput" placeholder="Your Name" autocomplete="off" />
+  <input type="text" id="roomInput" placeholder="Room Name" autocomplete="off" />
+  <input type="number" id="maxPlayersInput" placeholder="Max Players (2-10)" min="2" max="10" />
+  <button id="createRoomBtn">Create Room</button>
+  <button id="joinRoomBtn">Join Room</button>
+</div>
+
+<div id="game">
+  <div id="roomInfo">
+    <strong>Room:</strong> <span id="roomNameLabel"></span><br />
+    <strong>Current Turn:</strong> <span id="turnLabel"></span>
   </div>
+  <div id="discardPile"></div>
 
-  <div id="game" style="display: none;">
-    <div class="top-bar">
-      <span>Room: <strong id="roomNameLabel"></strong></span>
-      <span>Current Turn: <strong id="turnLabel"></strong></span>
-    </div>
+  <button id="drawCardBtn">Draw Card</button>
 
-    <div id="gameArea">
-      <div id="opponentsContainer"></div>
+  <div id="playerHand" title="Click a card to play"></div>
 
-      <div id="centerPlay">
-        <div id="discardPile" class="pile"></div>
-        <button id="drawCardBtn">Draw Card</button>
-      </div>
+  <h3>Opponents</h3>
+  <div id="opponentsContainer"></div>
 
-      <div id="playerHand" class="hand"></div>
-    </div>
+  <h3>Activity Log</h3>
+  <ul id="activityLog" style="list-style: none; padding-left: 0;"></ul>
 
-    <div class="sidebar">
-      <div class="panel">
-        <h3>Activity Log</h3>
-        <ul id="activityLog"></ul>
-      </div>
-      <div class="panel">
-        <h3>Chat</h3>
-        <div id="chatMessages" class="chat-box"></div>
-        <input id="chatInput" placeholder="Type message..." />
-        <button id="sendChatBtn">Send</button>
-      </div>
-    </div>
-  </div>
+  <h3>Chat</h3>
+  <div id="chatMessages"></div>
+  <input type="text" id="chatInput" placeholder="Type a message and press Enter or Send" autocomplete="off" />
+  <button id="sendChatBtn">Send</button>
+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="script.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
