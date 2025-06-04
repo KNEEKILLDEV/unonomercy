@@ -38,7 +38,6 @@ const maxPlayersDisplay = document.getElementById('maxPlayersDisplay');
 
 const opponentsList = document.getElementById('opponentsList');
 const discardPileEl = document.getElementById('discardPile');
-const currentColorDisplay = document.getElementById('currentColorDisplay');
 const playerHand = document.getElementById('playerHand');
 
 const drawCardBtn = document.getElementById('drawCardBtn');
@@ -432,7 +431,6 @@ function resetGameArea() {
   opponentsList.innerHTML = '';
   discardPileEl.textContent = '';
   discardPileEl.className = 'card';
-  currentColorDisplay.textContent = '';
   playerHand.innerHTML = '';
   chatLog.innerHTML = '';
   activityLog.innerHTML = '';
@@ -751,7 +749,6 @@ function resetGameArea() {
   opponentsList.innerHTML = '';
   discardPileEl.textContent = '';
   discardPileEl.className = 'card';
-  currentColorDisplay.textContent = '';
   playerHand.innerHTML = '';
   chatLog.innerHTML = '';
   activityLog.innerHTML = '';
