@@ -1,4 +1,7 @@
-// Initialize Firebase
+// script.js
+
+// ======================= FIREBASE CONFIG AND INITIALIZATION =======================
+
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -12,28 +15,34 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ======================= GLOBAL VARIABLES =======================
+
+let currentRoomId = null;
+let playerId = null;
+let playerName = null;
+let pendingWildCard = null; // Holds data for wild card color selection
+let gameStateUnsubscribe = null;
+let chatUnsubscribe = null;
+
+// ======================= DOM ELEMENTS =======================
+
 const lobby = document.getElementById('lobby');
 const gameArea = document.getElementById('gameArea');
 
-const roomCodeText = document.getElementById('roomCodeDisplay');
-const yourNameText = document.getElementById('yourNameDisplay');
-const currentPlayerText = document.getElementById('currentTurnDisplay');
-const playerCountText = document.getElementById('playerCountDisplay');
-const maxPlayersText = document.getElementById('maxPlayersDisplay');
-const yourHand = document.getElementById('playerHand');
-const currentColorText = document.getElementById('currentColorDisplay');
+const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+const yourNameDisplay = document.getElementById('yourNameDisplay');
+const currentTurnDisplay = document.getElementById('currentTurnDisplay');
+const playerCountDisplay = document.getElementById('playerCountDisplay');
+const maxPlayersDisplay = document.getElementById('maxPlayersDisplay');
 
-const createRoomForm = document.getElementById('createRoomForm');
-const joinRoomForm = document.getElementById('joinRoomForm');
-
-const startGameBtn = document.getElementById('startGameBtn');
-const restartGameBtn = document.getElementById('restartGameBtn');
-const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+const opponentsList = document.getElementById('opponentsList');
+const discardPileEl = document.getElementById('discardPile');
+const currentColorDisplay = document.getElementById('currentColorDisplay');
+const playerHand = document.getElementById('playerHand');
 
 const drawCardBtn = document.getElementById('drawCardBtn');
 const callUnoBtn = document.getElementById('callUnoBtn');
-
-const opponentsList = document.getElementById('opponentsList');
+const leaveRoomBtn = document.getElementById('leaveRoomBtn');
 
 const chatLog = document.getElementById('chatLog');
 const chatInput = document.getElementById('chatInput');
@@ -42,160 +51,80 @@ const sendChatBtn = document.getElementById('sendChatBtn');
 const activityLog = document.getElementById('activityLog');
 
 const colorModal = document.getElementById('colorModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const colorButtons = document.querySelectorAll('.color-btn');
+const colorButtons = document.querySelectorAll('.colorBtn');
+const closeModalBtn = document.querySelector('.closeModalBtn');
 
-let currentRoomId = null;
-let playerId = null;
-let playerName = null;
-let playerHandCards = [];
-let gameStateUnsubscribe = null;
-let chatUnsubscribe = null;
+// ======================= UTILITY FUNCTIONS =======================
 
-let pendingWildCard = null; // Store info about wild card needing color choice
-
-// Generate random room code
+// Generate a random room code (5 characters)
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
 
-// Generate random player ID
+// Generate a random player ID
 function generatePlayerId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-// ======================= ROOM CREATION & JOIN =======================
-
-createRoomForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  playerName = document.getElementById('createName').value.trim();
-  const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
-
-  if (!playerName || maxPlayers < 2 || maxPlayers > 10) {
-    alert('Please enter valid name and max players between 2 and 10');
-    return;
+// Fisher-Yates shuffle for an array
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
-
-  const roomCode = generateRoomCode();
-
-  const roomRef = db.collection('rooms').doc(roomCode);
-
-  // Create deck for game start
-  const deck = generateDeck();
-
-  // Create room with initial data
-  await roomRef.set({
-    maxPlayers,
-    players: {},
-    gameState: 'waiting', // waiting, started, ended
-    currentTurn: null,
-    discardPile: [],
-    currentColor: null,
-    direction: 1, // 1 = clockwise, -1 = counterclockwise
-    activityLog: [],
-    chatLog: [],
-    deck,
-  });
-
-  playerId = generatePlayerId();
-  const playerData = {
-    name: playerName,
-    hand: [],
-    calledUno: false,
-  };
-
-  await roomRef.update({
-    [`players.${playerId}`]: playerData,
-  });
-
-  currentRoomId = roomCode;
-  showGameArea();
-  subscribeToRoom(roomCode);
-});
-
-joinRoomForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  playerName = document.getElementById('joinName').value.trim();
-  const roomCode = document.getElementById('joinRoomCode').value.trim().toUpperCase();
-
-  if (!playerName || !roomCode) {
-    alert('Please enter a valid name and room code');
-    return;
-  }
-
-  const roomRef = db.collection('rooms').doc(roomCode);
-  const roomDoc = await roomRef.get();
-
-  if (!roomDoc.exists) {
-    alert('Room not found');
-    return;
-  }
-
-  const roomData = roomDoc.data();
-
-  if (Object.keys(roomData.players).length >= roomData.maxPlayers) {
-    alert('Room is full');
-    return;
-  }
-
-  playerId = generatePlayerId();
-
-  const playerData = {
-    name: playerName,
-    hand: [],
-    calledUno: false,
-  };
-
-  await roomRef.update({
-    [`players.${playerId}`]: playerData,
-  });
-
-  currentRoomId = roomCode;
-  showGameArea();
-  subscribeToRoom(roomCode);
-});
-
-function showGameArea() {
-  lobby.classList.add('hidden');
-  gameArea.classList.remove('hidden');
+  return array;
 }
 
-function resetGameArea() {
-  playerHandCards = [];
-  yourHand.innerHTML = '';
-  opponentsList.innerHTML = '';
-  chatLog.innerHTML = '';
-  activityLog.innerHTML = '';
-  currentPlayerText.textContent = '';
-  playerCountText.textContent = '';
-  maxPlayersText.textContent = '';
-  currentColorText.textContent = '';
-  roomCodeText.textContent = '';
-  yourNameText.textContent = '';
+// Reshuffle discard pile into deck (except top card) when deck runs out
+function reshuffleDiscardIntoDeck(deck, discardPile) {
+  if (discardPile.length <= 1) return deck;
+  const topDiscard = discardPile.pop();
+  const reshuffleCards = shuffle(discardPile.slice());
+  discardPile.length = 0;
+  discardPile.push(topDiscard);
+  return reshuffleCards;
+}
+
+// Log activity in the UI
+function logActivity(message) {
+  const p = document.createElement('p');
+  p.textContent = message;
+  activityLog.appendChild(p);
+  activityLog.scrollTop = activityLog.scrollHeight;
+}
+
+// Add chat message to UI
+function appendChatMessage({ playerName, message }) {
+  const p = document.createElement('p');
+  p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
+  chatLog.appendChild(p);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+// Show error message in lobby
+function showLobbyMessage(msg) {
+  const lobbyMsg = document.getElementById('lobbyMessage');
+  lobbyMsg.textContent = msg;
 }
 
 // ======================= DECK & GAME LOGIC =======================
 
-// Generate full Uno deck array
-// Each card: { color: 'red|green|blue|yellow|wild', value: '0'-'9', 'skip', 'reverse', 'draw2', 'wild', 'wild4' }
+// Build full UNO deck array
 function generateDeck() {
-  const colors = ['red', 'green', 'blue', 'yellow'];
+  const colors = ['red', 'yellow', 'green', 'blue'];
   const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
-
   let deck = [];
 
-  // For each color:
   colors.forEach(color => {
-    // One 0 card per color
     deck.push({ color, value: '0' });
-    // Two of each 1-9 and special cards
-    values.slice(1).forEach(value => {
-      deck.push({ color, value });
-      deck.push({ color, value });
-    });
+    for (let i = 0; i < 2; i++) {
+      values.slice(1).forEach(val => {
+        deck.push({ color, value: val });
+      });
+    }
   });
 
-  // Wild cards - 4 wild, 4 wild draw four
+  // Add wild cards
   for (let i = 0; i < 4; i++) {
     deck.push({ color: 'wild', value: 'wild' });
     deck.push({ color: 'wild', value: 'wild4' });
@@ -204,81 +133,98 @@ function generateDeck() {
   return shuffle(deck);
 }
 
-// Fisher-Yates shuffle
-function shuffle(array) {
-  let currentIndex = array.length, randomIndex;
-
-  while(currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
-  return array;
+// Check if a card can be played on the current top card
+function canPlayCard(card, topCard, currentColor) {
+  return (
+    card.color === 'wild' ||
+    card.color === currentColor ||
+    card.value === topCard.value
+  );
 }
 
-// ======================= GAME START =======================
+// ======================= LOBBY: CREATE AND JOIN ROOM =======================
 
-startGameBtn.addEventListener('click', async () => {
-  if (!currentRoomId) return;
+document.getElementById('createForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById('createName').value.trim();
+  const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
 
-  const roomRef = db.collection('rooms').doc(currentRoomId);
-  const roomDoc = await roomRef.get();
-  if (!roomDoc.exists) return;
-
-  const roomData = roomDoc.data();
-  const players = roomData.players;
-
-  if (Object.keys(players).length < 2) {
-    alert('Need at least 2 players to start');
+  if (!nameInput || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
+    showLobbyMessage("Enter valid name and max players (2-10).");
     return;
   }
 
-  if (roomData.gameState !== 'waiting') {
-    alert('Game already started');
-    return;
-  }
+  playerName = nameInput;
+  playerId = generatePlayerId();
+  const roomCode = generateRoomCode();
+  currentRoomId = roomCode;
 
-  // Shuffle deck (already shuffled on create) and deal 7 cards each
-  let deck = [...roomData.deck];
-  const playerIds = Object.keys(players);
+  // Initial deck for game
+  const deck = generateDeck();
 
-  let updatedPlayers = {};
-  playerIds.forEach(pid => {
-    updatedPlayers[pid] = {
-      ...players[pid],
-      hand: deck.splice(0,7),
-      calledUno: false,
-    };
-  });
-
-  // Start discard pile with top non-wild card from deck
-  let topCardIndex = deck.findIndex(card => card.color !== 'wild');
-  if (topCardIndex === -1) {
-    alert('No valid starting card found in deck!');
-    return;
-  }
-  const topCard = deck.splice(topCardIndex,1)[0];
-
-  // Set initial current color to top card color
-  const currentColor = topCard.color;
-
-  // Set first player to first in list
-  const currentTurn = playerIds[0];
-
-  // Update Firestore with game start info
-  await roomRef.update({
-    players: updatedPlayers,
-    deck,
-    discardPile: [topCard],
-    currentColor,
-    currentTurn,
-    gameState: 'started',
+  const roomRef = db.collection('rooms').doc(roomCode);
+  await roomRef.set({
+    maxPlayers,
+    players: {
+      [playerId]: { name: playerName, hand: [], calledUno: false }
+    },
+    gameState: 'waiting', // waiting, started, ended
+    currentTurn: null,
+    discardPile: [],
+    currentColor: null,
     direction: 1,
-    activityLog: [`Game started. First card: ${topCard.color} ${topCard.value}`],
+    activityLog: [],
+    deck,
+    chatLog: []
   });
+
+  showGameArea();
+  subscribeToRoom(roomCode);
 });
 
-// ======================= SUBSCRIBE TO ROOM UPDATES =======================
+document.getElementById('joinForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById('joinName').value.trim();
+  const codeInput = document.getElementById('joinCode').value.trim().toUpperCase();
+
+  if (!nameInput || !codeInput) {
+    showLobbyMessage("Enter valid name and room code.");
+    return;
+  }
+
+  const roomRef = db.collection('rooms').doc(codeInput);
+  const roomDoc = await roomRef.get();
+  if (!roomDoc.exists) {
+    showLobbyMessage("Room not found.");
+    return;
+  }
+
+  const roomData = roomDoc.data();
+  const playerCount = Object.keys(roomData.players).length;
+  if (playerCount >= roomData.maxPlayers) {
+    showLobbyMessage("Room is full.");
+    return;
+  }
+
+  playerName = nameInput;
+  playerId = generatePlayerId();
+  currentRoomId = codeInput;
+
+  await roomRef.update({
+    [`players.${playerId}`]: { name: playerName, hand: [], calledUno: false }
+  });
+
+  showGameArea();
+  subscribeToRoom(currentRoomId);
+});
+
+// Show the game UI and hide lobby
+function showGameArea() {
+  lobby.classList.add('hidden');
+  gameArea.classList.remove('hidden');
+}
+
+// ======================= SUBSCRIBE TO ROOM DATA & CHAT =======================
 
 function subscribeToRoom(roomCode) {
   const roomRef = db.collection('rooms').doc(roomCode);
@@ -286,17 +232,17 @@ function subscribeToRoom(roomCode) {
   if (gameStateUnsubscribe) gameStateUnsubscribe();
   if (chatUnsubscribe) chatUnsubscribe();
 
-  gameStateUnsubscribe = roomRef.onSnapshot((doc) => {
-    if (!doc.exists) {
-      alert('Room has been closed.');
+  gameStateUnsubscribe = roomRef.onSnapshot(doc => {
+    const data = doc.data();
+    if (!data) {
+      alert("Room closed.");
       leaveRoom();
       return;
     }
-    const data = doc.data();
-    updateGame(data);
+    updateGameUI(data);
   });
 
-  chatUnsubscribe = roomRef.collection('chat').orderBy('timestamp')
+  chatUnsubscribe = roomRef.collection('chatLog').orderBy('timestamp')
     .onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         if (change.type === 'added') {
@@ -306,460 +252,163 @@ function subscribeToRoom(roomCode) {
     });
 }
 
-// ======================= UPDATE UI =======================
+// ======================= UPDATE GAME UI =======================
 
-function updateGame(data) {
-  roomCodeText.textContent = currentRoomId;
-  yourNameText.textContent = playerName;
-  currentPlayerText.textContent = data.currentTurn ? data.players[data.currentTurn]?.name || '' : '';
-  playerCountText.textContent = Object.keys(data.players).length;
-  maxPlayersText.textContent = data.maxPlayers;
+function updateGameUI(data) {
+  // Room info
+  roomCodeDisplay.textContent = currentRoomId;
+  yourNameDisplay.textContent = playerName;
+  const playerIds = Object.keys(data.players);
+  playerCountDisplay.textContent = playerIds.length;
+  maxPlayersDisplay.textContent = data.maxPlayers;
+  currentTurnDisplay.textContent = data.currentTurn ? data.players[data.currentTurn].name : '—';
+  currentColorDisplay.textContent = data.currentColor || '—';
 
-  // Update your hand
-  if (data.players[playerId]) {
-    playerHandCards = data.players[playerId].hand || [];
-    renderPlayerHand();
+  // Render opponents
+  opponentsList.innerHTML = '';
+  playerIds.forEach(pid => {
+    if (pid === playerId) return;
+    const li = document.createElement('li');
+    li.textContent = `${data.players[pid].name} (${data.players[pid].hand.length})`;
+    opponentsList.appendChild(li);
+  });
+
+  // Render discard pile top card
+  const topCard = data.discardPile[data.discardPile.length - 1];
+  if (topCard) {
+    discardPileEl.textContent = topCard.value.toUpperCase();
+    discardPileEl.className = `card ${topCard.color}`;
+  } else {
+    discardPileEl.textContent = '';
+    discardPileEl.className = 'card';
   }
 
-  // Update opponents list
-  renderOpponents(data.players);
-
-  // Update current color
-  currentColorText.textContent = data.currentColor || 'None';
-
-  // Update discard pile top card
-  renderTopCard(data.discardPile[data.discardPile.length - 1]);
-
-  // Update activity log
-  if (data.activityLog) {
-    activityLog.textContent = data.activityLog.join('\n');
-    activityLog.scrollTop = activityLog.scrollHeight;
-  }
-}
-
-function renderPlayerHand() {
-  yourHand.innerHTML = '';
-  playerHandCards.forEach((card, index) => {
+  // Render player hand
+  const myHand = data.players[playerId]?.hand || [];
+  playerHand.innerHTML = '';
+  myHand.forEach((card, idx) => {
     const cardEl = document.createElement('div');
     cardEl.className = `card ${card.color}`;
     cardEl.textContent = card.value.toUpperCase();
+    cardEl.addEventListener('click', () => handlePlayCard(card));
+    playerHand.appendChild(cardEl);
+  });
 
-    // Disable clicking if not your turn or game not started
-    cardEl.style.cursor = 'pointer';
-
-    cardEl.addEventListener('click', () => playCard(index));
-
-    yourHand.appendChild(cardEl);
+  // Render activity log
+  activityLog.innerHTML = '';
+  data.activityLog.forEach(entry => {
+    logActivity(entry);
   });
 }
 
-function renderOpponents(players) {
-  opponentsList.innerHTML = '';
-  Object.entries(players).forEach(([id, player]) => {
-    if (id === playerId) return;
-    const li = document.createElement('li');
-    li.textContent = `${player.name} (${player.hand.length} cards)`;
-    opponentsList.appendChild(li);
-  });
-}
+// ======================= START, RESTART, AND LEAVE GAME =======================
 
-function renderTopCard(card) {
-  const topCardEl = document.getElementById('topCard');
-  if (!card) {
-    topCardEl.textContent = 'No cards';
-    topCardEl.className = 'card';
-    return;
-  }
-  topCardEl.textContent = card.value.toUpperCase();
-  topCardEl.className = `card ${card.color}`;
-}
-
-// ======================= GAMEPLAY FUNCTIONS =======================
-
-// Check if card can be played on top of discard pile card
-function canPlayCard(card, topCard, currentColor) {
-  return (
-    card.color === currentColor || 
-    card.value === topCard.value || 
-    card.color === 'wild'
-  );
-}
-
-// Play a card from player's hand by index
-async function playCard(cardIndex) {
+document.getElementById('startGameBtn').addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
-  const roomData = roomDoc.data();
+  const data = roomDoc.data();
+  const playerIds = Object.keys(data.players);
 
-  if (roomData.gameState !== 'started') {
-    alert('Game not started yet.');
+  if (playerIds.length < 2) {
+    alert("Need at least 2 players to start.");
+    return;
+  }
+  if (data.gameState !== 'waiting') {
+    alert("Game already started.");
     return;
   }
 
-  if (roomData.currentTurn !== playerId) {
-    alert("It's not your turn.");
-    return;
-  }
-
-  const players = roomData.players;
-  const playerData = players[playerId];
-  const hand = playerData.hand;
-
-  if (cardIndex < 0 || cardIndex >= hand.length) {
-    alert('Invalid card.');
-    return;
-  }
-
-  const cardToPlay = hand[cardIndex];
-  const topCard = roomData.discardPile[roomData.discardPile.length -1];
-  const currentColor = roomData.currentColor;
-
-  if (!canPlayCard(cardToPlay, topCard, currentColor)) {
-    alert('You cannot play this card.');
-    return;
-  }
-
-  // Remove card from hand
-  const newHand = [...hand];
-  newHand.splice(cardIndex,1);
-
-  // Add card to discard pile
-  const newDiscardPile = [...roomData.discardPile, cardToPlay];
-
-  // Activity log entry for play
-  let activityEntry = `${playerData.name} played ${cardToPlay.color} ${cardToPlay.value}`;
-
-  // Update players object with new hand
-  let updatedPlayers = { ...players };
-  updatedPlayers[playerId] = {
-    ...playerData,
-    hand: newHand,
-    calledUno: newHand.length === 1 ? false : playerData.calledUno, // Reset calledUno if not exactly one card
-  };
-
-  // Calculate next turn info
-  const playerIds = Object.keys(players);
-  const currentIndex = playerIds.indexOf(playerId);
-  let direction = roomData.direction;
-  let nextIndex = null;
-
-  // Helper to get next player index with wraparound
-  function getNextIndex(idx, dir) {
-    let len = playerIds.length;
-    let next = (idx + dir + len) % len;
-    return next;
-  }
-
-  // Initialize variables to update below
-  let nextTurnId = null;
-  let nextColor = cardToPlay.color === 'wild' ? null : cardToPlay.color;
-
-  // Check for special card effects
-  if (cardToPlay.color === 'wild') {
-    // For wild cards, show modal to pick color
-    pendingWildCard = {
-      roomData,
-      roomRef,
-      updatedPlayers,
-      newDiscardPile,
-      playerId,
-      cardToPlay,
-      activityEntry,
-      playerIds,
-      currentIndex,
-      direction,
+  // Shuffle deck and deal 7 cards each
+  let deck = [...data.deck];
+  const updatedPlayers = {};
+  playerIds.forEach(pid => {
+    updatedPlayers[pid] = {
+      ...data.players[pid],
+      hand: deck.splice(0, 7),
+      calledUno: false
     };
-    // Show color modal
-    colorModal.classList.remove('hidden');
-    return; // Wait for color choice to proceed
-  }
-
-  // For non-wild cards:
-
-  switch(cardToPlay.value) {
-    case 'skip':
-      activityEntry += ` - skipped next player`;
-      nextIndex = getNextIndex(currentIndex, direction);
-      // Skip next player by advancing turn index twice
-      nextTurnId = playerIds[getNextIndex(nextIndex, direction)];
-      break;
-
-    case 'reverse':
-      activityEntry += ` - reversed turn order`;
-      direction = direction * -1;
-      // If 2 players only, reverse acts like skip (next player loses turn)
-      if (playerIds.length === 2) {
-        nextIndex = getNextIndex(currentIndex, direction);
-        nextTurnId = playerIds[getNextIndex(nextIndex, direction)];
-      } else {
-        nextTurnId = playerIds[getNextIndex(currentIndex, direction)];
-      }
-      break;
-
-    case 'draw2':
-      activityEntry += ` - next player draws 2 cards and skips turn`;
-      nextIndex = getNextIndex(currentIndex, direction);
-      nextTurnId = playerIds[getNextIndex(nextIndex, direction)];
-
-      // Give next player 2 cards
-      let deck = [...roomData.deck];
-      if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
-
-      let drawnCards = deck.splice(0, 2);
-
-      updatedPlayers[nextTurnId] = {
-        ...players[nextTurnId],
-        hand: [...players[nextTurnId].hand, ...drawnCards],
-      };
-
-      // Update deck after drawing cards
-      await roomRef.update({ deck });
-      break;
-
-    default:
-      // Normal card played, next player turn normally
-      nextTurnId = playerIds[getNextIndex(currentIndex, direction)];
-      break;
-  }
-
-  if (!nextTurnId) {
-    // Default fallback (shouldn't happen)
-    nextTurnId = playerIds[getNextIndex(currentIndex, direction)];
-  }
-
-  // Update Firestore with all new data
-  await roomRef.update({
-    players: updatedPlayers,
-    discardPile: newDiscardPile,
-    currentColor: nextColor,
-    currentTurn: nextTurnId,
-    direction,
-    activityLog: firebase.firestore.FieldValue.arrayUnion(activityEntry),
-  });
-}
-
-// Reshuffle discard pile (except top card) into deck if deck runs out
-function reshuffleDiscardIntoDeck(deck, discardPile) {
-  if (deck.length > 0) return deck; // still have cards
-
-  // Take all but last discard card, shuffle and return as new deck
-  const topDiscard = discardPile[discardPile.length - 1];
-  let reshuffleCards = discardPile.slice(0, discardPile.length - 1);
-  reshuffleCards = shuffle(reshuffleCards);
-
-  return reshuffleCards;
-}
-
-// Called after player picks color for wild cards
-async function finishWildCardPlay(chosenColor) {
-  if (!pendingWildCard) return;
-
-  const {
-    roomData,
-    roomRef,
-    updatedPlayers,
-    newDiscardPile,
-    playerId,
-    cardToPlay,
-    activityEntry,
-    playerIds,
-    currentIndex,
-    direction,
-  } = pendingWildCard;
-
-  let nextTurnId = null;
-
-  // Update activity with chosen color
-  let updatedActivityEntry = `${activityEntry} - color chosen: ${chosenColor}`;
-
-  // For wild4 cards: next player draws 4 and loses turn
-  if (cardToPlay.value === 'wild4') {
-    nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
-
-    // Draw 4 cards for next player
-    let deck = [...roomData.deck];
-    if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
-
-    let drawnCards = deck.splice(0, 4);
-
-    updatedPlayers[nextTurnId] = {
-      ...roomData.players[nextTurnId],
-      hand: [...roomData.players[nextTurnId].hand, ...drawnCards],
-    };
-
-    await roomRef.update({ deck });
-
-    // Skip next player's turn by advancing turn another step
-    nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
-
-  } else {
-    // Wild card (no draw) - just next player's turn
-    nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
-  }
-
-  // Update Firestore with all info
-  await roomRef.update({
-    players: updatedPlayers,
-    discardPile: newDiscardPile,
-    currentColor: chosenColor,
-    currentTurn: nextTurnId,
-    direction,
-    activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry),
   });
 
-  pendingWildCard = null;
-  colorModal.classList.add('hidden');
-}
+  // Find a non-wild card to start discard pile
+  let firstCard;
+  do {
+    firstCard = deck.shift();
+    deck.push(firstCard);
+  } while (firstCard.color === 'wild');
 
-// Event listener for color buttons in modal
-colorButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const chosenColor = btn.getAttribute('data-color');
-    finishWildCardPlay(chosenColor);
-  });
-});
-
-closeModalBtn.addEventListener('click', () => {
-  colorModal.classList.add('hidden');
-  pendingWildCard = null;
-});
-
-// Draw card from deck and add to player's hand
-drawCardBtn.addEventListener('click', async () => {
-  if (!currentRoomId) return;
-  const roomRef = db.collection('rooms').doc(currentRoomId);
-  const roomDoc = await roomRef.get();
-  if (!roomDoc.exists) return;
-  const roomData = roomDoc.data();
-
-  if (roomData.currentTurn !== playerId) {
-    alert("It's not your turn.");
-    return;
-  }
-
-  let deck = [...roomData.deck];
-  let discardPile = [...roomData.discardPile];
-  if (deck.length === 0) {
-    deck = reshuffleDiscardIntoDeck(deck, discardPile);
-  }
-
-  if (deck.length === 0) {
-    alert('No cards left to draw!');
-    return;
-  }
-
-  // Draw one card
-  const drawnCard = deck.shift();
-
-  // Add card to player's hand
-  let updatedPlayers = { ...roomData.players };
-  updatedPlayers[playerId] = {
-    ...roomData.players[playerId],
-    hand: [...roomData.players[playerId].hand, drawnCard],
-  };
-
-  // Advance turn to next player (after drawing)
-  const playerIds = Object.keys(roomData.players);
-  const currentIndex = playerIds.indexOf(playerId);
-  const nextIndex = (currentIndex + roomData.direction + playerIds.length) % playerIds.length;
-  const nextTurnId = playerIds[nextIndex];
+  const currentColor = firstCard.color;
+  const currentTurn = playerIds[0]; // first player in list
 
   await roomRef.update({
     players: updatedPlayers,
     deck,
-    currentTurn: nextTurnId,
-    activityLog: firebase.firestore.FieldValue.arrayUnion(`${roomData.players[playerId].name} drew a card and ended their turn`),
+    discardPile: [firstCard],
+    currentColor,
+    currentTurn,
+    gameState: 'started',
+    direction: 1,
+    activityLog: [`Game started. Top card: ${firstCard.color} ${firstCard.value}`]
   });
 });
 
-// ======================= CALL UNO BUTTON =======================
-
-callUnoBtn.addEventListener('click', async () => {
+document.getElementById('restartGameBtn').addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
-  const roomData = roomDoc.data();
+  const data = roomDoc.data();
 
-  const playerData = roomData.players[playerId];
-  if (!playerData) return;
-
-  if (playerData.hand.length === 1) {
-    // Player calls UNO
-    const updatedPlayers = { ...roomData.players };
-    updatedPlayers[playerId] = {
-      ...playerData,
-      calledUno: true,
-    };
-    await roomRef.update({
-      players: updatedPlayers,
-      activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} called UNO!`),
-    });
-  } else {
-    alert("You can only call UNO when you have exactly one card!");
+  if (data.gameState !== 'ended') {
+    alert("Game is not over yet.");
+    return;
   }
-});
 
-// ======================= CHAT =======================
-
-sendChatBtn.addEventListener('click', async () => {
-  if (!currentRoomId) return;
-  const text = chatInput.value.trim();
-  if (!text) return;
-
-  const chatRef = db.collection('rooms').doc(currentRoomId).collection('chat');
-  await chatRef.add({
-    playerId,
-    playerName,
-    message: text,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  let deck = generateDeck();
+  const updatedPlayers = {};
+  Object.keys(data.players).forEach(pid => {
+    updatedPlayers[pid] = {
+      ...data.players[pid],
+      hand: [],
+      calledUno: false
+    };
   });
 
-  chatInput.value = '';
+  await roomRef.update({
+    players: updatedPlayers,
+    deck,
+    discardPile: [],
+    currentColor: null,
+    currentTurn: null,
+    gameState: 'waiting',
+    direction: 1,
+    activityLog: [],
+    chatLog: []
+  });
 });
-
-function appendChatMessage({ playerName, message }) {
-  const p = document.createElement('p');
-  p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
-  chatLog.appendChild(p);
-  chatLog.scrollTop = chatLog.scrollHeight;
-}
-
-// ======================= LEAVE ROOM =======================
 
 leaveRoomBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
-
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
-
-  const roomData = roomDoc.data();
-
-  // Remove player from players list
-  const updatedPlayers = { ...roomData.players };
+  const data = roomDoc.data();
+  const updatedPlayers = { ...data.players };
   delete updatedPlayers[playerId];
 
-  // If no players left, delete room
   if (Object.keys(updatedPlayers).length === 0) {
     await roomRef.delete();
   } else {
-    // Update room players
     await roomRef.update({ players: updatedPlayers });
-
-    // If it was this player's turn, move turn to next player
-    if (roomData.currentTurn === playerId) {
+    if (data.currentTurn === playerId) {
       const playerIds = Object.keys(updatedPlayers);
-      let idx = playerIds.indexOf(playerId);
-      if (idx === -1) idx = 0;
-      const nextTurnId = playerIds[(idx + roomData.direction + playerIds.length) % playerIds.length];
+      const nextIndex = (playerIds.indexOf(playerId) + data.direction + playerIds.length) % playerIds.length;
+      const nextTurnId = playerIds[nextIndex];
       await roomRef.update({ currentTurn: nextTurnId });
     }
   }
 
-  // Unsubscribe listeners
   if (gameStateUnsubscribe) gameStateUnsubscribe();
   if (chatUnsubscribe) chatUnsubscribe();
 
@@ -773,3 +422,338 @@ leaveRoomBtn.addEventListener('click', async () => {
   lobby.classList.remove('hidden');
   gameArea.classList.add('hidden');
 });
+
+function resetGameArea() {
+  opponentsList.innerHTML = '';
+  discardPileEl.textContent = '';
+  discardPileEl.className = 'card';
+  currentColorDisplay.textContent = '';
+  playerHand.innerHTML = '';
+  chatLog.innerHTML = '';
+  activityLog.innerHTML = '';
+  roomCodeDisplay.textContent = '';
+  yourNameDisplay.textContent = '';
+  currentTurnDisplay.textContent = '';
+  playerCountDisplay.textContent = '';
+  maxPlayersDisplay.textContent = '';
+}
+
+// ======================= PLAY CARD FUNCTION INCLUDING SPECIAL LOGIC =======================
+
+async function handlePlayCard(card) {
+  if (!currentRoomId || !playerId) return;
+
+  const roomRef = db.collection('rooms').doc(currentRoomId);
+  const roomDoc = await roomRef.get();
+  if (!roomDoc.exists) return;
+  const data = roomDoc.data();
+
+  // Ensure game is started and it's player's turn
+  if (data.gameState !== 'started') {
+    alert("Game has not started yet.");
+    return;
+  }
+  if (data.currentTurn !== playerId) {
+    alert("It's not your turn.");
+    return;
+  }
+
+  const playerData = data.players[playerId];
+  const hand = [...playerData.hand];
+  const cardIndex = hand.findIndex(c => c.color === card.color && c.value === card.value);
+  if (cardIndex === -1) {
+    alert("You don't have that card.");
+    return;
+  }
+
+  const topCard = data.discardPile[data.discardPile.length - 1];
+  const currentColor = data.currentColor;
+
+  if (!canPlayCard(card, topCard, currentColor)) {
+    alert("You can't play that card now.");
+    return;
+  }
+
+  // Remove card from hand
+  hand.splice(cardIndex, 1);
+  let updatedPlayers = { ...data.players };
+  updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
+
+  // Add to discard pile
+  const newDiscardPile = [...data.discardPile, card];
+
+  // Prepare variables for next turn
+  const playerIds = Object.keys(data.players);
+  const currentIndex = playerIds.indexOf(playerId);
+  let direction = data.direction;
+  let nextTurnId = null;
+  let activityEntry = `${playerData.name} played ${card.color} ${card.value}`;
+
+  // Special card handling
+  switch (card.value) {
+    case 'skip':
+      nextTurnId = playerIds[(currentIndex + 2 * direction + playerIds.length) % playerIds.length];
+      activityEntry += ` - skipped next player`;
+      break;
+
+    case 'reverse':
+      if (playerIds.length === 2) {
+        // Acts as skip if 2 players
+        nextTurnId = playerIds[(currentIndex + 2 * direction + playerIds.length) % playerIds.length];
+        activityEntry += ` - reversed (acts as skip)`;
+      } else {
+        direction = -direction;
+        nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
+        activityEntry += ` - reversed direction`;
+      }
+      break;
+
+    case 'draw2':
+      nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
+      activityEntry += ` - ${data.players[nextTurnId].name} draws 2`;
+      // Draw 2 cards for next player
+      let deck = [...data.deck];
+      if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
+      const drawn2 = deck.splice(0, 2);
+      updatedPlayers[nextTurnId] = {
+        ...data.players[nextTurnId],
+        hand: [...data.players[nextTurnId].hand, ...drawn2]
+      };
+      // Skip that player's turn
+      nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
+      await roomRef.update({ deck });
+      break;
+
+    case 'wild':
+      // Wait for color pick
+      pendingWildCard = {
+        data, roomRef, updatedPlayers, newDiscardPile,
+        playerId, card, activityEntry, playerIds,
+        currentIndex, direction
+      };
+      colorModal.classList.remove('hidden');
+      return; // exit, wait for color choice
+
+    case 'wild4':
+      // Wait for color pick and 4-card draw next
+      pendingWildCard = {
+        data, roomRef, updatedPlayers, newDiscardPile,
+        playerId, card, activityEntry, playerIds,
+        currentIndex, direction
+      };
+      colorModal.classList.remove('hidden');
+      return;
+
+    default:
+      // Normal card => next player's turn
+      nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
+      break;
+  }
+
+  // Update Firestore with changes
+  await roomRef.update({
+    players: updatedPlayers,
+    discardPile: newDiscardPile,
+    currentColor: card.color === 'wild' ? data.currentColor : card.color,
+    currentTurn: nextTurnId,
+    direction,
+    activityLog: firebase.firestore.FieldValue.arrayUnion(activityEntry)
+  });
+}
+
+// Called after player picks a color for wild cards
+async function finishWildCardPlay(chosenColor) {
+  if (!pendingWildCard) return;
+  const {
+    data, roomRef, updatedPlayers, newDiscardPile,
+    playerId, card, activityEntry, playerIds,
+    currentIndex, direction
+  } = pendingWildCard;
+
+  let nextTurnId = null;
+  let updatedActivityEntry = `${activityEntry} - color chosen: ${chosenColor}`;
+
+  if (card.value === 'wild4') {
+    // Next player draws 4 and skip
+    nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
+    updatedActivityEntry += `, ${data.players[nextTurnId].name} draws 4`;
+
+    // Draw 4 for next player
+    let deck = [...data.deck];
+    if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
+    const drawn4 = deck.splice(0, 4);
+    updatedPlayers[nextTurnId] = {
+      ...data.players[nextTurnId],
+      hand: [...data.players[nextTurnId].hand, ...drawn4]
+    };
+
+    await roomRef.update({ deck });
+
+    // Skip that player's turn
+    nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
+  } else {
+    // Regular wild => next player's turn
+    nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
+  }
+
+  // Write all updates to Firestore
+  await roomRef.update({
+    players: updatedPlayers,
+    discardPile: newDiscardPile,
+    currentColor: chosenColor,
+    currentTurn: nextTurnId,
+    direction,
+    activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry)
+  });
+
+  pendingWildCard = null;
+  colorModal.classList.add('hidden');
+}
+
+// ======================= DRAW CARD FUNCTION =======================
+
+drawCardBtn.addEventListener('click', async () => {
+  if (!currentRoomId) return;
+  const roomRef = db.collection('rooms').doc(currentRoomId);
+  const roomDoc = await roomRef.get();
+  if (!roomDoc.exists) return;
+  const data = roomDoc.data();
+
+  if (data.currentTurn !== playerId) {
+    alert("It's not your turn.");
+    return;
+  }
+
+  let deck = [...data.deck];
+  let discardPile = [...data.discardPile];
+  if (deck.length === 0) {
+    deck = reshuffleDiscardIntoDeck(deck, discardPile);
+  }
+
+  if (deck.length === 0) {
+    alert('No cards left to draw!');
+    return;
+  }
+
+  const drawnCard = deck.shift();
+  const updatedPlayers = { ...data.players };
+  updatedPlayers[playerId] = {
+    ...data.players[playerId],
+    hand: [...data.players[playerId].hand, drawnCard]
+  };
+
+  const playerIds = Object.keys(data.players);
+  const currentIndex = playerIds.indexOf(playerId);
+  const nextTurnId = playerIds[(currentIndex + data.direction + playerIds.length) % playerIds.length];
+
+  await roomRef.update({
+    players: updatedPlayers,
+    deck,
+    currentTurn: nextTurnId,
+    activityLog: firebase.firestore.FieldValue.arrayUnion(`${data.players[playerId].name} drew a card and ended their turn`)
+  });
+});
+
+// ======================= CALL UNO FUNCTION =======================
+
+callUnoBtn.addEventListener('click', async () => {
+  if (!currentRoomId) return;
+  const roomRef = db.collection('rooms').doc(currentRoomId);
+  const roomDoc = await roomRef.get();
+  if (!roomDoc.exists) return;
+  const data = roomDoc.data();
+
+  const playerData = data.players[playerId];
+  if (!playerData) return;
+
+  if (playerData.hand.length === 1) {
+    const updatedPlayers = { ...data.players };
+    updatedPlayers[playerId] = {
+      ...playerData,
+      calledUno: true
+    };
+    await roomRef.update({
+      players: updatedPlayers,
+      activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} called UNO!`)
+    });
+  } else {
+    alert("You can only call UNO when you have exactly one card!");
+  }
+});
+
+// ======================= CHAT FUNCTIONALITY =======================
+
+sendChatBtn.addEventListener('click', async () => {
+  if (!currentRoomId || !playerId) return;
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  const chatRef = db.collection('rooms').doc(currentRoomId).collection('chatLog');
+  await chatRef.add({
+    playerId,
+    playerName,
+    message: msg,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  chatInput.value = '';
+});
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendChatBtn.click();
+  }
+});
+
+// ======================= LEAVE ROOM FUNCTION =======================
+
+leaveRoomBtn.addEventListener('click', async () => {
+  if (!currentRoomId || !playerId) return;
+  const roomRef = db.collection('rooms').doc(currentRoomId);
+  const roomDoc = await roomRef.get();
+  if (!roomDoc.exists) return;
+  const data = roomDoc.data();
+
+  const updatedPlayers = { ...data.players };
+  delete updatedPlayers[playerId];
+
+  if (Object.keys(updatedPlayers).length === 0) {
+    await roomRef.delete();
+  } else {
+    await roomRef.update({ players: updatedPlayers });
+    if (data.currentTurn === playerId) {
+      const playerIds = Object.keys(updatedPlayers);
+      const idx = playerIds.indexOf(playerId) === -1 ? 0 : playerIds.indexOf(playerId);
+      const nextTurnId = playerIds[(idx + data.direction + playerIds.length) % playerIds.length];
+      await roomRef.update({ currentTurn: nextTurnId });
+    }
+  }
+
+  if (gameStateUnsubscribe) gameStateUnsubscribe();
+  if (chatUnsubscribe) chatUnsubscribe();
+
+  currentRoomId = null;
+  playerId = null;
+  playerName = null;
+  pendingWildCard = null;
+
+  resetGameArea();
+  lobby.classList.remove('hidden');
+  gameArea.classList.add('hidden');
+});
+
+function resetGameArea() {
+  opponentsList.innerHTML = '';
+  discardPileEl.textContent = '';
+  discardPileEl.className = 'card';
+  currentColorDisplay.textContent = '';
+  playerHand.innerHTML = '';
+  chatLog.innerHTML = '';
+  activityLog.innerHTML = '';
+  roomCodeDisplay.textContent = '';
+  yourNameDisplay.textContent = '';
+  currentTurnDisplay.textContent = '';
+  playerCountDisplay.textContent = '';
+  maxPlayersDisplay.textContent = '';
+}

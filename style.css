@@ -3,72 +3,88 @@ body, html {
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100%;
   margin: 0;
   padding: 0 20px 20px 20px;
 }
 
 h1, h2, h3 {
-  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* ======== LOBBY ======== */
+#lobby {
+  max-width: 400px;
+  margin: 50px auto;
   text-align: center;
 }
 
 form {
   background: #222;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 form input, form button {
-  display: block;
   width: 100%;
-  margin: 10px 0;
-  padding: 8px 10px;
-  font-size: 16px;
+  padding: 10px;
+  margin: 8px 0;
   border-radius: 5px;
   border: none;
+  font-size: 1rem;
 }
 
 form button {
-  background-color: #007bff;
+  background-color: #1e88e5;
   color: white;
   cursor: pointer;
-  max-width: 160px;
-  margin-left: auto;
-  margin-right: auto;
+  transition: background-color 0.3s ease;
 }
 
+form button:hover {
+  background-color: #1565c0;
+}
+
+#lobbyMessage {
+  color: #f44336;
+  margin-top: 10px;
+}
+
+/* ======== GAME AREA ======== */
 .hidden {
   display: none !important;
 }
 
 #gameArea {
-  max-width: 960px;
-  margin: 0 auto;
+  max-width: 900px;
+  margin: 20px auto;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+#roomInfo {
+  background-color: #2a2a2a;
   padding: 15px;
-  background-color: #222;
-  border-radius: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 #roomInfo p {
   margin: 6px 0;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 #roomInfo button {
-  max-width: 160px;
-  margin: 5px 10px 5px 0;
-  padding: 10px;
-  font-weight: 700;
-  border-radius: 7px;
+  padding: 8px 16px;
+  margin: 8px 10px 0 0;
   border: none;
-  cursor: pointer;
+  border-radius: 6px;
+  background-color: #1e88e5;
   color: white;
-  background-color: #1a73e8;
+  cursor: pointer;
+  font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
@@ -77,229 +93,215 @@ form button {
 }
 
 #leaveRoomBtn {
-  background-color: #b33;
+  background-color: #f44336;
 }
 
 #roomInfo button:hover {
-  background-color: #155ab4;
+  background-color: #1565c0;
 }
 
-#opponentsArea, #playerHandArea, #chatArea, #activityLogArea {
-  margin-top: 20px;
-  background-color: #1e1e1e;
+/* ======== OPPONENTS ======== */
+#opponentsArea {
+  background-color: #2a2a2a;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
-
 #opponentsList {
-  list-style-type: none;
-  padding-left: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-
 #opponentsList li {
-  margin: 8px 0;
-  font-weight: 600;
+  margin: 6px 0;
+  font-size: 1rem;
 }
 
+/* ======== DISCARD PILE ======== */
+#discardArea {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+}
 #discardPile {
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-#topCard {
   width: 60px;
   height: 90px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.8);
-  font-weight: bold;
-  font-size: 22px;
-  color: white;
-  display: flex;
+  background-color: #333;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
   user-select: none;
-  cursor: default;
 }
 
-#currentColorDisplay {
-  min-width: 80px;
-  height: 30px;
-  border-radius: 5px;
-  background-color: transparent;
-  border: 2px solid #eee;
-  color: #eee;
-  font-weight: 700;
-  font-size: 18px;
+/* ======== PLAYER HAND ======== */
+#handArea {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
   text-align: center;
-  line-height: 30px;
-  user-select: none;
 }
-
 #playerHand {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 10px;
   margin-top: 10px;
 }
-
 .card {
   width: 60px;
   height: 90px;
   border-radius: 8px;
-  margin: 5px;
-  font-weight: bold;
-  font-size: 18px;
-  color: white;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 0 6px rgba(0,0,0,0.5);
   transition: transform 0.2s ease;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  color: white;
 }
-
 .card:hover {
   transform: scale(1.1);
 }
-
 .card.red { background-color: #e53935; }
+.card.yellow { background-color: #fdd835; color: #333; }
 .card.green { background-color: #43a047; }
 .card.blue { background-color: #1e88e5; }
-.card.yellow { background-color: #fbc02d; color: black; }
-.card.wild { background: linear-gradient(45deg, #000, #555); }
+.card.wild { background-color: #7c4dff; }
 
-#drawCardBtn, #callUnoBtn {
-  max-width: 160px;
-  padding: 8px 15px;
-  margin: 10px 5px;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 7px;
+/* ======== CONTROLS ======== */
+#handArea button {
+  padding: 8px 20px;
+  margin: 10px 10px 0 0;
   border: none;
-  cursor: pointer;
+  border-radius: 6px;
+  background-color: #4caf50;
   color: white;
-  background-color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
-
-#drawCardBtn:hover, #callUnoBtn:hover {
-  background-color: #0056b3;
+#handArea button:hover {
+  background-color: #388e3c;
 }
 
-#chatArea, #activityLogArea {
-  max-height: 250px;
-  overflow-y: auto;
-  background-color: #1b1b1b;
-}
-
-#chatLog, #activityLog {
-  height: 160px;
-  overflow-y: auto;
-  background-color: #222;
-  padding: 10px;
+/* ======== CHAT AREA ======== */
+#chatArea {
+  background-color: #2a2a2a;
+  padding: 15px;
   border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.3;
-  margin-bottom: 10px;
-  user-select: text;
+  margin-bottom: 20px;
 }
-
-#chatInput {
-  width: calc(100% - 90px);
-  padding: 8px 10px;
-  border-radius: 5px;
-  border: none;
-  font-size: 14px;
-  color: #eee;
+#chatLog {
   background-color: #333;
-  margin-right: 5px;
+  height: 150px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
 }
-
-#sendChatBtn {
-  width: 70px;
+#chatLog p {
+  margin: 6px 0;
+}
+#chatInput {
+  width: 70%;
   padding: 8px;
-  border-radius: 5px;
   border: none;
-  background-color: #28a745;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#sendChatBtn:hover {
-  background-color: #1e7e34;
-}
-
-/* Modal backdrop */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.7);
-  align-items: center;
-  justify-content: center;
-}
-
-.modal.show, .modal:not(.hidden) {
-  display: flex;
-}
-
-.modal-content {
-  background-color: #111;
-  padding: 20px;
-  border-radius: 10px;
-  width: 320px;
-  max-width: 90vw;
+  border-radius: 6px 0 0 6px;
+  background-color: #444;
   color: #eee;
-  position: relative;
+  font-size: 0.9rem;
+}
+#sendChatBtn {
+  width: 25%;
+  padding: 9px 0;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  background-color: #1e88e5;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+#sendChatBtn:hover {
+  background-color: #1565c0;
+}
+
+/* ======== ACTIVITY LOG ======== */
+#activityArea {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+}
+#activityLog {
+  background-color: #333;
+  height: 150px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+#activityLog p {
+  margin: 6px 0;
+}
+
+/* ======== COLOR MODAL ======== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+.modal.hidden {
+  display: none;
+}
+.modalContent {
+  background-color: #2a2a2a;
+  padding: 20px 30px;
+  border-radius: 10px;
   text-align: center;
 }
-
-.close-btn {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-size: 24px;
-  background: none;
-  border: none;
-  color: #f44336;
-  font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-}
-
-.color-options {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 15px;
-  flex-wrap: wrap;
-}
-
-.color-btn {
-  width: 45px;
-  height: 45px;
+.colorBtn {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  margin: 5px;
   border: none;
+  margin: 10px;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
-
-.color-btn:hover {
+.colorBtn:hover {
   transform: scale(1.2);
 }
-
-.color-btn.red { background-color: #ff4b4b; }
-.color-btn.green { background-color: #4bff4b; }
-.color-btn.blue { background-color: #4b4bff; }
-.color-btn.yellow { background-color: #ffec4b; }
+.colorBtn.red { background-color: #e53935; }
+.colorBtn.yellow { background-color: #fdd835; }
+.colorBtn.green { background-color: #43a047; }
+.colorBtn.blue { background-color: #1e88e5; }
+.closeModalBtn {
+  margin-top: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #f44336;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.closeModalBtn:hover {
+  background-color: #c62828;
+}

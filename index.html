@@ -4,32 +4,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Realtime Multiplayer UNO</title>
+  <title>UnoMercy Online UNO Game</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div id="lobby">
-    <h1>UNO Game Lobby</h1>
-    <form id="createRoomForm">
-      <h2>Create Room</h2>
-      <input type="text" id="createName" placeholder="Your name" required />
-      <input type="number" id="maxPlayers" placeholder="Max players (2-10)" min="2" max="10" required />
-      <button type="submit">Create Room</button>
-    </form>
 
-    <form id="joinRoomForm">
+  <!-- ======== LOBBY SECTION ======== -->
+  <div id="lobby">
+    <h1>Welcome to UnoMercy</h1>
+    <div id="createSection">
+      <h2>Create Room</h2>
+      <form id="createForm">
+        <input type="text" id="createName" placeholder="Your Name" required />
+        <input type="number" id="maxPlayers" placeholder="Max Players (2-10)" min="2" max="10" required />
+        <button type="submit">Create Room</button>
+      </form>
+    </div>
+    <div id="joinSection">
       <h2>Join Room</h2>
-      <input type="text" id="joinName" placeholder="Your name" required />
-      <input type="text" id="joinRoomCode" placeholder="Room code" required />
-      <button type="submit">Join Room</button>
-    </form>
+      <form id="joinForm">
+        <input type="text" id="joinName" placeholder="Your Name" required />
+        <input type="text" id="joinCode" placeholder="Room Code" required />
+        <button type="submit">Join Room</button>
+      </form>
+    </div>
+    <p id="lobbyMessage"></p>
   </div>
 
+  <!-- ======== GAME AREA ======== -->
   <div id="gameArea" class="hidden">
     <div id="roomInfo">
       <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
       <p><strong>Your Name:</strong> <span id="yourNameDisplay"></span></p>
-      <p><strong>Current Player's Turn:</strong> <span id="currentTurnDisplay"></span></p>
+      <p><strong>Current Turn:</strong> <span id="currentTurnDisplay"></span></p>
       <p><strong>Players:</strong> <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
       <button id="startGameBtn">Start Game</button>
       <button id="restartGameBtn">Restart Game</button>
@@ -41,13 +51,13 @@
       <ul id="opponentsList"></ul>
     </div>
 
-    <div id="discardPile">
+    <div id="discardArea">
       <h3>Discard Pile</h3>
-      <div id="topCard" class="card"></div>
-      <div id="currentColorDisplay"></div>
+      <div id="discardPile" class="card"></div>
+      <p><strong>Current Color:</strong> <span id="currentColorDisplay"></span></p>
     </div>
 
-    <div id="playerHandArea">
+    <div id="handArea">
       <h3>Your Hand</h3>
       <div id="playerHand"></div>
       <button id="drawCardBtn">Draw Card</button>
@@ -57,44 +67,30 @@
     <div id="chatArea">
       <h3>Chat</h3>
       <div id="chatLog"></div>
-      <input type="text" id="chatInput" placeholder="Type a message" autocomplete="off" />
+      <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
       <button id="sendChatBtn">Send</button>
     </div>
 
-    <div id="activityLogArea">
+    <div id="activityArea">
       <h3>Activity Log</h3>
       <div id="activityLog"></div>
     </div>
   </div>
 
-  <!-- Color picker modal -->
+  <!-- ======== COLOR PICKER MODAL ======== -->
   <div id="colorModal" class="modal hidden">
-    <div class="modal-content">
-      <button id="closeModalBtn" class="close-btn">&times;</button>
-      <p>Choose a color:</p>
-      <div class="color-options">
-        <button class="color-btn red" data-color="red"></button>
-        <button class="color-btn green" data-color="green"></button>
-        <button class="color-btn blue" data-color="blue"></button>
-        <button class="color-btn yellow" data-color="yellow"></button>
+    <div class="modalContent">
+      <button id="closeModalBtn" class="closeModalBtn">&times;</button>
+      <h3>Select a Color</h3>
+      <div id="colorOptions">
+        <button class="colorBtn red" data-color="red">Red</button>
+        <button class="colorBtn yellow" data-color="yellow">Yellow</button>
+        <button class="colorBtn green" data-color="green">Green</button>
+        <button class="colorBtn blue" data-color="blue">Blue</button>
       </div>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
-
-  <script>
-    // Send chat on Enter key
-    const chatInput = document.getElementById("chatInput");
-    const sendChatBtn = document.getElementById("sendChatBtn");
-    chatInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendChatBtn.click();
-      }
-    });
-  </script>
 </body>
 </html>
