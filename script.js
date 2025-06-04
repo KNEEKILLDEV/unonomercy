@@ -271,6 +271,8 @@ function playCard(card, chosenColor) {
     if (cardIdx === -1) return; // Card not in hand
 
     playerHandArr.splice(cardIdx, 1);
+    // Update handCount
+    room.players[playerIndex].handCount = playerHandArr.length;
 
     // Update discard pile
     if (!room.discardPileBackup) room.discardPileBackup = [];
@@ -469,6 +471,10 @@ function listenRoom() {
     document.getElementById("currentPlayerDisplay").textContent =
       roomData.currentPlayer === playerId ? "You" : roomData.currentPlayer;
 
+    // Update player count display
+    const countEl = document.getElementById("playerCountDisplay");
+    countEl.textContent = (roomData.players || []).length;
+
     players = roomData.players || [];
     seatOrder = roomData.seatOrder || [];
     direction = roomData.direction || 1;
@@ -494,7 +500,12 @@ function listenRoom() {
     renderOpponents();
     renderDiscardPile();
 
-    // Enable/disable buttons
+    // Disable/hide Start Game button after game starts
+    if (roomData.status === "started") {
+      startGameBtn.disabled = true;
+    }
+
+    // Enable/disable Draw & UNO buttons
     drawCardBtn.disabled = !canPlayCard;
     unoBtn.disabled = !canPlayCard || unoCalled || hand.length !== 2;
 
@@ -663,3 +674,6 @@ restartBtn.onclick    = () => {
     document.getElementById("game-area").classList.add("hidden");
   }
 };
+
+// Start listening to Firestore if you reload and have already joined a room
+// (Optional: implement persist logic if needed)
