@@ -1,3 +1,4 @@
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -8,324 +9,334 @@ const firebaseConfig = {
   appId: "1:243436738671:web:8bfad4bc693acde225959a",
   measurementId: "G-2DP7FTJPCR"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-let roomRef = null;
-let roomListener = null;
-let playerName = "";
-let playerIndex = -1;
-let isCreator = false;
-let roomId = "";
-let gameState = null;
 
-// DOM Elements
-const createRoomBtn = document.getElementById("createRoomBtn");
-const joinRoomBtn = document.getElementById("joinRoomBtn");
-const startGameBtn = document.getElementById("startGameBtn");
-const restartGameBtn = document.getElementById("restartGameBtn");
-const leaveRoomBtn = document.getElementById("leaveRoomBtn");
-const drawCardBtn = document.getElementById("drawCardBtn");
-const callUnoBtn = document.getElementById("callUnoBtn");
-const chatInput = document.getElementById("chatInput");
-const sendChatBtn = document.getElementById("sendChatBtn");
+// Globals
+let roomRef, unsubscribe;
+let playerId = Date.now().toString();
+let playerName = '';
+let roomCode = '';
+let isRoomCreator = false;
 
-const roomCodeText = document.getElementById("roomCodeText");
-const yourNameText = document.getElementById("yourNameText");
-const currentPlayerText = document.getElementById("currentPlayerText");
-const playerCountText = document.getElementById("playerCountText");
-const yourHand = document.getElementById("yourHand");
-const opponentsArea = document.getElementById("opponentsArea");
-const topCard = document.getElementById("topCard");
-const currentColorText = document.getElementById("currentColorText");
-const activityLog = document.getElementById("activityLog");
-const chatLog = document.getElementById("chatLog");
-const colorModal = document.getElementById("colorModal");
-const closeModalBtn = document.getElementById("closeModalBtn");
+// Elements
+const gameArea = document.getElementById('gameArea');
+const roomForms = document.getElementById('roomForms');
+const roomCodeText = document.getElementById('roomCodeText');
+const yourNameText = document.getElementById('yourNameText');
+const currentPlayerText = document.getElementById('currentPlayerText');
+const playerCountText = document.getElementById('playerCountText');
+const yourHand = document.getElementById('yourHand');
+const opponentsArea = document.getElementById('opponentsArea');
+const topCard = document.getElementById('topCard');
+const currentColorText = document.getElementById('currentColorText');
+const drawCardBtn = document.getElementById('drawCardBtn');
+const callUnoBtn = document.getElementById('callUnoBtn');
+const activityLog = document.getElementById('activityLog');
+const chatLog = document.getElementById('chatLog');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+const startGameBtn = document.getElementById('startGameBtn');
+const restartGameBtn = document.getElementById('restartGameBtn');
+const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+const colorModal = document.getElementById('colorModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const colorButtons = document.querySelectorAll('.color-btn');
 
-// Create Room
-createRoomBtn.onclick = async () => {
-  playerName = document.getElementById("createName").value.trim();
-  const maxPlayers = parseInt(document.getElementById("maxPlayers").value.trim());
-  if (!playerName || isNaN(maxPlayers) || maxPlayers < 2) return alert("Invalid input");
+// Helper
+function logActivity(msg) {
+  const p = document.createElement('p');
+  p.textContent = msg;
+  activityLog.appendChild(p);
+  activityLog.scrollTop = activityLog.scrollHeight;
+}
 
-  roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
-  roomRef = db.collection("rooms").doc(roomId);
-
-  const roomData = {
-    players: [{ name: playerName, hand: [], unoCalled: false }],
-    creator: playerName,
-    maxPlayers,
-    gameStarted: false,
+// Join/Create
+document.getElementById('createRoomBtn').onclick = async () => {
+  const name = document.getElementById('createName').value.trim();
+  const max = parseInt(document.getElementById('maxPlayers').value.trim());
+  if (!name || !max || max < 2 || max > 10) return alert("Invalid input");
+  roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+  roomRef = db.collection("rooms").doc(roomCode);
+  await roomRef.set({
+    players: [{ id: playerId, name, hand: [], uno: false }],
+    maxPlayers: max,
+    creator: playerId,
+    state: 'lobby',
     deck: [],
-    discardPile: [],
-    currentPlayer: 0,
-    currentColor: "",
-    direction: 1,
-    chat: [],
+    discard: [],
+    currentColor: null,
+    turnIndex: 0,
     logs: [],
-  };
-
-  await roomRef.set(roomData);
-  isCreator = true;
-  playerIndex = 0;
-  joinRoom();
-};
-
-// Join Room
-joinRoomBtn.onclick = async () => {
-  playerName = document.getElementById("joinName").value.trim();
-  roomId = document.getElementById("joinRoomCode").value.trim().toUpperCase();
-  if (!playerName || !roomId) return alert("Invalid input");
-
-  roomRef = db.collection("rooms").doc(roomId);
-  const doc = await roomRef.get();
-  if (!doc.exists) return alert("Room does not exist");
-
-  const data = doc.data();
-  if (data.players.length >= data.maxPlayers) return alert("Room full");
-  if (data.gameStarted) return alert("Game already started");
-
-  const players = data.players;
-  players.push({ name: playerName, hand: [], unoCalled: false });
-  await roomRef.update({ players });
-
-  playerIndex = players.length - 1;
-  isCreator = false;
-  joinRoom();
-};
-
-function joinRoom() {
-  document.getElementById("roomForms").classList.add("hidden");
-  document.getElementById("gameArea").classList.remove("hidden");
-  roomCodeText.textContent = roomId;
-  yourNameText.textContent = playerName;
-
-  if (roomListener) roomListener();
-  roomListener = roomRef.onSnapshot(snapshot => {
-    if (!snapshot.exists) return;
-    gameState = snapshot.data();
-    updateUI();
+    chat: []
   });
+  isRoomCreator = true;
+  playerName = name;
+  joinRoom();
+};
+
+document.getElementById('joinRoomBtn').onclick = async () => {
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinRoomCode').value.trim().toUpperCase();
+  if (!name || !code) return alert("Invalid input");
+  roomCode = code;
+  roomRef = db.collection("rooms").doc(roomCode);
+  const roomSnap = await roomRef.get();
+  if (!roomSnap.exists) return alert("Room not found");
+  const room = roomSnap.data();
+  if (room.players.find(p => p.id === playerId)) return;
+  if (room.players.length >= room.maxPlayers) return alert("Room full");
+  room.players.push({ id: playerId, name, hand: [], uno: false });
+  await roomRef.update({ players: room.players });
+  isRoomCreator = room.creator === playerId;
+  playerName = name;
+  joinRoom();
+};
+
+async function joinRoom() {
+  roomForms.classList.add('hidden');
+  gameArea.classList.remove('hidden');
+  roomCodeText.textContent = roomCode;
+  yourNameText.textContent = playerName;
+  unsubscribe = roomRef.onSnapshot(updateGame);
 }
 
-function updateUI() {
-  if (!gameState) return;
+// Game logic
+function updateGame(doc) {
+  const data = doc.data();
+  const players = data.players;
+  const me = players.find(p => p.id === playerId);
+  if (!me) return location.reload();
 
-  currentPlayerText.textContent = gameState.players[gameState.currentPlayer]?.name || "";
-  playerCountText.textContent = `${gameState.players.length}/${gameState.maxPlayers}`;
-  currentColorText.textContent = gameState.currentColor;
+  playerCountText.textContent = `${players.length}/${data.maxPlayers}`;
+  currentPlayerText.textContent = players[data.turnIndex]?.name || '—';
 
-  // Only creator sees start
-  startGameBtn.style.display = isCreator && !gameState.gameStarted ? "inline-block" : "none";
+  // Game buttons
+  startGameBtn.classList.toggle('hidden', !isRoomCreator || data.state !== 'lobby');
+  restartGameBtn.classList.toggle('hidden', !isRoomCreator || data.state !== 'ended');
 
-  updateHand();
-  updateOpponents();
-  updateDiscard();
-  updateLogs();
-  updateChat();
-}
-
-function updateHand() {
-  yourHand.innerHTML = "";
-  const hand = gameState.players[playerIndex].hand;
-  hand.forEach((card, idx) => {
-    const div = document.createElement("div");
+  // Cards
+  yourHand.innerHTML = '';
+  me.hand.forEach((card, i) => {
+    const div = document.createElement('div');
     div.className = `card ${card.color}`;
     div.textContent = card.value;
-    div.onclick = () => playCard(card, idx);
+    div.onclick = () => playCard(i);
     yourHand.appendChild(div);
   });
-}
 
-function updateOpponents() {
-  opponentsArea.innerHTML = "";
-  gameState.players.forEach((p, idx) => {
-    if (idx === playerIndex) return;
-    const div = document.createElement("div");
-    div.innerHTML = `<b>${p.name}</b><br>${p.hand.length} cards`;
-    opponentsArea.appendChild(div);
+  // Opponents
+  opponentsArea.innerHTML = '';
+  players.forEach(p => {
+    if (p.id !== playerId) {
+      const div = document.createElement('div');
+      div.innerHTML = `<p>${p.name} (${p.hand.length})</p>`;
+      opponentsArea.appendChild(div);
+    }
   });
-}
 
-function updateDiscard() {
-  const top = gameState.discardPile[gameState.discardPile.length - 1];
+  // Discard
+  const top = data.discard[data.discard.length - 1];
   if (top) {
-    topCard.className = `card ${gameState.currentColor}`;
     topCard.textContent = top.value;
+    topCard.className = `card ${top.color}`;
   } else {
-    topCard.textContent = "";
+    topCard.textContent = '';
+    topCard.className = 'card';
   }
+  currentColorText.textContent = data.currentColor || '—';
+
+  // Logs
+  activityLog.innerHTML = '';
+  data.logs?.forEach(msg => logActivity(msg));
+
+  // Chat
+  chatLog.innerHTML = '';
+  data.chat?.forEach(c => {
+    const p = document.createElement('p');
+    p.textContent = `${c.name}: ${c.text}`;
+    chatLog.appendChild(p);
+  });
+  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function updateLogs() {
-  activityLog.innerHTML = "";
-  (gameState.logs || []).slice(-10).forEach(log => {
-    const div = document.createElement("div");
-    div.textContent = log;
-    activityLog.appendChild(div);
+// Deck / shuffle
+function getDeck() {
+  const colors = ['red', 'green', 'blue', 'yellow'];
+  const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','+2'];
+  let deck = [];
+  colors.forEach(color => {
+    deck.push({ color, value: '0' });
+    for (let i = 0; i < 2; i++) {
+      values.slice(1).forEach(value => deck.push({ color, value }));
+    }
   });
+  for (let i = 0; i < 4; i++) deck.push({ color: 'wild', value: 'wild' }, { color: 'wild', value: '+4' });
+  return shuffle(deck);
 }
-
-function updateChat() {
-  chatLog.innerHTML = "";
-  (gameState.chat || []).slice(-20).forEach(msg => {
-    const div = document.createElement("div");
-    div.textContent = msg;
-    chatLog.appendChild(div);
-  });
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 // Start Game
 startGameBtn.onclick = async () => {
-  if (!isCreator || gameState.gameStarted) return;
+  const snap = await roomRef.get();
+  const data = snap.data();
+  if (!isRoomCreator || data.state !== 'lobby') return;
 
-  const fullDeck = [];
-  const colors = ["red", "yellow", "green", "blue"];
-  colors.forEach(color => {
-    for (let i = 0; i <= 9; i++) fullDeck.push({ color, value: i });
-    ["Skip", "Reverse", "+2"].forEach(action => fullDeck.push({ color, value: action }));
-  });
-  for (let i = 0; i < 4; i++) {
-    fullDeck.push({ color: "wild", value: "Wild" });
-    fullDeck.push({ color: "wild", value: "+4" });
-  }
+  let deck = getDeck();
+  let discard;
+  do { discard = deck.pop(); } while (discard.color === 'wild');
 
-  shuffle(fullDeck);
-  const players = gameState.players.map(p => ({ ...p, hand: fullDeck.splice(0, 7) }));
-  const discardPile = [fullDeck.pop()];
-  const currentColor = discardPile[0].color;
+  const players = data.players.map(p => ({
+    ...p,
+    hand: deck.splice(0, 7),
+    uno: false
+  }));
 
   await roomRef.update({
-    gameStarted: true,
+    deck,
+    discard: [discard],
+    currentColor: discard.color,
     players,
-    deck: fullDeck,
-    discardPile,
-    currentColor,
-    logs: firebase.firestore.FieldValue.arrayUnion("Game started.")
+    state: 'playing',
+    turnIndex: 0,
+    logs: [`Game started. ${players[0].name}'s turn.`]
   });
 };
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
+// Play card
+function playCard(index) {
+  roomRef.get().then(doc => {
+    const data = doc.data();
+    if (data.state !== 'playing') return;
+    const meIndex = data.players.findIndex(p => p.id === playerId);
+    if (meIndex !== data.turnIndex) return;
+
+    const player = data.players[meIndex];
+    const card = player.hand[index];
+    const top = data.discard[data.discard.length - 1];
+
+    if (card.color !== data.currentColor && card.color !== 'wild' && card.value !== top.value) return;
+
+    const hand = [...player.hand];
+    hand.splice(index, 1);
+    data.players[meIndex].hand = hand;
+
+    data.discard.push(card);
+    data.currentColor = card.color === 'wild' ? null : card.color;
+
+    let next = (data.turnIndex + 1) % data.players.length;
+    let log = `${player.name} played ${card.value}.`;
+
+    if (card.value === 'reverse') {
+      data.players.reverse();
+      next = data.players.length - 1 - meIndex;
+      log += ' Reversed!';
+    } else if (card.value === 'skip') {
+      next = (next + 1) % data.players.length;
+      log += ' Skipped next!';
+    } else if (card.value === '+2') {
+      const target = data.players[next];
+      target.hand.push(...data.deck.splice(0, 2));
+      log += ` ${target.name} draws 2!`;
+      next = (next + 1) % data.players.length;
+    } else if (card.value === '+4') {
+      const target = data.players[next];
+      target.hand.push(...data.deck.splice(0, 4));
+      log += ` ${target.name} draws 4! Choose color.`;
+      next = (next + 1) % data.players.length;
+    }
+
+    if (card.color === 'wild') {
+      showColorModal(color => {
+        data.currentColor = color;
+        data.turnIndex = next;
+        data.logs.push(log + ` Color set to ${color}.`);
+        roomRef.update(data);
+      });
+    } else {
+      data.turnIndex = next;
+      data.logs.push(log);
+      roomRef.update(data);
+    }
+  });
 }
 
-function playCard(card, idx) {
-  if (!gameState.gameStarted || gameState.currentPlayer !== playerIndex) return;
-  const top = gameState.discardPile.at(-1);
-  const valid =
-    card.color === gameState.currentColor ||
-    card.value === top.value ||
-    card.color === "wild";
+// Draw Card
+drawCardBtn.onclick = async () => {
+  const doc = await roomRef.get();
+  const data = doc.data();
+  if (data.state !== 'playing') return;
+  const meIndex = data.players.findIndex(p => p.id === playerId);
+  if (meIndex !== data.turnIndex) return;
 
-  if (!valid) return;
+  const card = data.deck.pop();
+  data.players[meIndex].hand.push(card);
+  data.logs.push(`${data.players[meIndex].name} drew a card.`);
+  data.turnIndex = (data.turnIndex + 1) % data.players.length;
+  await roomRef.update(data);
+};
 
-  const player = gameState.players[playerIndex];
-  const newHand = [...player.hand];
-  newHand.splice(idx, 1);
-  const newDiscard = [...gameState.discardPile, card];
-
-  let updates = {
-    [`players.${playerIndex}.hand`]: newHand,
-    discardPile: newDiscard,
-    logs: firebase.firestore.FieldValue.arrayUnion(`${player.name} played ${card.value}`)
-  };
-
-  if (card.color === "wild") {
-    showColorModal(color => {
-      updates.currentColor = color;
-      finalizeCardPlay(card, updates);
-    });
-  } else {
-    updates.currentColor = card.color;
-    finalizeCardPlay(card, updates);
-  }
-}
-
-function finalizeCardPlay(card, updates) {
-  let next = (gameState.currentPlayer + gameState.direction + gameState.players.length) % gameState.players.length;
-  if (card.value === "Reverse") gameState.direction *= -1;
-  else if (card.value === "Skip") next = (next + 1) % gameState.players.length;
-  else if (card.value === "+2") {
-    const deck = [...gameState.deck];
-    const cards = [deck.pop(), deck.pop()];
-    updates[`players.${next}.hand`] = [...gameState.players[next].hand, ...cards];
-    updates.deck = deck;
-  }
-  else if (card.value === "+4") {
-    const deck = [...gameState.deck];
-    const cards = [deck.pop(), deck.pop(), deck.pop(), deck.pop()];
-    updates[`players.${next}.hand`] = [...gameState.players[next].hand, ...cards];
-    updates.deck = deck;
-  }
-
-  updates.currentPlayer = next;
-  roomRef.update(updates);
-}
-
+// Wild modal
 function showColorModal(callback) {
-  colorModal.style.display = "flex";
-  const buttons = document.querySelectorAll(".color-btn");
-  buttons.forEach(btn => {
+  colorModal.classList.add('show');
+  colorButtons.forEach(btn => {
     btn.onclick = () => {
-      colorModal.style.display = "none";
+      colorModal.classList.remove('show');
       callback(btn.dataset.color);
     };
   });
 }
-
-closeModalBtn.onclick = () => {
-  colorModal.style.display = "none";
-};
-
-// Draw Card
-drawCardBtn.onclick = async () => {
-  if (gameState.currentPlayer !== playerIndex) return;
-  const deck = [...gameState.deck];
-  const card = deck.pop();
-  const player = gameState.players[playerIndex];
-  const newHand = [...player.hand, card];
-  await roomRef.update({
-    [`players.${playerIndex}.hand`]: newHand,
-    deck,
-    currentPlayer: (gameState.currentPlayer + 1) % gameState.players.length,
-    logs: firebase.firestore.FieldValue.arrayUnion(`${player.name} drew a card.`)
-  });
-};
+closeModalBtn.onclick = () => colorModal.classList.remove('show');
 
 // Chat
-sendChatBtn.onclick = sendChat;
-chatInput.onkeydown = e => e.key === "Enter" && sendChat();
+sendChatBtn.onclick = async () => {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  const snap = await roomRef.get();
+  const data = snap.data();
+  data.chat.push({ name: playerName, text });
+  await roomRef.update({ chat: data.chat });
+  chatInput.value = '';
+};
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendChatBtn.click();
+});
 
-function sendChat() {
-  const msg = chatInput.value.trim();
-  if (!msg) return;
-  chatInput.value = "";
-  roomRef.update({
-    chat: firebase.firestore.FieldValue.arrayUnion(`${playerName}: ${msg}`)
-  });
-}
-
-// Restart Game
+// Restart
 restartGameBtn.onclick = async () => {
-  if (!isCreator) return;
+  if (!isRoomCreator) return;
+  const snap = await roomRef.get();
+  const data = snap.data();
+  const resetPlayers = data.players.map(p => ({
+    ...p,
+    hand: [],
+    uno: false
+  }));
   await roomRef.update({
-    gameStarted: false,
+    players: resetPlayers,
+    state: 'lobby',
+    logs: [],
+    chat: [],
     deck: [],
-    discardPile: [],
-    currentPlayer: 0,
-    direction: 1,
-    currentColor: "",
-    logs: firebase.firestore.FieldValue.arrayUnion("Game reset.")
+    discard: [],
+    currentColor: null,
+    turnIndex: 0
   });
 };
 
-// Leave Room
+// Leave
 leaveRoomBtn.onclick = async () => {
-  const players = gameState.players.filter(p => p.name !== playerName);
+  if (!roomRef) return;
+  const snap = await roomRef.get();
+  if (!snap.exists) return;
+  const data = snap.data();
+  const players = data.players.filter(p => p.id !== playerId);
   await roomRef.update({ players });
   location.reload();
 };

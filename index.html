@@ -25,10 +25,10 @@
     <div id="roomInfo">
       <p>Room Code: <span id="roomCodeText"></span></p>
       <p>Your Name: <span id="yourNameText"></span></p>
-      <p>Current Player: <span id="currentPlayerText"></span></p>
+      <p>Current Turn: <span id="currentPlayerText"></span></p>
       <p>Players: <span id="playerCountText"></span></p>
       <button id="startGameBtn">Start Game</button>
-      <button id="restartGameBtn">Restart Game</button>
+      <button id="restartGameBtn" class="hidden">Restart Game</button>
       <button id="leaveRoomBtn">Leave Room</button>
     </div>
 
@@ -50,7 +50,7 @@
     <div id="logsArea">
       <div id="activityLog" class="logBox"></div>
       <div id="chatLog" class="logBox"></div>
-      <input type="text" id="chatInput" placeholder="Type message..."/>
+      <input type="text" id="chatInput" placeholder="Type message..." />
       <button id="sendChatBtn">Send</button>
     </div>
   </div>

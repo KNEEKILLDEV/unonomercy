@@ -7,7 +7,7 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 input, button {
@@ -23,6 +23,7 @@ button {
   color: white;
   border: none;
   border-radius: 6px;
+  max-width: 150px;
 }
 
 button:hover {
@@ -120,12 +121,15 @@ button:hover {
   border-radius: 12px;
   text-align: center;
   position: relative;
+  max-width: 300px;
 }
 
 .colorButtons {
   display: flex;
   justify-content: space-around;
+  flex-wrap: wrap;
   margin-top: 10px;
+  gap: 10px;
 }
 
 .color-btn {
