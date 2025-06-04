@@ -1,143 +1,305 @@
-body {
+/* style.css */
+body, html {
   background-color: #121212;
-  color: #fff;
-  font-family: sans-serif;
+  color: #eee;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0 20px 20px 20px;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
   text-align: center;
+}
+
+form {
+  background: #222;
   padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-input, button {
-  padding: 8px;
-  margin: 5px;
+form input, form button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px 10px;
+  font-size: 16px;
+  border-radius: 5px;
   border: none;
-  border-radius: 4px;
-  max-width: 200px;
 }
 
-button {
-  background-color: #ff4747;
+form button {
+  background-color: #007bff;
   color: white;
   cursor: pointer;
-}
-
-button:hover {
-  background-color: #ff6666;
+  max-width: 160px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+#gameArea {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 15px;
+  background-color: #222;
+  border-radius: 12px;
+}
+
+#roomInfo p {
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+#roomInfo button {
+  max-width: 160px;
+  margin: 5px 10px 5px 0;
+  padding: 10px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background-color: #1a73e8;
+  transition: background-color 0.3s ease;
+}
+
+#restartGameBtn {
+  background-color: #e67e22;
+}
+
+#leaveRoomBtn {
+  background-color: #b33;
+}
+
+#roomInfo button:hover {
+  background-color: #155ab4;
+}
+
+#opponentsArea, #playerHandArea, #chatArea, #activityLogArea {
+  margin-top: 20px;
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#opponentsList {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+#opponentsList li {
+  margin: 8px 0;
+  font-weight: 600;
+}
+
+#discardPile {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+#topCard {
+  width: 60px;
+  height: 90px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+  font-weight: bold;
+  font-size: 22px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  cursor: default;
+}
+
+#currentColorDisplay {
+  min-width: 80px;
+  height: 30px;
+  border-radius: 5px;
+  background-color: transparent;
+  border: 2px solid #eee;
+  color: #eee;
+  font-weight: 700;
+  font-size: 18px;
+  text-align: center;
+  line-height: 30px;
+  user-select: none;
+}
+
+#playerHand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 .card {
-  display: inline-block;
   width: 60px;
   height: 90px;
-  line-height: 90px;
-  text-align: center;
-  margin: 5px;
   border-radius: 8px;
+  margin: 5px;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 18px;
   color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 6px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
 }
-
-.card.red { background-color: red; }
-.card.green { background-color: green; }
-.card.blue { background-color: blue; }
-.card.yellow { background-color: gold; }
-.card.wild { background-color: black; }
 
 .card:hover {
   transform: scale(1.1);
 }
 
-#playerHand {
-  margin-top: 20px;
+.card.red { background-color: #e53935; }
+.card.green { background-color: #43a047; }
+.card.blue { background-color: #1e88e5; }
+.card.yellow { background-color: #fbc02d; color: black; }
+.card.wild { background: linear-gradient(45deg, #000, #555); }
+
+#drawCardBtn, #callUnoBtn {
+  max-width: 160px;
+  padding: 8px 15px;
+  margin: 10px 5px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background-color: #007bff;
+  transition: background-color 0.3s ease;
 }
 
-#opponentsList {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-  flex-wrap: wrap;
+#drawCardBtn:hover, #callUnoBtn:hover {
+  background-color: #0056b3;
 }
 
-#discardPile {
-  margin: 20px auto;
-}
-
-#topCard {
-  margin: 10px auto;
-}
-
-#chatArea, #activityArea {
-  display: inline-block;
-  vertical-align: top;
-  width: 45%;
-  margin-top: 20px;
-  text-align: left;
-}
-
-.log {
-  border: 1px solid #333;
-  height: 150px;
+#chatArea, #activityLogArea {
+  max-height: 250px;
   overflow-y: auto;
+  background-color: #1b1b1b;
+}
+
+#chatLog, #activityLog {
+  height: 160px;
+  overflow-y: auto;
+  background-color: #222;
   padding: 10px;
-  background-color: #1e1e1e;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.3;
   margin-bottom: 10px;
+  user-select: text;
 }
 
 #chatInput {
-  width: 80%;
+  width: calc(100% - 90px);
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: none;
+  font-size: 14px;
+  color: #eee;
+  background-color: #333;
+  margin-right: 5px;
 }
 
+#sendChatBtn {
+  width: 70px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#sendChatBtn:hover {
+  background-color: #1e7e34;
+}
+
+/* Modal backdrop */
 .modal {
+  display: none;
   position: fixed;
-  top: 0;
+  z-index: 9999;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.7);
   align-items: center;
   justify-content: center;
-  z-index: 10;
+}
+
+.modal.show, .modal:not(.hidden) {
+  display: flex;
 }
 
 .modal-content {
-  background: #2a2a2a;
+  background-color: #111;
   padding: 20px;
   border-radius: 10px;
-  text-align: center;
-  width: 300px;
+  width: 320px;
+  max-width: 90vw;
+  color: #eee;
   position: relative;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: #f44336;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
 }
 
 .color-options {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   margin-top: 15px;
+  flex-wrap: wrap;
 }
 
 .color-btn {
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
+  margin: 5px;
   border: none;
   cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.color-btn.red { background-color: red; }
-.color-btn.green { background-color: green; }
-.color-btn.blue { background-color: blue; }
-.color-btn.yellow { background-color: gold; }
-
-.close {
-  position: absolute;
-  top: 5px;
-  right: 10px;
-  font-size: 24px;
-  color: red;
-  cursor: pointer;
+.color-btn:hover {
+  transform: scale(1.2);
 }
+
+.color-btn.red { background-color: #ff4b4b; }
+.color-btn.green { background-color: #4bff4b; }
+.color-btn.blue { background-color: #4b4bff; }
+.color-btn.yellow { background-color: #ffec4b; }
