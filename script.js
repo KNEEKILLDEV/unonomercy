@@ -20,7 +20,7 @@ const db = firebase.firestore();
 let currentRoomId = null;
 let playerId = null;
 let playerName = null;
-let pendingWildCard = null; // Holds data when waiting color pick
+let pendingWildCard = null;
 let isCreator = false;
 let gameStateUnsubscribe = null;
 let chatUnsubscribe = null;
@@ -32,7 +32,6 @@ const gameArea = document.getElementById('gameArea');
 
 const roomCodeDisplay = document.getElementById('roomCodeDisplay');
 const yourNameDisplay = document.getElementById('yourNameDisplay');
-const currentTurnDisplay = document.getElementById('currentTurnDisplay');
 const playerCountDisplay = document.getElementById('playerCountDisplay');
 const maxPlayersDisplay = document.getElementById('maxPlayersDisplay');
 
@@ -111,7 +110,7 @@ function showLobbyMessage(msg) {
 // ======================= DECK & GAME SETUP =======================
 
 function generateDeck() {
-  const colors = ['red','yellow','green','blue'];
+  const colors = ['red', 'yellow', 'green', 'blue'];
   const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
   let deck = [];
 
@@ -162,7 +161,7 @@ createForm.addEventListener('submit', async (e) => {
     creator: playerId,
     maxPlayers,
     players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
-    gameState: 'waiting', // waiting, started, ended
+    gameState: 'waiting',
     currentTurn: null,
     discardPile: [],
     currentColor: null,
@@ -275,12 +274,13 @@ function updateGameUI(data) {
     opponentsList.appendChild(li);
   });
 
-  // Render discard pile top card visually with color
+  // Render discard pile top card with color
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    let topColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
-    discardPileEl.className = `card ${topColor}`;
+    // If wild, use currentColor; otherwise use card's color
+    let displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
+    discardPileEl.className = `card ${displayColor}`;
   } else {
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
@@ -291,8 +291,9 @@ function updateGameUI(data) {
   playerHand.innerHTML = '';
   myHand.forEach(card => {
     const cardEl = document.createElement('div');
-    const cardColor = (card.color === 'wild') ? 'wild' : card.color;
-    cardEl.className = `card ${cardColor}`;
+    // For a wild in hand, always show rainbow (wild) appearance
+    const cardColorClass = (card.color === 'wild') ? 'wild' : card.color;
+    cardEl.className = `card ${cardColorClass}`;
     cardEl.textContent = card.value.toUpperCase();
     cardEl.addEventListener('click', () => handlePlayCard(card));
     playerHand.appendChild(cardEl);
@@ -436,7 +437,6 @@ function resetGameArea() {
   activityLog.innerHTML = '';
   roomCodeDisplay.textContent = '';
   yourNameDisplay.textContent = '';
-  currentTurnDisplay.textContent = '';
   playerCountDisplay.textContent = '';
   maxPlayersDisplay.textContent = '';
   turnIndicator.textContent = '';
@@ -477,11 +477,12 @@ async function handlePlayCard(card) {
     return;
   }
 
-  // Remove card
+  // Remove chosen card from player's hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
+  // Add that card to discard pile
   let newDiscardPile = [...data.discardPile, card];
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
@@ -521,6 +522,7 @@ async function handlePlayCard(card) {
       break;
 
     case 'wild':
+      // Wait for color selection
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -530,6 +532,7 @@ async function handlePlayCard(card) {
       return;
 
     case 'wild4':
+      // Wait for color selection and draw 4 logic
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -754,7 +757,6 @@ function resetGameArea() {
   activityLog.innerHTML = '';
   roomCodeDisplay.textContent = '';
   yourNameDisplay.textContent = '';
-  currentTurnDisplay.textContent = '';
   playerCountDisplay.textContent = '';
   maxPlayersDisplay.textContent = '';
   turnIndicator.textContent = '';
