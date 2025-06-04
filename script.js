@@ -7,7 +7,7 @@ const firebaseConfig = {
   authDomain: "unonomercy-66ba7.firebaseapp.com",
   databaseURL: "https://unonomercy-66ba7-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unonomercy-66ba7",
-  storageBucket: "unonomercy-66ba7.firebasedestorage.app",
+  storageBucket: "unonomer🎉cery-66ba7.firebasedestorage.app",
   messagingSenderId: "243436738671",
   appId: "1:243436738671:web:8bfad4bc693acde225959a",
   measurementId: "G-2DP7FTJPCR"
@@ -47,7 +47,8 @@ const restartBtn         = document.getElementById("restartBtn");
 const createRoomBtn      = document.getElementById("createRoomBtn");
 const joinRoomBtn        = document.getElementById("joinRoomBtn");
 const startGameBtn       = document.getElementById("startGameBtn");
-const nameInput          = document.getElementById("playerNameInput");
+const nameInputCreate    = document.getElementById("playerNameInput");
+const nameInputJoin      = document.getElementById("playerNameInputJoin");
 const roomIdInput        = document.getElementById("roomCodeInput");
 const maxPlayersInput    = document.getElementById("maxPlayersInput");
 
@@ -98,11 +99,7 @@ function renderHand() {
     const cardEl = document.createElement("div");
     cardEl.className = `card ${card.color} ${card.value}`;
     cardEl.textContent =
-      card.value === "+4"
-        ? "+4"
-        : card.value === "wild"
-        ? "Wild"
-        : card.value;
+      card.value === "+4" ? "+4" : card.value === "wild" ? "Wild" : card.value;
     cardEl.onclick = () => tryPlayCard(card);
     playerHand.appendChild(cardEl);
   }
@@ -132,11 +129,7 @@ function renderDiscardPile() {
   const cardEl = document.createElement("div");
   cardEl.className = `card ${topCard.color} ${topCard.value}`;
   cardEl.textContent =
-    topCard.value === "+4"
-      ? "+4"
-      : topCard.value === "wild"
-      ? "Wild"
-      : topCard.value;
+    topCard.value === "+4" ? "+4" : topCard.value === "wild" ? "Wild" : topCard.value;
   discardPileDiv.appendChild(cardEl);
 }
 
@@ -240,7 +233,7 @@ function playCard(card, chosenColor) {
     const playerIndex = room.players.findIndex(p => p.id === playerId);
     if (playerIndex === -1) return;
 
-    // Check stack rules again inside transaction
+    // Re‐check stack rules inside transaction
     if (room.stackCount > 0) {
       if (
         room.stackType === "+2" &&
@@ -291,7 +284,7 @@ function playCard(card, chosenColor) {
     room.currentColor = card.color === "wild" ? chosenColor : card.color;
     room.currentValue = card.value;
 
-    // Reset UNO flag if needed
+    // Reset UNO‐called flag if needed
     if (room.players[playerIndex].unoCalled) {
       room.players[playerIndex].unoCalled = false;
     }
@@ -528,7 +521,7 @@ function listenRoom() {
 // ---------------- Room & Player Setup ----------------
 
 async function createRoom() {
-  playerName = nameInput.value.trim();
+  playerName = nameInputCreate.value.trim();
   if (!playerName) return alert("Enter your name");
 
   // If blank or invalid, default to 10
@@ -580,11 +573,11 @@ async function createRoom() {
 }
 
 async function joinRoom() {
-  playerName = nameInput.value.trim();
+  playerName = nameInputJoin.value.trim();
   if (!playerName) return alert("Enter your name");
 
   const joinRoomId = roomIdInput.value.trim();
-  if (!joinRoomId) return alert("Enter room ID");
+  if (!joinRoomId) return alert("Enter room code");
 
   roomRef = db.collection("rooms").doc(joinRoomId);
   const roomDoc = await roomRef.get();
@@ -692,4 +685,4 @@ restartBtn.onclick    = () => {
   }
 };
 
-// Optional: if someone reloads and has an active playerId & roomRef, you could re-attach listeners here.
+// (Optional) If you want to re-attach listeners after a page reload, do so here.
