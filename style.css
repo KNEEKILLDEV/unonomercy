@@ -60,6 +60,7 @@ main {
   background: #1976d2;
 }
 
+/* Hides any element with class="hidden" */
 .hidden {
   display: none;
 }
@@ -270,6 +271,7 @@ main {
   color: #bbb;
 }
 
+/* Modal (Wild-color picker) */
 .modal {
   position: fixed;
   top: 0;

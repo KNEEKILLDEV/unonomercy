@@ -36,22 +36,27 @@ let stackCount = 0;
 let stackType = null;
 
 // ---------------- UI Elements ----------------
-const chatInput         = document.getElementById("chatInput");
-const chatMessages      = document.getElementById("chatLog");
-const activityLog       = document.getElementById("activityLog");
-const playerHand        = document.getElementById("playerHand");
+const chatInput          = document.getElementById("chatInput");
+const chatMessages       = document.getElementById("chatLog");
+const activityLog        = document.getElementById("activityLog");
+const playerHand         = document.getElementById("playerHand");
 const opponentsContainer = document.getElementById("opponents");
-const discardPileDiv    = document.getElementById("discardPile");
-const drawCardBtn       = document.getElementById("drawCardBtn");
-const unoBtn            = document.getElementById("unoBtn");
-const restartBtn        = document.getElementById("restartBtn");
-const colorModal        = document.getElementById("wildColorModal");
-const colorButtons      = document.querySelectorAll("#wildColorModal .color-btn");
-const createRoomBtn     = document.getElementById("createRoomBtn");
-const joinRoomBtn       = document.getElementById("joinRoomBtn");
-const startGameBtn      = document.getElementById("startGameBtn");
-const nameInput         = document.getElementById("playerNameInput");
-const roomIdInput       = document.getElementById("roomCodeInput");
+const discardPileDiv     = document.getElementById("discardPile");
+const drawCardBtn        = document.getElementById("drawCardBtn");
+const unoBtn             = document.getElementById("unoBtn");
+const restartBtn         = document.getElementById("restartBtn");
+const colorModal         = document.getElementById("wildColorModal");
+const colorButtons       = document.querySelectorAll("#wildColorModal .color-btn");
+const createRoomBtn      = document.getElementById("createRoomBtn");
+const joinRoomBtn        = document.getElementById("joinRoomBtn");
+const startGameBtn       = document.getElementById("startGameBtn");
+const nameInput          = document.getElementById("playerNameInput");
+const roomIdInput        = document.getElementById("roomCodeInput");
+
+// Ensure the modal is hidden on load
+window.addEventListener("load", () => {
+  colorModal.classList.add("hidden");
+});
 
 // ---------------- Helper Functions ----------------
 
@@ -72,7 +77,7 @@ function createDeck() {
   ];
   let newDeck = [];
   for (let color of colors) {
-    // One zero per color
+    // One 0 per color
     newDeck.push({ color, value: "0" });
     // Two of each 1–9, skip, reverse, +2
     for (let i = 1; i <= 9; i++) {
@@ -172,7 +177,7 @@ function canPlay(card) {
       return true;
     return false;
   }
-  // Otherwise, card color or value matches, or wild
+  // Otherwise, color or value matches, or wild
   return (
     card.color === currentColor ||
     card.value === currentValue ||
@@ -182,16 +187,25 @@ function canPlay(card) {
 
 // Try to play a card from hand
 function tryPlayCard(card) {
+  // EXTRA GUARD: Ensure we have joined a game and it’s actually our turn
+  if (
+    !roomData ||
+    !playerId ||
+    roomData.status !== "started" ||
+    roomData.currentPlayer !== playerId
+  ) {
+    return;
+  }
   if (!canPlayCard) return;
   if (!canPlay(card)) return alert("Can't play this card now!");
 
   if (card.color === "wild") {
     // Show color modal before playing wild card
-    colorModal.style.display = "flex";
+    colorModal.classList.remove("hidden");
     colorButtons.forEach(btn => {
       btn.onclick = () => {
         playCard(card, btn.dataset.color);
-        colorModal.style.display = "none";
+        colorModal.classList.add("hidden");
       };
     });
   } else {
@@ -211,8 +225,10 @@ function playCard(card, chosenColor) {
     if (room.stackCount > 0) {
       if (
         room.stackType === "+2" &&
-        !(card.value === "+2" &&
-          (card.color === room.currentColor || card.color === "wild"))
+        !(
+          card.value === "+2" &&
+          (card.color === room.currentColor || card.color === "wild")
+        )
       )
         return;
       if (
@@ -242,7 +258,7 @@ function playCard(card, chosenColor) {
 
     // Update discard pile
     if (!room.discardPileBackup) room.discardPileBackup = [];
-    room.discardPileBackup.push(...room.discardPile.slice(0, -1)); // Backup all but top discard
+    room.discardPileBackup.push(...room.discardPile.slice(0, -1)); // Backup all but top
     room.discardPile = room.discardPile.slice(-1); // Keep only top card
     room.discardPile.push({
       color: card.color,
@@ -254,12 +270,12 @@ function playCard(card, chosenColor) {
     room.currentColor = card.color === "wild" ? chosenColor : card.color;
     room.currentValue = card.value;
 
-    // Reset UNO called flag if applicable
+    // Reset UNO flag if needed
     if (room.players[playerIndex].unoCalled) {
       room.players[playerIndex].unoCalled = false;
     }
 
-    // Handle special cards effects
+    // Handle special cards
     if (card.value === "reverse") {
       room.direction = room.direction * -1;
     }
@@ -359,7 +375,7 @@ function callUno() {
   });
 }
 
-// Add chat message to Firebase
+// Add chat message to Firestore
 function sendChatMessage(text) {
   if (!text.trim()) return;
   const chatRef = roomRef.collection("chat");
@@ -371,7 +387,7 @@ function sendChatMessage(text) {
   chatInput.value = "";
 }
 
-// Listen for chat messages updates
+// Listen for chat updates
 function listenChat() {
   roomRef
     .collection("chat")
@@ -394,7 +410,7 @@ function listenChat() {
     });
 }
 
-// Append activity log entry to Firebase
+// Append activity log entry to Firestore
 function logActivity(message) {
   const logRef = roomRef.collection("activityLog");
   logRef.add({
@@ -403,7 +419,7 @@ function logActivity(message) {
   });
 }
 
-// Listen activity log updates
+// Listen for activity log updates
 function listenActivityLog() {
   roomRef
     .collection("activityLog")
@@ -430,6 +446,13 @@ function listenRoom() {
     roomData = doc.data();
     if (!roomData) return;
 
+    // Show the game area once we have a valid room
+    document.getElementById("game-area").classList.remove("hidden");
+    document.getElementById("roomCodeDisplay").textContent = doc.id;
+    document.getElementById("playerNameDisplay").textContent = playerName;
+    document.getElementById("currentPlayerDisplay").textContent =
+      roomData.currentPlayer === playerId ? "You" : roomData.currentPlayer;
+
     players = roomData.players || [];
     spectators = roomData.spectators || [];
     seatOrder = roomData.seatOrder || [];
@@ -450,7 +473,8 @@ function listenRoom() {
     }
 
     // Determine if player can play this turn
-    canPlayCard = roomData.currentPlayer === playerId && roomData.status === "started";
+    canPlayCard =
+      roomData.currentPlayer === playerId && roomData.status === "started";
 
     renderHand();
     renderOpponents();
@@ -471,7 +495,7 @@ function listenRoom() {
   });
 }
 
-// ---------------- Room and Player Setup ----------------
+// ---------------- Room & Player Setup ----------------
 
 async function createRoom() {
   playerName = nameInput.value.trim();
@@ -530,7 +554,7 @@ async function joinRoom() {
 
   // Check if player already exists (rejoin)
   if (!roomData.players.some(p => p.name === playerName)) {
-    // Add player if less than 10 players
+    // Add player if less than 10
     if (roomData.players.length >= 10) return alert("Room full!");
 
     playerId = Math.random().toString(36).substring(2, 15);
@@ -548,8 +572,10 @@ async function joinRoom() {
       seatOrder: [...roomData.seatOrder, playerId]
     });
   } else {
-    // Rejoin scenario: find existing playerId
-    const existingPlayer = roomData.players.find(p => p.name === playerName);
+    // Rejoin: find existing playerId
+    const existingPlayer = roomData.players.find(
+      p => p.name === playerName
+    );
     playerId = existingPlayer.id;
   }
 
@@ -565,7 +591,7 @@ async function startGame() {
   if (room.status === "started") return alert("Game already started");
   if (room.players.length < 2) return alert("Need at least 2 players to start!");
 
-  // Create and shuffle deck
+  // Create & shuffle deck
   let newDeck = createDeck();
 
   // Deal 7 cards to each player
@@ -614,13 +640,14 @@ chatInput.addEventListener("keypress", e => {
   }
 });
 
-drawCardBtn.onclick     = drawCard;
-unoBtn.onclick          = callUno;
-createRoomBtn.onclick   = createRoom;
-joinRoomBtn.onclick     = joinRoom;
-startGameBtn.onclick    = startGame;
-restartBtn.onclick      = () => {
+drawCardBtn.onclick   = drawCard;
+unoBtn.onclick        = callUno;
+createRoomBtn.onclick = createRoom;
+joinRoomBtn.onclick   = joinRoom;
+startGameBtn.onclick  = startGame;
+restartBtn.onclick    = () => {
   if (confirm("Restart game? This will reset the room.")) {
     roomRef.delete();
+    document.getElementById("game-area").classList.add("hidden");
   }
 };
