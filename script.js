@@ -1,3 +1,5 @@
+// script.js
+
 // ---------------- Firebase Initialization ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyClbFpj5gSP7Wp8YdR83JHz7Cw2RkAEpIk",
@@ -11,7 +13,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const roomRef = db.collection("rooms").doc("room1");
+let roomRef = db.collection("rooms").doc("room1");
 
 // ---------------- Globals ----------------
 let roomData = null;
@@ -32,31 +34,30 @@ let canPlayCard = false;
 let unoCalled = false;
 let stackCount = 0;
 let stackType = null;
-let timeoutId = null;
-let unoTimeoutId = null;
 
-// UI Elements
-const chatInput = document.getElementById("chat-input");
-const chatMessages = document.getElementById("chat-messages");
-const activityLog = document.getElementById("activity-log");
-const playerHand = document.getElementById("player-hand");
+// ---------------- UI Elements ----------------
+const chatInput         = document.getElementById("chatInput");
+const chatMessages      = document.getElementById("chatLog");
+const activityLog       = document.getElementById("activityLog");
+const playerHand        = document.getElementById("playerHand");
 const opponentsContainer = document.getElementById("opponents");
-const discardPileDiv = document.getElementById("discard-pile");
-const drawCardBtn = document.getElementById("draw-card");
-const unoBtn = document.getElementById("uno-button");
-const restartBtn = document.getElementById("restart-game");
-const colorModal = document.getElementById("color-modal");
-const colorButtons = document.querySelectorAll("#color-modal button");
-const createRoomBtn = document.getElementById("create-room");
-const joinRoomBtn = document.getElementById("join-room");
-const nameInput = document.getElementById("player-name");
-const roomIdInput = document.getElementById("room-id");
+const discardPileDiv    = document.getElementById("discardPile");
+const drawCardBtn       = document.getElementById("drawCardBtn");
+const unoBtn            = document.getElementById("unoBtn");
+const restartBtn        = document.getElementById("restartBtn");
+const colorModal        = document.getElementById("wildColorModal");
+const colorButtons      = document.querySelectorAll("#wildColorModal .color-btn");
+const createRoomBtn     = document.getElementById("createRoomBtn");
+const joinRoomBtn       = document.getElementById("joinRoomBtn");
+const startGameBtn      = document.getElementById("startGameBtn");
+const nameInput         = document.getElementById("playerNameInput");
+const roomIdInput       = document.getElementById("roomCodeInput");
 
 // ---------------- Helper Functions ----------------
 
 // Shuffle array in place (Fisher-Yates)
 function shuffle(array) {
-  for(let i = array.length - 1; i > 0; i--) {
+  for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
@@ -69,27 +70,27 @@ function createDeck() {
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     "skip", "reverse", "+2"
   ];
-  let deck = [];
+  let newDeck = [];
   for (let color of colors) {
     // One zero per color
-    deck.push({ color, value: "0" });
-    // Two of each 1-9, skip, reverse, +2
+    newDeck.push({ color, value: "0" });
+    // Two of each 1–9, skip, reverse, +2
     for (let i = 1; i <= 9; i++) {
-      deck.push({ color, value: i.toString() });
-      deck.push({ color, value: i.toString() });
+      newDeck.push({ color, value: i.toString() });
+      newDeck.push({ color, value: i.toString() });
     }
     for (let special of ["skip", "reverse", "+2"]) {
-      deck.push({ color, value: special });
-      deck.push({ color, value: special });
+      newDeck.push({ color, value: special });
+      newDeck.push({ color, value: special });
     }
   }
   // Add wild and +4 wild cards
   for (let i = 0; i < 4; i++) {
-    deck.push({ color: "wild", value: "wild" });
-    deck.push({ color: "wild", value: "+4" });
+    newDeck.push({ color: "wild", value: "wild" });
+    newDeck.push({ color: "wild", value: "+4" });
   }
-  shuffle(deck);
-  return deck;
+  shuffle(newDeck);
+  return newDeck;
 }
 
 // Render player hand cards
@@ -98,7 +99,12 @@ function renderHand() {
   for (let card of hand) {
     const cardEl = document.createElement("div");
     cardEl.className = `card ${card.color} ${card.value}`;
-    cardEl.textContent = card.value === "+4" ? "+4" : (card.value === "wild" ? "Wild" : card.value);
+    cardEl.textContent =
+      card.value === "+4"
+        ? "+4"
+        : card.value === "wild"
+        ? "Wild"
+        : card.value;
     cardEl.onclick = () => tryPlayCard(card);
     playerHand.appendChild(cardEl);
   }
@@ -110,8 +116,12 @@ function renderOpponents() {
   const otherPlayers = players.filter(p => p.id !== playerId);
   otherPlayers.forEach(p => {
     const opponentDiv = document.createElement("div");
-    opponentDiv.className = "opponent";
-    opponentDiv.textContent = `${p.name} (${p.handCount || 0} cards)${p.id === roomData.currentPlayer ? " <--" : ""}`;
+    opponentDiv.className = "player";
+    if (p.id === roomData.currentPlayer) opponentDiv.classList.add("current");
+    opponentDiv.innerHTML = `
+      <div class="player-name">${p.name}</div>
+      <div>${p.handCount || 0} cards</div>
+    `;
     opponentsContainer.appendChild(opponentDiv);
   });
 }
@@ -123,7 +133,12 @@ function renderDiscardPile() {
   const topCard = discardPile[discardPile.length - 1];
   const cardEl = document.createElement("div");
   cardEl.className = `card ${topCard.color} ${topCard.value}`;
-  cardEl.textContent = topCard.value === "+4" ? "+4" : (topCard.value === "wild" ? "Wild" : topCard.value);
+  cardEl.textContent =
+    topCard.value === "+4"
+      ? "+4"
+      : topCard.value === "wild"
+      ? "Wild"
+      : topCard.value;
   discardPileDiv.appendChild(cardEl);
 }
 
@@ -147,12 +162,22 @@ function appendActivityLog(message) {
 function canPlay(card) {
   if (stackCount > 0) {
     // If stacking +2 or +4, must play same type
-    if (stackType === "+2" && card.value === "+2" && (card.color === currentColor || card.color === "wild")) return true;
-    if (stackType === "+4" && card.value === "+4" && card.color === "wild") return true;
+    if (
+      stackType === "+2" &&
+      card.value === "+2" &&
+      (card.color === currentColor || card.color === "wild")
+    )
+      return true;
+    if (stackType === "+4" && card.value === "+4" && card.color === "wild")
+      return true;
     return false;
   }
   // Otherwise, card color or value matches, or wild
-  return card.color === currentColor || card.value === currentValue || card.color === "wild";
+  return (
+    card.color === currentColor ||
+    card.value === currentValue ||
+    card.color === "wild"
+  );
 }
 
 // Try to play a card from hand
@@ -162,7 +187,7 @@ function tryPlayCard(card) {
 
   if (card.color === "wild") {
     // Show color modal before playing wild card
-    colorModal.style.display = "block";
+    colorModal.style.display = "flex";
     colorButtons.forEach(btn => {
       btn.onclick = () => {
         playCard(card, btn.dataset.color);
@@ -184,24 +209,46 @@ function playCard(card, chosenColor) {
 
     // Check stack rules again inside transaction
     if (room.stackCount > 0) {
-      if (room.stackType === "+2" && !(card.value === "+2" && (card.color === room.currentColor || card.color === "wild"))) return;
-      if (room.stackType === "+4" && !(card.value === "+4" && card.color === "wild")) return;
+      if (
+        room.stackType === "+2" &&
+        !(card.value === "+2" &&
+          (card.color === room.currentColor || card.color === "wild"))
+      )
+        return;
+      if (
+        room.stackType === "+4" &&
+        !(card.value === "+4" && card.color === "wild")
+      )
+        return;
     } else {
-      if (!(card.color === room.currentColor || card.value === room.currentValue || card.color === "wild")) return;
+      if (
+        !(
+          card.color === room.currentColor ||
+          card.value === room.currentValue ||
+          card.color === "wild"
+        )
+      )
+        return;
     }
 
     // Remove card from player's hand
-    const playerHand = room.players[playerIndex].hand;
-    const cardIdx = playerHand.findIndex(c => c.color === card.color && c.value === card.value);
+    const playerHandArr = room.players[playerIndex].hand;
+    const cardIdx = playerHandArr.findIndex(
+      c => c.color === card.color && c.value === card.value
+    );
     if (cardIdx === -1) return; // Card not in hand
 
-    playerHand.splice(cardIdx, 1);
+    playerHandArr.splice(cardIdx, 1);
 
     // Update discard pile
     if (!room.discardPileBackup) room.discardPileBackup = [];
     room.discardPileBackup.push(...room.discardPile.slice(0, -1)); // Backup all but top discard
     room.discardPile = room.discardPile.slice(-1); // Keep only top card
-    room.discardPile.push({ color: card.color, value: card.value, chosenColor: chosenColor || null });
+    room.discardPile.push({
+      color: card.color,
+      value: card.value,
+      chosenColor: chosenColor || null
+    });
 
     // Update current color and value
     room.currentColor = card.color === "wild" ? chosenColor : card.color;
@@ -219,7 +266,8 @@ function playCard(card, chosenColor) {
 
     // Update stackCount and stackType if +2 or +4
     if (card.value === "+2" || card.value === "+4") {
-      room.stackCount = (room.stackCount || 0) + (card.value === "+2" ? 2 : 4);
+      room.stackCount =
+        (room.stackCount || 0) + (card.value === "+2" ? 2 : 4);
       room.stackType = card.value;
     } else {
       room.stackCount = 0;
@@ -227,15 +275,22 @@ function playCard(card, chosenColor) {
     }
 
     // Check if player has won
-    if (playerHand.length === 0) {
+    const updatedHand = room.players[playerIndex].hand;
+    if (updatedHand.length === 0) {
       room.winner = playerId;
       room.currentPlayer = null;
       room.status = "ended";
     } else {
       // Move to next player
-      let nextIndex = (room.seatOrder.indexOf(playerId) + room.direction + room.seatOrder.length) % room.seatOrder.length;
+      let nextIndex =
+        (room.seatOrder.indexOf(playerId) +
+          room.direction +
+          room.seatOrder.length) %
+        room.seatOrder.length;
       if (card.value === "skip") {
-        nextIndex = (nextIndex + room.direction + room.seatOrder.length) % room.seatOrder.length;
+        nextIndex =
+          (nextIndex + room.direction + room.seatOrder.length) %
+          room.seatOrder.length;
       }
       room.currentPlayer = room.seatOrder[nextIndex];
     }
@@ -266,9 +321,14 @@ function drawCard() {
 
     const card = room.deck.pop();
     room.players[playerIndex].hand.push(card);
+    room.players[playerIndex].handCount = room.players[playerIndex].hand.length;
 
     // Move turn to next player
-    let nextIndex = (room.seatOrder.indexOf(playerId) + room.direction + room.seatOrder.length) % room.seatOrder.length;
+    let nextIndex =
+      (room.seatOrder.indexOf(playerId) +
+        room.direction +
+        room.seatOrder.length) %
+      room.seatOrder.length;
     room.currentPlayer = room.seatOrder[nextIndex];
 
     // Reset stack if player draws instead of stacking
@@ -290,8 +350,9 @@ function callUno() {
     const playerIndex = room.players.findIndex(p => p.id === playerId);
     if (playerIndex === -1) return;
 
-    const playerHand = room.players[playerIndex].hand;
-    if (playerHand.length !== 1) return alert("You can only call UNO when you have exactly one card!");
+    const playerHandArr = room.players[playerIndex].hand;
+    if (playerHandArr.length !== 1)
+      return alert("You can only call UNO when you have exactly one card!");
 
     room.players[playerIndex].unoCalled = true;
     return room;
@@ -312,19 +373,25 @@ function sendChatMessage(text) {
 
 // Listen for chat messages updates
 function listenChat() {
-  roomRef.collection("chat").orderBy("timestamp").limit(200).onSnapshot(snapshot => {
-    chatMessages.innerHTML = "";
-    snapshot.forEach(doc => {
-      const { sender, message } = doc.data();
-      appendChatMessage(sender, message);
+  roomRef
+    .collection("chat")
+    .orderBy("timestamp")
+    .limit(200)
+    .onSnapshot(snapshot => {
+      chatMessages.innerHTML = "";
+      snapshot.forEach(doc => {
+        const { sender, message } = doc.data();
+        appendChatMessage(sender, message);
+      });
+      // Prune chat if > 200 messages
+      if (snapshot.size > 200) {
+        let batch = db.batch();
+        snapshot.docs
+          .slice(0, snapshot.size - 200)
+          .forEach(doc => batch.delete(doc.ref));
+        batch.commit();
+      }
     });
-    // Prune chat if > 200 messages
-    if (snapshot.size > 200) {
-      let batch = db.batch();
-      snapshot.docs.slice(0, snapshot.size - 200).forEach(doc => batch.delete(doc.ref));
-      batch.commit();
-    }
-  });
 }
 
 // Append activity log entry to Firebase
@@ -338,17 +405,23 @@ function logActivity(message) {
 
 // Listen activity log updates
 function listenActivityLog() {
-  roomRef.collection("activityLog").orderBy("timestamp").limit(200).onSnapshot(snapshot => {
-    activityLog.innerHTML = "";
-    snapshot.forEach(doc => {
-      appendActivityLog(doc.data().message);
+  roomRef
+    .collection("activityLog")
+    .orderBy("timestamp")
+    .limit(200)
+    .onSnapshot(snapshot => {
+      activityLog.innerHTML = "";
+      snapshot.forEach(doc => {
+        appendActivityLog(doc.data().message);
+      });
+      if (snapshot.size > 200) {
+        let batch = db.batch();
+        snapshot.docs
+          .slice(0, snapshot.size - 200)
+          .forEach(doc => batch.delete(doc.ref));
+        batch.commit();
+      }
     });
-    if (snapshot.size > 200) {
-      let batch = db.batch();
-      snapshot.docs.slice(0, snapshot.size - 200).forEach(doc => batch.delete(doc.ref));
-      batch.commit();
-    }
-  });
 }
 
 // Listen to room state updates
@@ -404,20 +477,22 @@ async function createRoom() {
   playerName = nameInput.value.trim();
   if (!playerName) return alert("Enter your name");
 
-  // Generate random room ID or get from input
+  // Generate random room ID
   const newRoomId = Math.random().toString(36).substring(2, 7).toUpperCase();
   playerId = Math.random().toString(36).substring(2, 15);
 
   // Initialize room data
   await db.collection("rooms").doc(newRoomId).set({
-    players: [{
-      id: playerId,
-      name: playerName,
-      hand: [],
-      unoCalled: false,
-      connected: true,
-      handCount: 0,
-    }],
+    players: [
+      {
+        id: playerId,
+        name: playerName,
+        hand: [],
+        unoCalled: false,
+        connected: true,
+        handCount: 0
+      }
+    ],
     spectators: [],
     seatOrder: [playerId],
     direction: 1,
@@ -429,7 +504,7 @@ async function createRoom() {
     currentValue: null,
     stackCount: 0,
     stackType: null,
-    status: "waiting",
+    status: "waiting"
   });
 
   roomRef = db.collection("rooms").doc(newRoomId);
@@ -437,10 +512,7 @@ async function createRoom() {
   listenChat();
   listenActivityLog();
 
-  // Save room id to UI for player info
-  alert(`Room created! Share this code to friends: ${newRoomId}`);
-
-  // After creating, wait for more players and start game manually or automatically
+  alert(`Room created! Share this code with friends: ${newRoomId}`);
 }
 
 async function joinRoom() {
@@ -471,9 +543,9 @@ async function joinRoom() {
         hand: [],
         unoCalled: false,
         connected: true,
-        handCount: 0,
+        handCount: 0
       }),
-      seatOrder: [...roomData.seatOrder, playerId],
+      seatOrder: [...roomData.seatOrder, playerId]
     });
   } else {
     // Rejoin scenario: find existing playerId
@@ -486,7 +558,6 @@ async function joinRoom() {
   listenActivityLog();
 }
 
-// Start game when enough players have joined
 async function startGame() {
   const roomSnap = await roomRef.get();
   const room = roomSnap.data();
@@ -495,30 +566,30 @@ async function startGame() {
   if (room.players.length < 2) return alert("Need at least 2 players to start!");
 
   // Create and shuffle deck
-  let deck = createDeck();
+  let newDeck = createDeck();
 
   // Deal 7 cards to each player
-  let players = room.players.map(p => {
-    const hand = deck.splice(0, 7);
+  let updatedPlayers = room.players.map(p => {
+    const playerHand = newDeck.splice(0, 7);
     return {
       ...p,
-      hand,
-      handCount: hand.length,
+      hand: playerHand,
+      handCount: playerHand.length,
       unoCalled: false,
-      connected: true,
+      connected: true
     };
   });
 
   // Draw the first discard card (cannot be wild/+4)
   let firstCard;
   do {
-    firstCard = deck.shift();
+    firstCard = newDeck.shift();
   } while (firstCard.color === "wild" || firstCard.value === "+4");
 
   // Initialize room state
   await roomRef.update({
-    players,
-    deck,
+    players: updatedPlayers,
+    deck: newDeck,
     discardPile: [firstCard],
     discardPileBackup: [],
     currentColor: firstCard.color,
@@ -526,32 +597,30 @@ async function startGame() {
     stackCount: 0,
     stackType: null,
     direction: 1,
-    seatOrder: players.map(p => p.id),
-    currentPlayer: players[0].id,
+    seatOrder: updatedPlayers.map(p => p.id),
+    currentPlayer: updatedPlayers[0].id,
     status: "started",
-    winner: null,
+    winner: null
   });
 
   logActivity(`Game started! First card is ${firstCard.color} ${firstCard.value}.`);
 }
 
 // ---------------- Event Listeners ----------------
+
 chatInput.addEventListener("keypress", e => {
   if (e.key === "Enter") {
     sendChatMessage(chatInput.value);
   }
 });
 
-drawCardBtn.onclick = drawCard;
-unoBtn.onclick = callUno;
-createRoomBtn.onclick = createRoom;
-joinRoomBtn.onclick = joinRoom;
-restartBtn.onclick = () => {
+drawCardBtn.onclick     = drawCard;
+unoBtn.onclick          = callUno;
+createRoomBtn.onclick   = createRoom;
+joinRoomBtn.onclick     = joinRoom;
+startGameBtn.onclick    = startGame;
+restartBtn.onclick      = () => {
   if (confirm("Restart game? This will reset the room.")) {
     roomRef.delete();
   }
 };
-
-// ---------------- Initialization ----------------
-// On page load, can optionally set playerId and listen for updates if joined already
-

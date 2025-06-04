@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Multiplayer UNO Game</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="script.js"></script>
 </head>
 <body>
 
@@ -14,6 +14,7 @@
   </header>
 
   <main>
+    <!-- Room Setup -->
     <section id="room-setup">
       <input id="playerNameInput" type="text" placeholder="Your name" />
       <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
@@ -21,6 +22,7 @@
       <button id="joinRoomBtn">Join Room</button>
     </section>
 
+    <!-- Game Area -->
     <section id="game-area" class="hidden">
       <div id="roomInfo">
         <p>Room Code: <span id="roomCodeDisplay"></span></p>
@@ -30,33 +32,39 @@
         <button id="restartBtn">Restart Game</button>
       </div>
 
-      <div id="playersArea">
-        <!-- Players and their hands rendered here -->
-      </div>
+      <!-- Your Hand -->
+      <div id="playerHand" class="hand"></div>
 
+      <!-- Opponents -->
+      <div id="opponents"></div>
+
+      <!-- Game Controls -->
       <div id="gameControls">
         <button id="drawCardBtn" disabled>Draw Card</button>
         <button id="unoBtn" disabled>Call UNO</button>
       </div>
 
+      <!-- Discard Pile -->
       <div id="discardPileArea">
         <h3>Discard Pile</h3>
         <div id="discardPile"></div>
         <p>Current Color: <span id="currentColorDisplay"></span></p>
       </div>
 
+      <!-- Chat Area -->
       <div id="chatArea">
         <div id="chatLog"></div>
         <input id="chatInput" type="text" placeholder="Type message and press Enter" autocomplete="off" />
       </div>
 
+      <!-- Activity Log -->
       <div id="activityLogArea">
         <h3>Activity Log</h3>
         <div id="activityLog"></div>
       </div>
     </section>
 
-    <!-- Wild color selection modal -->
+    <!-- Wild Color Selection Modal -->
     <div id="wildColorModal" class="modal hidden">
       <div class="modal-content">
         <h3>Select a Color</h3>
@@ -68,11 +76,11 @@
         </div>
       </div>
     </div>
-
   </main>
 
+  <!-- Firebase + Game Logic -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="game.js"></script> <!-- Your main game script here -->
+  <script src="script.js"></script>
 </body>
 </html>
