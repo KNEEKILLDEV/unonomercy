@@ -17,7 +17,13 @@
     <section id="room-setup">
       <input id="playerNameInput" type="text" placeholder="Your name" />
       <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
-      <input id="maxPlayersInput" type="number" placeholder="Max players (2–10)" min="2" max="10" />
+      <input
+        id="maxPlayersInput"
+        type="number"
+        placeholder="Max players (2–10)"
+        min="2"
+        max="10"
+      />
       <button id="createRoomBtn">Create Room</button>
       <button id="joinRoomBtn">Join Room</button>
     </section>
@@ -28,7 +34,12 @@
         <p>Room Code: <span id="roomCodeDisplay"></span></p>
         <p>Your Name: <span id="playerNameDisplay"></span></p>
         <p>Current Turn: <span id="currentPlayerDisplay"></span></p>
-        <p>Players: <span id="playerCountDisplay">0</span> / <span id="maxPlayersDisplay">0</span></p>
+        <p>
+          Players:
+          <span id="playerCountDisplay">0</span>
+          /
+          <span id="maxPlayersDisplay">0</span>
+        </p>
         <button id="startGameBtn">Start Game</button>
         <button id="restartBtn">Restart Game</button>
       </div>
@@ -55,7 +66,12 @@
       <!-- Chat Area -->
       <div id="chatArea">
         <div id="chatLog"></div>
-        <input id="chatInput" type="text" placeholder="Type message and press Enter" autocomplete="off" />
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Type message and press Enter"
+          autocomplete="off"
+        />
       </div>
 
       <!-- Activity Log -->
