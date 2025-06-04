@@ -1,49 +1,56 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Uno No Mercy Multiplayer</title>
+  <title>UNO No Mercy Multiplayer</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
-  <div id="lobby">
-    <h2>Join or Create Room</h2>
-    <input id="playerNameInput" placeholder="Enter your name" />
-    <input id="roomInput" placeholder="Room ID" />
-    <input id="maxPlayersInput" type="number" placeholder="Max Players (for create)" />
+  <div id="lobby" class="section">
+    <h2>Join or Create Game Room</h2>
+    <input id="playerNameInput" placeholder="Your Name" autocomplete="off" />
+    <input id="roomInput" placeholder="Room ID" autocomplete="off" />
+    <input id="maxPlayersInput" type="number" placeholder="Max Players" min="2" max="10" />
     <button id="createRoomBtn">Create Room</button>
     <button id="joinRoomBtn">Join Room</button>
   </div>
 
-  <div id="game" style="display:none;">
-    <h3>Room: <span id="roomNameLabel"></span></h3>
-    <h4>Turn: <span id="turnLabel"></span></h4>
-    <div id="opponentsContainer"></div>
+  <div id="game" class="section" style="display:none;">
+    <h2>Room: <span id="roomNameLabel"></span></h2>
+    <h3 id="turnLabel">Turn: </h3>
 
-    <div id="discardPile" class="discard-pile"></div>
+    <div id="opponentsContainer" class="opponents"></div>
 
-    <div id="playerArea">
-      <h4>Your Hand</h4>
-      <div id="playerHand" class="hand"></div>
-      <button id="drawCardBtn">Draw Card</button>
+    <div class="board">
+      <div>
+        <h4>Your Hand</h4>
+        <div id="playerHand" class="hand"></div>
+      </div>
+      <div>
+        <h4>Discard Pile</h4>
+        <div id="discardPile" class="pile"></div>
+        <button id="drawCardBtn">Draw Card</button>
+      </div>
     </div>
 
-    <div id="chatArea">
-      <h4>Chat</h4>
-      <div id="chatMessages" class="chatMessages"></div>
-      <input id="chatInput" placeholder="Type message and press Enter or Send" />
-      <button id="sendChatBtn">Send</button>
-    </div>
-
-    <div id="activityLogArea">
-      <h4>Activity Log</h4>
-      <ul id="activityLog"></ul>
+    <div class="lower-panels">
+      <div class="log-panel">
+        <h4>Activity Log</h4>
+        <ul id="activityLog"></ul>
+      </div>
+      <div class="chat-panel">
+        <h4>Chat</h4>
+        <div id="chatMessages" class="messages"></div>
+        <input id="chatInput" placeholder="Type message..." autocomplete="off" />
+        <button id="sendChatBtn">Send</button>
+      </div>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
