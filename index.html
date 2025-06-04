@@ -13,7 +13,6 @@
   </header>
 
   <main>
-    <!-- CREATE ROOM SECTION -->
     <section id="create-section">
       <input id="playerNameInput" type="text" placeholder="Your name" />
       <input
@@ -26,14 +25,12 @@
       <button id="createRoomBtn">Create Room</button>
     </section>
 
-    <!-- JOIN ROOM SECTION -->
     <section id="join-section">
       <input id="playerNameInputJoin" type="text" placeholder="Your name" />
       <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
       <button id="joinRoomBtn">Join Room</button>
     </section>
 
-    <!-- Game Area (hidden until you join/create) -->
     <section id="game-area" class="hidden">
       <div id="roomInfo">
         <p>Room Code: <span id="roomCodeDisplay"></span></p>
@@ -45,30 +42,24 @@
           /
           <span id="maxPlayersDisplay">0</span>
         </p>
-        <button id="startGameBtn">Start Game</button>
+        <button id="startGameBtn" class="hidden">Start Game</button>
         <button id="restartBtn">Restart Game</button>
       </div>
 
-      <!-- Your Hand -->
       <div id="playerHand" class="hand"></div>
-
-      <!-- Opponents -->
       <div id="opponents"></div>
 
-      <!-- Game Controls -->
       <div id="gameControls">
         <button id="drawCardBtn" disabled>Draw Card</button>
         <button id="unoBtn" disabled>Call UNO</button>
       </div>
 
-      <!-- Discard Pile -->
       <div id="discardPileArea">
         <h3>Discard Pile</h3>
         <div id="discardPile"></div>
         <p>Current Color: <span id="currentColorDisplay"></span></p>
       </div>
 
-      <!-- Chat Area -->
       <div id="chatArea">
         <div id="chatLog"></div>
         <input
@@ -79,7 +70,6 @@
         />
       </div>
 
-      <!-- Activity Log -->
       <div id="activityLogArea">
         <h3>Activity Log</h3>
         <div id="activityLog"></div>
@@ -87,7 +77,6 @@
     </section>
   </main>
 
-  <!-- Firebase + Game Logic -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>

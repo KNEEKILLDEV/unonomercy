@@ -64,7 +64,6 @@ main {
   background: #1976d2;
 }
 
-/* Hide any element with .hidden */
 .hidden {
   display: none;
 }
@@ -275,7 +274,6 @@ main {
   color: #bbb;
 }
 
-/* Modal (Wild-color picker) */
 .modal {
   position: fixed;
   top: 0;
@@ -299,7 +297,6 @@ main {
   width: 300px;
 }
 
-/* Updated close button styling: red, top-right corner */
 .modal-close {
   position: absolute;
   top: 8px;
@@ -333,4 +330,3 @@ main {
 .color-btn:hover {
   transform: scale(1.2);
 }
-  
