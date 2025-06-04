@@ -57,6 +57,8 @@ const colorModal = document.getElementById('colorModal');
 const colorButtons = document.querySelectorAll('.colorBtn');
 const closeModalBtn = document.querySelector('.closeModalBtn');
 
+const turnIndicator = document.getElementById('turnIndicator');
+
 const createForm = document.getElementById('createForm');
 const joinForm = document.getElementById('joinForm');
 const lobbyMessage = document.getElementById('lobbyMessage');
@@ -253,7 +255,13 @@ function updateGameUI(data) {
   const playerIds = Object.keys(data.players);
   playerCountDisplay.textContent = playerIds.length;
   maxPlayersDisplay.textContent = data.maxPlayers;
-  currentTurnDisplay.textContent = data.currentTurn ? data.players[data.currentTurn].name : '—';
+
+  // Show whose turn it is in big text
+  if (data.currentTurn) {
+    turnIndicator.textContent = `${data.players[data.currentTurn].name}'s Turn`;
+  } else {
+    turnIndicator.textContent = '';
+  }
 
   // Show/hide start and restart based on creator and gameState
   startGameBtn.style.display = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
@@ -268,17 +276,16 @@ function updateGameUI(data) {
     opponentsList.appendChild(li);
   });
 
-  // Render discard pile top card (use currentColor for wild)
+  // Render discard pile top card visually with color
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    let topColor = topCard.color === 'wild' ? data.currentColor : topCard.color;
+    let topColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
     discardPileEl.className = `card ${topColor}`;
   } else {
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
   }
-  currentColorDisplay.textContent = data.currentColor || '—';
 
   // Render player hand
   const myHand = data.players[playerId]?.hand || [];
@@ -434,6 +441,7 @@ function resetGameArea() {
   currentTurnDisplay.textContent = '';
   playerCountDisplay.textContent = '';
   maxPlayersDisplay.textContent = '';
+  turnIndicator.textContent = '';
 }
 
 // ======================= PLAY CARD FUNCTION INCLUDING SPECIAL LOGIC =======================
@@ -591,6 +599,20 @@ async function finishWildCardPlay(chosenColor) {
   colorModal.classList.add('hidden');
 }
 
+// ======================= COLOR BUTTON EVENT LISTENERS =======================
+
+colorButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const chosenColor = btn.getAttribute('data-color');
+    finishWildCardPlay(chosenColor);
+  });
+});
+
+closeModalBtn.addEventListener('click', () => {
+  pendingWildCard = null;
+  colorModal.classList.add('hidden');
+});
+
 // ======================= DRAW CARD BUTTON =======================
 
 drawCardBtn.addEventListener('click', async () => {
@@ -738,4 +760,5 @@ function resetGameArea() {
   currentTurnDisplay.textContent = '';
   playerCountDisplay.textContent = '';
   maxPlayersDisplay.textContent = '';
+  turnIndicator.textContent = '';
 }
