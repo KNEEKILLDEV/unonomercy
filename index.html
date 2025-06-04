@@ -4,73 +4,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNO No Mercy Multiplayer</title>
+  <title>Multiplayer UNO</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="lobby" class="section">
-    <h2>Join or Create Game Room</h2>
-    <input id="playerNameInput" placeholder="Your Name" autocomplete="off" />
-    <input id="roomInput" placeholder="Room ID" autocomplete="off" />
-    <input id="maxPlayersInput" type="number" placeholder="Max Players" min="2" max="10" />
-    <button id="createRoomBtn">Create Room</button>
-    <button id="joinRoomBtn">Join Room</button>
-    <div id="joinMsg" class="message"></div>
-  </div>
-
-  <div id="game" class="section" style="display:none;">
-    <h2>Room: <span id="roomNameLabel"></span></h2>
-    <h3 id="turnLabel">Turn: </h3>
-
-    <div id="opponentsContainer" class="opponents"></div>
-    <div id="spectatorsContainer" class="spectators"></div>
-
-    <div class="board">
-      <div>
-        <h4>Your Hand</h4>
-        <div id="playerHand" class="hand"></div>
-        <button id="unoBtn" class="disabled">UNO!</button>
+  <div id="container">
+    <header>
+      <h1>Multiplayer UNO</h1>
+      <div id="room-setup">
+        <input type="text" id="username" placeholder="Enter your name" />
+        <input type="text" id="room-id" placeholder="Room ID (leave empty to create)" />
+        <button id="join-room-btn">Create / Join Room</button>
       </div>
-      <div>
-        <h4>Discard Pile</h4>
-        <div id="discardPile" class="pile"></div>
-        <button id="drawCardBtn" class="disabled">Draw Card</button>
-      </div>
-    </div>
+    </header>
 
-    <div class="lower-panels">
-      <div class="log-panel">
-        <h4>Activity Log</h4>
-        <ul id="activityLog"></ul>
-      </div>
-      <div class="chat-panel">
-        <h4>Chat</h4>
-        <div id="chatMessages" class="messages"></div>
-        <input id="chatInput" placeholder="Type message..." autocomplete="off" />
-        <button id="sendChatBtn">Send</button>
-      </div>
-    </div>
+    <main id="game-area" style="display:none;">
+      <section id="players-info">
+        <h2>Players</h2>
+        <ul id="players-list"></ul>
+      </section>
 
-    <div id="colorModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <h3>Choose a Color</h3>
-        <div class="color-options">
-          <button class="color-option" data-color="red" style="background:#e74c3c"></button>
-          <button class="color-option" data-color="green" style="background:#27ae60"></button>
-          <button class="color-option" data-color="blue" style="background:#3498db"></button>
-          <button class="color-option" data-color="yellow" style="background:#f1c40f"></button>
+      <section id="game-log">
+        <h2>Activity Log</h2>
+        <div id="log-messages"></div>
+      </section>
+
+      <section id="hand-section">
+        <h2>Your Hand</h2>
+        <div id="player-hand"></div>
+        <button id="draw-card-btn">Draw Card</button>
+      </section>
+
+      <section id="game-table">
+        <h2>Game Table</h2>
+        <div id="discard-pile">
+          <h3>Discard Pile</h3>
+          <div id="top-card"></div>
         </div>
-      </div>
-    </div>
+        <div id="draw-pile">
+          <h3>Draw Pile</h3>
+          <div id="draw-card-back"></div>
+        </div>
+        <div id="turn-indicator">Waiting for players...</div>
+      </section>
 
-    <div id="gameOverBanner" class="game-over" style="display:none;">
-      <h2 id="winnerText"></h2>
-      <button id="restartBtn">Restart</button>
-    </div>
+      <section id="chat-section">
+        <h2>Chat</h2>
+        <div id="chat-messages"></div>
+        <input type="text" id="chat-input" placeholder="Type a message..." />
+        <button id="send-chat-btn">Send</button>
+      </section>
+    </main>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
