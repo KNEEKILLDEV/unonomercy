@@ -1,12 +1,13 @@
 // Initialize Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCi_5yLFHKLK9upAV6Q_HfYCMCrRqk43C0",
-  authDomain: "uno-game-6d741.firebaseapp.com",
-  projectId: "uno-game-6d741",
-  storageBucket: "uno-game-6d741.appspot.com",
-  messagingSenderId: "95216187843",
-  appId: "1:95216187843:web:056d4d3a7f43190dff89ee",
-  measurementId: "G-YZ62QL9K94"
+  apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
+  authDomain: "unonomercy-66ba7.firebaseapp.com",
+  databaseURL: "https://unonomercy-66ba7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "unonomercy-66ba7",
+  storageBucket: "unonomercy-66ba7.firebasedestorage.app",
+  messagingSenderId: "243436738671",
+  appId: "1:243436738671:web:8bfad4bc693acde225959a",
+  measurementId: "G-2DP7FTJPCR"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
