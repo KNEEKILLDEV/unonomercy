@@ -1,64 +1,78 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multiplayer UNO</title>
+  <title>Multiplayer UNO Game</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="script.js"></script>
 </head>
 <body>
-  <div id="container">
-    <header>
-      <h1>Multiplayer UNO</h1>
-      <div id="room-setup">
-        <input type="text" id="username" placeholder="Enter your name" />
-        <input type="text" id="room-id" placeholder="Room ID (leave empty to create)" />
-        <button id="join-room-btn">Create / Join Room</button>
+
+  <header>
+    <h1>Multiplayer UNO Game</h1>
+  </header>
+
+  <main>
+    <section id="room-setup">
+      <input id="playerNameInput" type="text" placeholder="Your name" />
+      <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
+      <button id="createRoomBtn">Create Room</button>
+      <button id="joinRoomBtn">Join Room</button>
+    </section>
+
+    <section id="game-area" class="hidden">
+      <div id="roomInfo">
+        <p>Room Code: <span id="roomCodeDisplay"></span></p>
+        <p>Your Name: <span id="playerNameDisplay"></span></p>
+        <p>Current Turn: <span id="currentPlayerDisplay"></span></p>
+        <button id="startGameBtn">Start Game</button>
+        <button id="restartBtn">Restart Game</button>
       </div>
-    </header>
 
-    <main id="game-area" style="display:none;">
-      <section id="players-info">
-        <h2>Players</h2>
-        <ul id="players-list"></ul>
-      </section>
+      <div id="playersArea">
+        <!-- Players and their hands rendered here -->
+      </div>
 
-      <section id="game-log">
-        <h2>Activity Log</h2>
-        <div id="log-messages"></div>
-      </section>
+      <div id="gameControls">
+        <button id="drawCardBtn" disabled>Draw Card</button>
+        <button id="unoBtn" disabled>Call UNO</button>
+      </div>
 
-      <section id="hand-section">
-        <h2>Your Hand</h2>
-        <div id="player-hand"></div>
-        <button id="draw-card-btn">Draw Card</button>
-      </section>
+      <div id="discardPileArea">
+        <h3>Discard Pile</h3>
+        <div id="discardPile"></div>
+        <p>Current Color: <span id="currentColorDisplay"></span></p>
+      </div>
 
-      <section id="game-table">
-        <h2>Game Table</h2>
-        <div id="discard-pile">
-          <h3>Discard Pile</h3>
-          <div id="top-card"></div>
+      <div id="chatArea">
+        <div id="chatLog"></div>
+        <input id="chatInput" type="text" placeholder="Type message and press Enter" autocomplete="off" />
+      </div>
+
+      <div id="activityLogArea">
+        <h3>Activity Log</h3>
+        <div id="activityLog"></div>
+      </div>
+    </section>
+
+    <!-- Wild color selection modal -->
+    <div id="wildColorModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Select a Color</h3>
+        <div class="color-options">
+          <button class="color-btn" data-color="red" style="background:red;"></button>
+          <button class="color-btn" data-color="green" style="background:green;"></button>
+          <button class="color-btn" data-color="blue" style="background:blue;"></button>
+          <button class="color-btn" data-color="yellow" style="background:yellow;"></button>
         </div>
-        <div id="draw-pile">
-          <h3>Draw Pile</h3>
-          <div id="draw-card-back"></div>
-        </div>
-        <div id="turn-indicator">Waiting for players...</div>
-      </section>
+      </div>
+    </div>
 
-      <section id="chat-section">
-        <h2>Chat</h2>
-        <div id="chat-messages"></div>
-        <input type="text" id="chat-input" placeholder="Type a message..." />
-        <button id="send-chat-btn">Send</button>
-      </section>
-    </main>
-  </div>
+  </main>
 
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-  <script src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="game.js"></script> <!-- Your main game script here -->
 </body>
 </html>
