@@ -5,12 +5,13 @@
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
-  databaseURL: "https://unonomercy-66ba7-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL:
+    "https://unonomercy-66ba7-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unonomercy-66ba7",
-  storageBucket: "unonomer🎉cery-66ba7.firebasedestorage.app",
+  storageBucket: "unonomercy-66ba7.firebasedestorage.app",
   messagingSenderId: "243436738671",
   appId: "1:243436738671:web:8bfad4bc693acde225959a",
-  measurementId: "G-2DP7FTJPCR"
+  measurementId: "G-2DP7FTJPCR",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -100,7 +101,11 @@ function renderHand() {
     cardEl.className = `card ${card.color} ${card.value}`;
     cardEl.textContent =
       card.value === "+4" ? "+4" : card.value === "wild" ? "Wild" : card.value;
-    cardEl.onclick = () => tryPlayCard(card);
+    // Only allow click if it's your turn
+    cardEl.onclick = () => {
+      if (!canPlayCard) return;
+      tryPlayCard(card);
+    };
     playerHand.appendChild(cardEl);
   }
 }
@@ -173,17 +178,10 @@ function canPlay(card) {
 
 // Try to play a card from hand
 function tryPlayCard(card) {
-  // Guard: only if in a started game and it’s your turn
-  if (
-    !roomData ||
-    !playerId ||
-    roomData.status !== "started" ||
-    roomData.currentPlayer !== playerId
-  ) {
-    return;
+  // Already checked canPlayCard in renderHand onclick
+  if (!canPlay(card)) {
+    return alert("Can't play this card now!");
   }
-  if (!canPlayCard) return;
-  if (!canPlay(card)) return alert("Can't play this card now!");
 
   if (card.color === "wild") {
     // Dynamically create and show the color-selection modal
@@ -199,9 +197,10 @@ function showColorPicker(card) {
   const overlay = document.createElement("div");
   overlay.className = "modal";
 
-  // Build inner HTML
+  // Build inner HTML with a close button
   overlay.innerHTML = `
     <div class="modal-content">
+      <span class="modal-close">&times;</span>
       <h3>Select a Color</h3>
       <div class="color-options">
         <button class="color-btn" data-color="red" style="background:red;"></button>
@@ -211,6 +210,11 @@ function showColorPicker(card) {
       </div>
     </div>
   `;
+
+  // Close button listener
+  overlay.querySelector(".modal-close").addEventListener("click", () => {
+    document.body.removeChild(overlay);
+  });
 
   // Attach click listeners to each color button
   overlay.querySelectorAll(".color-btn").forEach(btn => {
@@ -233,7 +237,7 @@ function playCard(card, chosenColor) {
     const playerIndex = room.players.findIndex(p => p.id === playerId);
     if (playerIndex === -1) return;
 
-    // Re‐check stack rules inside transaction
+    // Re-check stack rules inside transaction
     if (room.stackCount > 0) {
       if (
         room.stackType === "+2" &&
