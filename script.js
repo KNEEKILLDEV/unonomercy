@@ -721,6 +721,5 @@ function shuffle(array) {
   }
   return array;
 }
-</script>
-</body>
-</html>
+
+
