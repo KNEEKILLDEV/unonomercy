@@ -2,83 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multiplayer UNO Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNO No Mercy</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script defer src="script.js"></script>
 </head>
 <body>
+  <div class="form-container">
+    <form id="createRoomForm">
+      <h2>Create Room</h2>
+      <input type="text" id="createName" placeholder="Your Name" required />
+      <input type="number" id="maxPlayers" placeholder="Max Players" min="2" max="10" required />
+      <button type="submit">Create</button>
+    </form>
 
-  <header>
-    <h1>Multiplayer UNO Game</h1>
-  </header>
+    <form id="joinRoomForm">
+      <h2>Join Room</h2>
+      <input type="text" id="joinName" placeholder="Your Name" required />
+      <input type="text" id="roomCode" placeholder="Room Code" required />
+      <button type="submit">Join</button>
+    </form>
+  </div>
 
-  <main>
-    <section id="create-section">
-      <input id="playerNameInput" type="text" placeholder="Your name" />
-      <input
-        id="maxPlayersInput"
-        type="number"
-        placeholder="Max players (2–10)"
-        min="2"
-        max="10"
-      />
-      <button id="createRoomBtn">Create Room</button>
-    </section>
+  <div id="gameArea" class="hidden">
+    <div class="room-info">
+      <p><strong>Room Code:</strong> <span id="infoRoomCode"></span></p>
+      <p><strong>Your Name:</strong> <span id="infoYourName"></span></p>
+      <p><strong>Current Player:</strong> <span id="infoCurrentPlayer"></span></p>
+      <p><strong>Players:</strong> <span id="infoPlayerCount"></span> / <span id="infoMaxPlayers"></span></p>
+      <button id="startGameBtn">Start Game</button>
+      <button id="restartGameBtn">Restart Game</button>
+    </div>
 
-    <section id="join-section">
-      <input id="playerNameInputJoin" type="text" placeholder="Your name" />
-      <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
-      <button id="joinRoomBtn">Join Room</button>
-    </section>
+    <div class="discard-pile">
+      <h3>Top Card:</h3>
+      <div id="topCard" class="card">?</div>
+      <p>Color: <span id="currentColor">?</span></p>
+    </div>
 
-    <section id="game-area" class="hidden">
-      <div id="roomInfo">
-        <p>Room Code: <span id="roomCodeDisplay"></span></p>
-        <p>Your Name: <span id="playerNameDisplay"></span></p>
-        <p>Current Turn: <span id="currentPlayerDisplay"></span></p>
-        <p>
-          Players:
-          <span id="playerCountDisplay">0</span>
-          /
-          <span id="maxPlayersDisplay">0</span>
-        </p>
-        <button id="startGameBtn" class="hidden">Start Game</button>
-        <button id="restartBtn">Restart Game</button>
+    <div class="hand">
+      <h3>Your Hand</h3>
+      <div id="yourHand" class="cards-container"></div>
+      <button id="drawCardBtn">Draw Card</button>
+      <button id="callUnoBtn">Call UNO</button>
+    </div>
+
+    <div class="opponents">
+      <h3>Opponents</h3>
+      <ul id="opponentList"></ul>
+    </div>
+
+    <div class="logs">
+      <div class="chat-log">
+        <h4>Chat</h4>
+        <div id="chatMessages"></div>
+        <input type="text" id="chatInput" placeholder="Type a message" />
+        <button id="sendChatBtn">Send</button>
       </div>
-
-      <div id="playerHand" class="hand"></div>
-      <div id="opponents"></div>
-
-      <div id="gameControls">
-        <button id="drawCardBtn" disabled>Draw Card</button>
-        <button id="unoBtn" disabled>Call UNO</button>
-      </div>
-
-      <div id="discardPileArea">
-        <h3>Discard Pile</h3>
-        <div id="discardPile"></div>
-        <p>Current Color: <span id="currentColorDisplay"></span></p>
-      </div>
-
-      <div id="chatArea">
-        <div id="chatLog"></div>
-        <input
-          id="chatInput"
-          type="text"
-          placeholder="Type message and press Enter"
-          autocomplete="off"
-        />
-      </div>
-
-      <div id="activityLogArea">
-        <h3>Activity Log</h3>
+      <div class="activity-log">
+        <h4>Activity Log</h4>
         <div id="activityLog"></div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="script.js"></script>
+  <div id="colorModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal" class="close-button">×</span>
+      <h3>Select a Color</h3>
+      <div class="color-buttons">
+        <button data-color="red" class="color-btn red"></button>
+        <button data-color="yellow" class="color-btn yellow"></button>
+        <button data-color="green" class="color-btn green"></button>
+        <button data-color="blue" class="color-btn blue"></button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
