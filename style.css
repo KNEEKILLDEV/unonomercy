@@ -60,7 +60,7 @@ main {
   background: #1976d2;
 }
 
-/* Hides any element with class="hidden" */
+/* Hide any element with .hidden */
 .hidden {
   display: none;
 }

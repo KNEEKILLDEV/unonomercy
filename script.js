@@ -20,13 +20,10 @@ let roomData = null;
 let playerId = null;
 let playerName = null;
 let players = [];
-let spectators = [];
 let seatOrder = [];
 let direction = 1;
-let turnIndex = 0;
 let deck = [];
 let discardPile = [];
-let discardPileBackup = [];
 let currentColor = null;
 let currentValue = null;
 let hand = [];
@@ -45,18 +42,11 @@ const discardPileDiv     = document.getElementById("discardPile");
 const drawCardBtn        = document.getElementById("drawCardBtn");
 const unoBtn             = document.getElementById("unoBtn");
 const restartBtn         = document.getElementById("restartBtn");
-const colorModal         = document.getElementById("wildColorModal");
-const colorButtons       = document.querySelectorAll("#wildColorModal .color-btn");
 const createRoomBtn      = document.getElementById("createRoomBtn");
 const joinRoomBtn        = document.getElementById("joinRoomBtn");
 const startGameBtn       = document.getElementById("startGameBtn");
 const nameInput          = document.getElementById("playerNameInput");
 const roomIdInput        = document.getElementById("roomCodeInput");
-
-// Ensure the modal is hidden on load
-window.addEventListener("load", () => {
-  colorModal.classList.add("hidden");
-});
 
 // ---------------- Helper Functions ----------------
 
@@ -200,17 +190,43 @@ function tryPlayCard(card) {
   if (!canPlay(card)) return alert("Can't play this card now!");
 
   if (card.color === "wild") {
-    // Show color modal before playing wild card
-    colorModal.classList.remove("hidden");
-    colorButtons.forEach(btn => {
-      btn.onclick = () => {
-        playCard(card, btn.dataset.color);
-        colorModal.classList.add("hidden");
-      };
-    });
+    // Dynamically build and show the color-selection modal
+    showColorPicker(card);
   } else {
     playCard(card, null);
   }
+}
+
+// Dynamically create a modal, let user pick a color, then remove it
+function showColorPicker(card) {
+  // Create the overlay element
+  const overlay = document.createElement("div");
+  overlay.className = "modal";
+
+  // Build inner HTML
+  overlay.innerHTML = `
+    <div class="modal-content">
+      <h3>Select a Color</h3>
+      <div class="color-options">
+        <button class="color-btn" data-color="red" style="background:red;"></button>
+        <button class="color-btn" data-color="green" style="background:green;"></button>
+        <button class="color-btn" data-color="blue" style="background:blue;"></button>
+        <button class="color-btn" data-color="yellow" style="background:yellow;"></button>
+      </div>
+    </div>
+  `;
+
+  // Attach click listeners to each color button
+  overlay.querySelectorAll(".color-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const chosenColor = btn.dataset.color;
+      playCard(card, chosenColor);
+      document.body.removeChild(overlay);
+    });
+  });
+
+  // Append to <body>
+  document.body.appendChild(overlay);
 }
 
 // Play card with optional chosenColor (for wild)
@@ -454,16 +470,14 @@ function listenRoom() {
       roomData.currentPlayer === playerId ? "You" : roomData.currentPlayer;
 
     players = roomData.players || [];
-    spectators = roomData.spectators || [];
     seatOrder = roomData.seatOrder || [];
     direction = roomData.direction || 1;
     discardPile = roomData.discardPile || [];
     deck = roomData.deck || [];
     currentColor = roomData.currentColor;
     currentValue = roomData.currentValue;
-    turnIndex = seatOrder.indexOf(roomData.currentPlayer);
 
-    // Update UI based on player data
+    // Update player‐specific data
     const me = players.find(p => p.id === playerId);
     if (me) {
       hand = me.hand || [];
@@ -472,7 +486,7 @@ function listenRoom() {
       hand = [];
     }
 
-    // Determine if player can play this turn
+    // Determine if player can actually play this turn
     canPlayCard =
       roomData.currentPlayer === playerId && roomData.status === "started";
 
@@ -573,9 +587,7 @@ async function joinRoom() {
     });
   } else {
     // Rejoin: find existing playerId
-    const existingPlayer = roomData.players.find(
-      p => p.name === playerName
-    );
+    const existingPlayer = roomData.players.find(p => p.name === playerName);
     playerId = existingPlayer.id;
   }
 
