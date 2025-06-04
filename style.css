@@ -30,7 +30,6 @@ main {
   margin: 0 auto;
 }
 
-#room-setup,
 #create-section,
 #join-section {
   display: flex;
@@ -39,7 +38,6 @@ main {
   margin-bottom: 1rem;
 }
 
-#room-setup input,
 #create-section input,
 #join-section input {
   padding: 0.5rem;
@@ -49,7 +47,6 @@ main {
   border: none;
 }
 
-#room-setup button,
 #create-section button,
 #join-section button {
   padding: 0.5rem 1rem;
@@ -62,7 +59,6 @@ main {
   transition: background 0.3s ease;
 }
 
-#room-setup button:hover,
 #create-section button:hover,
 #join-section button:hover {
   background: #1976d2;
@@ -294,12 +290,27 @@ main {
 }
 
 .modal-content {
+  position: relative;
   background: #222;
   padding: 1.5rem;
   border-radius: 10px;
   text-align: center;
   color: white;
   width: 300px;
+}
+
+/* Updated close button styling: red, top-right corner */
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 1.2rem;
+  color: red;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: #ff6666;
 }
 
 .color-options {
@@ -322,3 +333,4 @@ main {
 .color-btn:hover {
   transform: scale(1.2);
 }
+  
