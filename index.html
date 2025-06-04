@@ -3,72 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UNO Multiplayer</title>
+  <title>UNO No Mercy</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div id="roomForms">
+  <div id="lobby">
     <h2>Create Room</h2>
-    <input type="text" id="createName" placeholder="Your name"/>
-    <input type="number" id="maxPlayers" placeholder="Max players (2-10)"/>
-    <button id="createRoomBtn">Create Room</button>
+    <form id="createRoomForm">
+      <input type="text" id="createName" placeholder="Your Name" required />
+      <input type="number" id="maxPlayers" placeholder="Max Players (2-6)" min="2" max="6" required />
+      <button type="submit">Create Room</button>
+    </form>
 
     <h2>Join Room</h2>
-    <input type="text" id="joinName" placeholder="Your name"/>
-    <input type="text" id="joinRoomCode" placeholder="Room code"/>
-    <button id="joinRoomBtn">Join Room</button>
+    <form id="joinRoomForm">
+      <input type="text" id="joinName" placeholder="Your Name" required />
+      <input type="text" id="joinRoomCode" placeholder="Room Code" required />
+      <button type="submit">Join Room</button>
+    </form>
   </div>
 
   <div id="gameArea" class="hidden">
     <div id="roomInfo">
-      <p>Room Code: <span id="roomCodeText"></span></p>
-      <p>Your Name: <span id="yourNameText"></span></p>
-      <p>Current Turn: <span id="currentPlayerText"></span></p>
-      <p>Players: <span id="playerCountText"></span></p>
+      <p>Room Code: <span id="roomCodeDisplay"></span></p>
+      <p>Your Name: <span id="yourNameDisplay"></span></p>
+      <p>Current Turn: <span id="currentTurnDisplay"></span></p>
+      <p>Players: <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
       <button id="startGameBtn">Start Game</button>
-      <button id="restartGameBtn" class="hidden">Restart Game</button>
+      <button id="restartGameBtn">Restart Game</button>
       <button id="leaveRoomBtn">Leave Room</button>
     </div>
 
-    <div id="gameBoard">
-      <div id="yourHand" class="card-row"></div>
-      <div id="opponentsArea"></div>
-      <div id="centerArea">
-        <div id="discardPile">
-          <div id="topCard" class="card"></div>
-          <p>Current Color: <span id="currentColorText"></span></p>
-        </div>
-        <div id="controls">
-          <button id="drawCardBtn">Draw Card</button>
-          <button id="callUnoBtn">Call UNO</button>
-        </div>
-      </div>
+    <div id="discardPile">
+      <h3>Top Card</h3>
+      <div id="topCard" class="card"></div>
+      <p>Current Color: <span id="currentColorDisplay"></span></p>
     </div>
 
-    <div id="logsArea">
-      <div id="activityLog" class="logBox"></div>
-      <div id="chatLog" class="logBox"></div>
-      <input type="text" id="chatInput" placeholder="Type message..." />
+    <div id="opponentsList"></div>
+
+    <div id="playerHand"></div>
+
+    <div id="actions">
+      <button id="drawCardBtn">Draw Card</button>
+      <button id="callUnoBtn">Call UNO</button>
+    </div>
+
+    <div id="chatArea">
+      <h3>Chat</h3>
+      <div id="chatLog" class="log"></div>
+      <input type="text" id="chatInput" placeholder="Type a message..." />
       <button id="sendChatBtn">Send</button>
     </div>
+
+    <div id="activityArea">
+      <h3>Activity Log</h3>
+      <div id="activityLog" class="log"></div>
+    </div>
   </div>
 
-  <!-- Wild Color Modal -->
-  <div id="colorModal" class="hidden">
-    <div class="modalContent">
-      <button id="closeModalBtn">×</button>
-      <h3>Select a Color</h3>
-      <div class="colorButtons">
+  <div id="colorModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModalBtn" class="close">&times;</span>
+      <h3>Choose a Color</h3>
+      <div class="color-options">
         <button class="color-btn red" data-color="red">Red</button>
-        <button class="color-btn yellow" data-color="yellow">Yellow</button>
         <button class="color-btn green" data-color="green">Green</button>
         <button class="color-btn blue" data-color="blue">Blue</button>
+        <button class="color-btn yellow" data-color="yellow">Yellow</button>
       </div>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

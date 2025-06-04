@@ -1,157 +1,143 @@
 body {
-  font-family: sans-serif;
-  background-color: #1b1b1b;
+  background-color: #121212;
   color: #fff;
-  margin: 0;
+  font-family: sans-serif;
+  text-align: center;
   padding: 20px;
-}
-
-.hidden {
-  display: none !important;
 }
 
 input, button {
   padding: 8px;
   margin: 5px;
-  font-size: 16px;
+  border: none;
+  border-radius: 4px;
   max-width: 200px;
 }
 
 button {
-  cursor: pointer;
-  background-color: #333;
+  background-color: #ff4747;
   color: white;
-  border: none;
-  border-radius: 6px;
-  max-width: 150px;
+  cursor: pointer;
 }
 
 button:hover {
-  background-color: #555;
+  background-color: #ff6666;
+}
+
+.hidden {
+  display: none;
 }
 
 .card {
+  display: inline-block;
   width: 60px;
   height: 90px;
+  line-height: 90px;
+  text-align: center;
+  margin: 5px;
   border-radius: 8px;
-  margin: 4px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
   color: white;
-  box-shadow: 0 0 5px black;
   cursor: pointer;
-  transition: transform 0.2s;
 }
+
+.card.red { background-color: red; }
+.card.green { background-color: green; }
+.card.blue { background-color: blue; }
+.card.yellow { background-color: gold; }
+.card.wild { background-color: black; }
 
 .card:hover {
   transform: scale(1.1);
 }
 
-.red { background-color: red; }
-.green { background-color: green; }
-.blue { background-color: blue; }
-.yellow { background-color: goldenrod; }
-.wild { background: linear-gradient(45deg, red, yellow, green, blue); }
-
-.card-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin: 10px 0;
-}
-
-#opponentsArea {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #2a2a2a;
-  border-radius: 10px;
-}
-
-#centerArea {
-  text-align: center;
-  margin: 15px 0;
-}
-
-#discardPile {
-  margin: 10px;
-}
-
-#controls {
-  margin-top: 10px;
-}
-
-#logsArea {
+#playerHand {
   margin-top: 20px;
 }
 
-.logBox {
-  background-color: #2a2a2a;
-  padding: 10px;
+#opponentsList {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+#discardPile {
+  margin: 20px auto;
+}
+
+#topCard {
+  margin: 10px auto;
+}
+
+#chatArea, #activityArea {
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.log {
+  border: 1px solid #333;
   height: 150px;
   overflow-y: auto;
-  border-radius: 6px;
+  padding: 10px;
+  background-color: #1e1e1e;
   margin-bottom: 10px;
 }
 
-#colorModal {
+#chatInput {
+  width: 80%;
+}
+
+.modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.7);
-  display: none;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 10;
 }
 
-#colorModal.show {
-  display: flex;
-}
-
-.modalContent {
-  background-color: #222;
+.modal-content {
+  background: #2a2a2a;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 10px;
   text-align: center;
+  width: 300px;
   position: relative;
-  max-width: 300px;
 }
 
-.colorButtons {
+.color-options {
   display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  margin-top: 10px;
-  gap: 10px;
+  justify-content: space-between;
+  margin-top: 15px;
 }
 
 .color-btn {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 2px solid white;
-  font-weight: bold;
+  border: none;
+  cursor: pointer;
 }
 
-.color-btn.red { background: red; }
-.color-btn.green { background: green; }
-.color-btn.blue { background: blue; }
-.color-btn.yellow { background: goldenrod; }
+.color-btn.red { background-color: red; }
+.color-btn.green { background-color: green; }
+.color-btn.blue { background-color: blue; }
+.color-btn.yellow { background-color: gold; }
 
-#closeModalBtn {
+.close {
   position: absolute;
-  top: 6px;
+  top: 5px;
   right: 10px;
-  background: transparent;
-  color: white;
   font-size: 24px;
-  border: none;
+  color: red;
   cursor: pointer;
 }
