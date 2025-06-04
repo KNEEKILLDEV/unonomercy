@@ -15,6 +15,7 @@
     <input id="maxPlayersInput" type="number" placeholder="Max Players" min="2" max="10" />
     <button id="createRoomBtn">Create Room</button>
     <button id="joinRoomBtn">Join Room</button>
+    <div id="joinMsg" class="message"></div>
   </div>
 
   <div id="game" class="section" style="display:none;">
@@ -22,16 +23,18 @@
     <h3 id="turnLabel">Turn: </h3>
 
     <div id="opponentsContainer" class="opponents"></div>
+    <div id="spectatorsContainer" class="spectators"></div>
 
     <div class="board">
       <div>
         <h4>Your Hand</h4>
         <div id="playerHand" class="hand"></div>
+        <button id="unoBtn" class="disabled">UNO!</button>
       </div>
       <div>
         <h4>Discard Pile</h4>
         <div id="discardPile" class="pile"></div>
-        <button id="drawCardBtn">Draw Card</button>
+        <button id="drawCardBtn" class="disabled">Draw Card</button>
       </div>
     </div>
 
@@ -46,6 +49,23 @@
         <input id="chatInput" placeholder="Type message..." autocomplete="off" />
         <button id="sendChatBtn">Send</button>
       </div>
+    </div>
+
+    <div id="colorModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h3>Choose a Color</h3>
+        <div class="color-options">
+          <button class="color-option" data-color="red" style="background:#e74c3c"></button>
+          <button class="color-option" data-color="green" style="background:#27ae60"></button>
+          <button class="color-option" data-color="blue" style="background:#3498db"></button>
+          <button class="color-option" data-color="yellow" style="background:#f1c40f"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameOverBanner" class="game-over" style="display:none;">
+      <h2 id="winnerText"></h2>
+      <button id="restartBtn">Restart</button>
     </div>
   </div>
 
