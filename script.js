@@ -13,50 +13,58 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let roomRef = db.collection("rooms").doc("room1"); // Placeholder, updated on create/join
+let roomRef;
 let playerName = "";
 let roomCode = "";
 
-// DOM references
+// DOM refs
 const gameArea = document.getElementById("gameArea");
 const createForm = document.getElementById("createRoomForm");
 const joinForm = document.getElementById("joinRoomForm");
+const colorModal = document.getElementById("colorModal");
+const closeModalBtn = document.getElementById("closeModal");
 
+// Ensure modal is hidden on load
+window.addEventListener("load", () => {
+  colorModal.classList.add("hidden");
+});
+
+closeModalBtn.addEventListener("click", () => {
+  colorModal.classList.add("hidden");
+});
+
+// Handle Create Room
 createForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   playerName = document.getElementById("createName").value;
   const maxPlayers = parseInt(document.getElementById("maxPlayers").value);
   roomCode = Math.random().toString(36).substr(2, 5).toUpperCase();
-
   roomRef = db.collection("rooms").doc(roomCode);
+
   await roomRef.set({
     maxPlayers,
     players: [{ name: playerName, hand: [], unoCalled: false }],
     currentPlayerIndex: 0,
-    gameStarted: false
+    gameStarted: false,
+    currentColor: null,
+    topCard: null
   });
 
   startGameUI();
 });
 
+// Handle Join Room
 joinForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   playerName = document.getElementById("joinName").value;
   roomCode = document.getElementById("roomCode").value.toUpperCase();
-
   roomRef = db.collection("rooms").doc(roomCode);
-  const doc = await roomRef.get();
 
-  if (!doc.exists) {
-    alert("Room not found!");
-    return;
-  }
+  const doc = await roomRef.get();
+  if (!doc.exists) return alert("Room not found!");
 
   const data = doc.data();
-  if (data.players.length >= data.maxPlayers) {
-    alert("Room full!");
-    return;
-  }
+  if (data.players.length >= data.maxPlayers) return alert("Room full!");
 
   await roomRef.update({
     players: firebase.firestore.FieldValue.arrayUnion({ name: playerName, hand: [], unoCalled: false })
@@ -65,6 +73,7 @@ joinForm.addEventListener("submit", async (e) => {
   startGameUI();
 });
 
+// Setup game UI
 function startGameUI() {
   document.querySelector(".form-container").classList.add("hidden");
   gameArea.classList.remove("hidden");
@@ -78,14 +87,16 @@ function startGameUI() {
 
     document.getElementById("infoPlayerCount").innerText = data.players.length;
     document.getElementById("infoMaxPlayers").innerText = data.maxPlayers;
+    document.getElementById("infoCurrentPlayer").innerText = data.players[data.currentPlayerIndex]?.name || "?";
 
-    const currentPlayer = data.players[data.currentPlayerIndex];
-    document.getElementById("infoCurrentPlayer").innerText = currentPlayer?.name || "?";
+    document.getElementById("currentColor").innerText = data.currentColor || "?";
+    document.getElementById("topCard").innerText = data.topCard || "?";
 
     renderPlayers(data.players);
   });
 }
 
+// Render players
 function renderPlayers(players) {
   const opponentList = document.getElementById("opponentList");
   const handContainer = document.getElementById("yourHand");
@@ -98,6 +109,7 @@ function renderPlayers(players) {
         const cardEl = document.createElement("div");
         cardEl.classList.add("card");
         cardEl.innerText = card;
+        cardEl.addEventListener("click", () => handleCardPlay(card));
         handContainer.appendChild(cardEl);
       });
     } else {
@@ -108,4 +120,26 @@ function renderPlayers(players) {
   });
 }
 
-// Add additional logic for game play here: draw cards, play cards, update turns, etc.
+// Simulated card play
+function handleCardPlay(card) {
+  if (card.toLowerCase().includes("wild")) {
+    showColorModal();
+  } else {
+    console.log("Play card:", card);
+    // Update top card normally here
+  }
+}
+
+// Show color modal
+function showColorModal() {
+  colorModal.classList.remove("hidden");
+}
+
+// Handle color selection
+document.querySelectorAll(".color-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const selectedColor = btn.dataset.color;
+    await roomRef.update({ currentColor: selectedColor });
+    colorModal.classList.add("hidden");
+  });
+});
