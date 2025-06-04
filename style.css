@@ -1,293 +1,153 @@
 body {
-  background-color: #111;
-  color: #eee;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
+  background-color: #1b1b1b;
+  color: #fff;
   margin: 0;
-  padding: 0 10px 20px 10px;
-}
-
-h1, h2, h3 {
-  text-align: center;
-  margin: 10px 0;
-}
-
-form {
-  background: #222;
-  padding: 15px;
-  margin: 10px auto;
-  width: 280px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #000;
-}
-
-form input, form button {
-  display: block;
-  width: 100%;
-  margin: 8px 0;
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: none;
-}
-
-form button {
-  background-color: #bb0000;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-form button:hover {
-  background-color: #dd2222;
+  padding: 20px;
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
-#gameArea {
-  max-width: 960px;
-  margin: 0 auto;
+input, button {
+  padding: 8px;
+  margin: 5px;
+  font-size: 16px;
+  max-width: 200px;
 }
 
-#roomInfo {
-  background-color: #222;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-#roomInfo p {
-  margin: 5px 0;
-}
-
-#roomInfo button {
-  margin: 5px 5px 0 5px;
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: none;
-  background-color: #bb0000;
-  color: white;
+button {
   cursor: pointer;
-  min-width: 90px;
-  transition: background-color 0.3s;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 6px;
 }
 
-#roomInfo button:hover {
-  background-color: #dd2222;
-}
-
-#opponentsContainer, #yourHandContainer, #discardPileContainer {
-  background-color: #222;
-  margin-bottom: 15px;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-#opponentList {
-  list-style-type: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-#opponentList li {
-  padding: 4px 6px;
-  border-bottom: 1px solid #444;
-  font-weight: bold;
-}
-
-#yourHand {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding: 5px 0;
-  gap: 6px;
+button:hover {
+  background-color: #555;
 }
 
 .card {
-  flex: 0 0 auto;
   width: 60px;
   height: 90px;
   border-radius: 8px;
-  color: #222;
-  font-weight: bold;
-  font-size: 20px;
-  display: flex;
+  margin: 4px;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  box-shadow: 0 0 5px black;
   cursor: pointer;
-  user-select: none;
-  transition: transform 0.15s ease;
-  box-shadow: 0 2px 5px #0008;
+  transition: transform 0.2s;
 }
 
 .card:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 8px #ff4444;
 }
 
-/* Colors */
-.red { background-color: #d32f2f; color: #fff; }
-.yellow { background-color: #fbc02d; color: #222; }
-.green { background-color: #388e3c; color: #fff; }
-.blue { background-color: #1976d2; color: #fff; }
-.wild {
-  background: linear-gradient(45deg, #333, #111);
-  color: #eee;
-  font-size: 14px;
-  text-align: center;
-  padding: 5px 3px;
-}
+.red { background-color: red; }
+.green { background-color: green; }
+.blue { background-color: blue; }
+.yellow { background-color: goldenrod; }
+.wild { background: linear-gradient(45deg, red, yellow, green, blue); }
 
-/* When wild card in discard pile with chosen color */
-.discard-wild.red { background-color: #d32f2f !important; color: #fff !important; }
-.discard-wild.yellow { background-color: #fbc02d !important; color: #222 !important; }
-.discard-wild.green { background-color: #388e3c !important; color: #fff !important; }
-.discard-wild.blue { background-color: #1976d2 !important; color: #fff !important; }
-
-#discardPileContainer #topCard {
+.card-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  margin: 10px 0;
 }
 
-#actionButtons {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-#actionButtons button {
-  margin: 0 10px;
-  padding: 10px 18px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: #bb0000;
-  color: white;
-  cursor: pointer;
-  min-width: 110px;
-  transition: background-color 0.3s;
-}
-
-#actionButtons button:disabled {
-  background-color: #660000;
-  cursor: not-allowed;
-}
-
-#actionButtons button:hover:not(:disabled) {
-  background-color: #dd2222;
-}
-
-#chatContainer, #activityLogContainer {
-  background-color: #222;
+#opponentsArea {
+  display: flex;
+  justify-content: space-around;
   padding: 10px;
-  border-radius: 8px;
-  max-height: 220px;
+  margin-top: 10px;
+  background-color: #2a2a2a;
+  border-radius: 10px;
+}
+
+#centerArea {
+  text-align: center;
+  margin: 15px 0;
+}
+
+#discardPile {
+  margin: 10px;
+}
+
+#controls {
+  margin-top: 10px;
+}
+
+#logsArea {
+  margin-top: 20px;
+}
+
+.logBox {
+  background-color: #2a2a2a;
+  padding: 10px;
+  height: 150px;
   overflow-y: auto;
+  border-radius: 6px;
   margin-bottom: 10px;
 }
-
-.log p {
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-#chatInput {
-  width: calc(100% - 80px);
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  margin-right: 6px;
-  color: #222;
-}
-
-#sendChatBtn {
-  padding: 8px 14px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  background-color: #bb0000;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-#sendChatBtn:hover {
-  background-color: #dd2222;
-}
-
-/* Modal */
 
 #colorModal {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000b;
-  display: flex;
-  justify-content: center;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.7);
+  display: none;
   align-items: center;
-  z-index: 1000;
-}
-
-#colorModalContent {
-  background-color: #222;
-  border-radius: 10px;
-  padding: 20px;
-  position: relative;
-  width: 320px;
-  text-align: center;
-}
-
-#closeModalBtn {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #bb0000;
-  cursor: pointer;
-  font-weight: bold;
-  line-height: 1;
-}
-
-#colorButtonsContainer {
-  display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+  z-index: 999;
+}
+
+#colorModal.show {
+  display: flex;
+}
+
+.modalContent {
+  background-color: #222;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  position: relative;
+}
+
+.colorButtons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
 }
 
 .color-btn {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
+  border: 2px solid white;
+  font-weight: bold;
+}
+
+.color-btn.red { background: red; }
+.color-btn.green { background: green; }
+.color-btn.blue { background: blue; }
+.color-btn.yellow { background: goldenrod; }
+
+#closeModalBtn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  background: transparent;
+  color: white;
+  font-size: 24px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 6px #000;
-  transition: transform 0.2s ease;
-}
-
-.color-btn:hover {
-  transform: scale(1.2);
-}
-
-.color-btn.red {
-  background-color: #d32f2f;
-}
-
-.color-btn.yellow {
-  background-color: #fbc02d;
-}
-
-.color-btn.green {
-  background-color: #388e3c;
-}
-
-.color-btn.blue {
-  background-color: #1976d2;
 }
