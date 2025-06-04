@@ -3,82 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNO No Mercy</title>
+  <title>Realtime Multiplayer UNO</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script defer src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="form-container">
+
+  <div id="lobby">
+    <h2>Create Room</h2>
     <form id="createRoomForm">
-      <h2>Create Room</h2>
       <input type="text" id="createName" placeholder="Your Name" required />
-      <input type="number" id="maxPlayers" placeholder="Max Players" min="2" max="10" required />
-      <button type="submit">Create</button>
+      <input type="number" id="maxPlayers" placeholder="Max Players (2-10)" min="2" max="10" required />
+      <button type="submit">Create Room</button>
     </form>
 
+    <h2>Join Room</h2>
     <form id="joinRoomForm">
-      <h2>Join Room</h2>
       <input type="text" id="joinName" placeholder="Your Name" required />
-      <input type="text" id="roomCode" placeholder="Room Code" required />
-      <button type="submit">Join</button>
+      <input type="text" id="roomCode" placeholder="Room Code" required maxlength="6" />
+      <button type="submit">Join Room</button>
     </form>
   </div>
 
   <div id="gameArea" class="hidden">
-    <div class="room-info">
-      <p><strong>Room Code:</strong> <span id="infoRoomCode"></span></p>
-      <p><strong>Your Name:</strong> <span id="infoYourName"></span></p>
-      <p><strong>Current Player:</strong> <span id="infoCurrentPlayer"></span></p>
-      <p><strong>Players:</strong> <span id="infoPlayerCount"></span> / <span id="infoMaxPlayers"></span></p>
+    <div id="roomInfo">
+      <p>Room Code: <span id="roomCodeDisplay"></span></p>
+      <p>Your Name: <span id="yourNameDisplay"></span></p>
+      <p>Creator: <span id="creatorDisplay"></span></p>
+      <p>Current Player: <span id="currentPlayerDisplay"></span></p>
+      <p>Players: <span id="playerCount"></span> / <span id="maxPlayersDisplay"></span></p>
       <button id="startGameBtn">Start Game</button>
       <button id="restartGameBtn">Restart Game</button>
+      <button id="leaveRoomBtn">Leave Room</button>
     </div>
 
-    <div class="discard-pile">
-      <h3>Top Card:</h3>
-      <div id="topCard" class="card">?</div>
-      <p>Color: <span id="currentColor">?</span></p>
+    <hr />
+
+    <div id="discardPileArea">
+      <h3>Discard Pile</h3>
+      <div id="topCard" class="card"></div>
+      <p>Current Color: <span id="currentColor"></span></p>
     </div>
 
-    <div class="hand">
+    <div id="yourHandArea">
       <h3>Your Hand</h3>
-      <div id="yourHand" class="cards-container"></div>
+      <div id="yourHand"></div>
       <button id="drawCardBtn">Draw Card</button>
       <button id="callUnoBtn">Call UNO</button>
     </div>
 
-    <div class="opponents">
+    <div id="opponentsArea">
       <h3>Opponents</h3>
       <ul id="opponentList"></ul>
     </div>
 
-    <div class="logs">
-      <div class="chat-log">
-        <h4>Chat</h4>
-        <div id="chatMessages"></div>
-        <input type="text" id="chatInput" placeholder="Type a message" />
-        <button id="sendChatBtn">Send</button>
-      </div>
-      <div class="activity-log">
-        <h4>Activity Log</h4>
-        <div id="activityLog"></div>
+    <div id="logsArea">
+      <div id="activityLog" class="logBox"></div>
+      <div id="chatLog" class="logBox"></div>
+      <input type="text" id="chatInput" placeholder="Type message and press Enter" />
+    </div>
+  </div>
+
+  <!-- Wild color selection modal -->
+  <div id="colorModal" class="modal hidden">
+    <div class="modal-content">
+      <button id="closeModalBtn" class="close-btn">×</button>
+      <h3>Select Color for Wild Card</h3>
+      <div class="color-buttons">
+        <button class="color-btn red" data-color="red">Red</button>
+        <button class="color-btn yellow" data-color="yellow">Yellow</button>
+        <button class="color-btn green" data-color="green">Green</button>
+        <button class="color-btn blue" data-color="blue">Blue</button>
       </div>
     </div>
   </div>
 
-  <div id="colorModal" class="modal hidden">
-    <div class="modal-content">
-      <span id="closeModal" class="close-button">×</span>
-      <h3>Select a Color</h3>
-      <div class="color-buttons">
-        <button data-color="red" class="color-btn red"></button>
-        <button data-color="yellow" class="color-btn yellow"></button>
-        <button data-color="green" class="color-btn green"></button>
-        <button data-color="blue" class="color-btn blue"></button>
-      </div>
-    </div>
-  </div>
+  <script src="script.js"></script>
 </body>
 </html>
