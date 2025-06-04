@@ -529,8 +529,12 @@ async function createRoom() {
   playerName = nameInput.value.trim();
   if (!playerName) return alert("Enter your name");
 
-  const maxInput = parseInt(maxPlayersInput.value, 10);
-  if (isNaN(maxInput) || maxInput < 2 || maxInput > 10) {
+  // If blank or invalid, default to 10
+  let maxInput = parseInt(maxPlayersInput.value, 10);
+  if (isNaN(maxInput)) {
+    maxInput = 10;
+  }
+  if (maxInput < 2 || maxInput > 10) {
     return alert("Max players must be a number between 2 and 10");
   }
 
@@ -687,4 +691,3 @@ restartBtn.onclick    = () => {
 };
 
 // Optional: if someone reloads and has an active playerId & roomRef, you could re-attach listeners here.
-// (Not shown—depends on how you want to persist across page reloads.)
