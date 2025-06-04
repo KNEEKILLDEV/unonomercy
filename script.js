@@ -47,6 +47,7 @@ const joinRoomBtn        = document.getElementById("joinRoomBtn");
 const startGameBtn       = document.getElementById("startGameBtn");
 const nameInput          = document.getElementById("playerNameInput");
 const roomIdInput        = document.getElementById("roomCodeInput");
+const maxPlayersInput    = document.getElementById("maxPlayersInput");
 
 // ---------------- Helper Functions ----------------
 
@@ -471,9 +472,11 @@ function listenRoom() {
     document.getElementById("currentPlayerDisplay").textContent =
       roomData.currentPlayer === playerId ? "You" : roomData.currentPlayer;
 
-    // Update player count display
+    // Update player count & max display
     const countEl = document.getElementById("playerCountDisplay");
+    const maxEl   = document.getElementById("maxPlayersDisplay");
     countEl.textContent = (roomData.players || []).length;
+    maxEl.textContent   = roomData.maxPlayers || 0;
 
     players = roomData.players || [];
     seatOrder = roomData.seatOrder || [];
@@ -526,6 +529,11 @@ async function createRoom() {
   playerName = nameInput.value.trim();
   if (!playerName) return alert("Enter your name");
 
+  const maxInput = parseInt(maxPlayersInput.value, 10);
+  if (isNaN(maxInput) || maxInput < 2 || maxInput > 10) {
+    return alert("Max players must be a number between 2 and 10");
+  }
+
   // Generate random room ID
   const newRoomId = Math.random().toString(36).substring(2, 7).toUpperCase();
   playerId = Math.random().toString(36).substring(2, 15);
@@ -553,7 +561,8 @@ async function createRoom() {
     currentValue: null,
     stackCount: 0,
     stackType: null,
-    status: "waiting"
+    status: "waiting",
+    maxPlayers: maxInput
   });
 
   roomRef = db.collection("rooms").doc(newRoomId);
@@ -577,11 +586,13 @@ async function joinRoom() {
 
   roomData = roomDoc.data();
 
+  const maxAllowed = roomData.maxPlayers || 10;
+  if ((roomData.players || []).length >= maxAllowed) {
+    return alert("Room is full according to its max players limit!");
+  }
+
   // Check if player already exists (rejoin)
   if (!roomData.players.some(p => p.name === playerName)) {
-    // Add player if less than 10
-    if (roomData.players.length >= 10) return alert("Room full!");
-
     playerId = Math.random().toString(36).substring(2, 15);
 
     // Add player to players list and seatOrder
@@ -675,5 +686,5 @@ restartBtn.onclick    = () => {
   }
 };
 
-// Start listening to Firestore if you reload and have already joined a room
-// (Optional: implement persist logic if needed)
+// Optional: if someone reloads and has an active playerId & roomRef, you could re-attach listeners here.
+// (Not shown—depends on how you want to persist across page reloads.)
