@@ -177,7 +177,7 @@ function canPlay(card) {
 
 // Try to play a card from hand
 function tryPlayCard(card) {
-  // EXTRA GUARD: Ensure we have joined a game and it’s actually our turn
+  // Guard: only if in a started game and it’s your turn
   if (
     !roomData ||
     !playerId ||
@@ -190,7 +190,7 @@ function tryPlayCard(card) {
   if (!canPlay(card)) return alert("Can't play this card now!");
 
   if (card.color === "wild") {
-    // Dynamically build and show the color-selection modal
+    // Dynamically create and show the color-selection modal
     showColorPicker(card);
   } else {
     playCard(card, null);
