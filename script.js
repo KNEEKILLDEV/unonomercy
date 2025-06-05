@@ -278,7 +278,6 @@ function updateGameUI(data) {
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    // If wild, use currentColor; otherwise use card's color
     let displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
     discardPileEl.className = `card ${displayColor}`;
   } else {
@@ -291,7 +290,6 @@ function updateGameUI(data) {
   playerHand.innerHTML = '';
   myHand.forEach(card => {
     const cardEl = document.createElement('div');
-    // For a wild in hand, always show rainbow (wild) appearance
     const cardColorClass = (card.color === 'wild') ? 'wild' : card.color;
     cardEl.className = `card ${cardColorClass}`;
     cardEl.textContent = card.value.toUpperCase();
@@ -392,6 +390,7 @@ restartGameBtn.addEventListener('click', async () => {
   });
 });
 
+// Single leaveRoomBtn listener (duplicate removed)
 leaveRoomBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -709,55 +708,3 @@ chatInput.addEventListener('keydown', (e) => {
     sendChatBtn.click();
   }
 });
-
-// ======================= LEAVE ROOM =======================
-
-leaveRoomBtn.addEventListener('click', async () => {
-  if (!currentRoomId || !playerId) return;
-  const roomRef = db.collection('rooms').doc(currentRoomId);
-  const roomDoc = await roomRef.get();
-  if (!roomDoc.exists) return;
-  const data = roomDoc.data();
-
-  const updatedPlayers = { ...data.players };
-  delete updatedPlayers[playerId];
-
-  if (Object.keys(updatedPlayers).length === 0) {
-    await roomRef.delete();
-  } else {
-    await roomRef.update({ players: updatedPlayers });
-    if (data.currentTurn === playerId) {
-      const playerIds = Object.keys(updatedPlayers);
-      const idx = (playerIds.indexOf(playerId) === -1) ? 0 : playerIds.indexOf(playerId);
-      const nextTurnId = playerIds[(idx + data.direction + playerIds.length) % playerIds.length];
-      await roomRef.update({ currentTurn: nextTurnId });
-    }
-  }
-
-  if (gameStateUnsubscribe) gameStateUnsubscribe();
-  if (chatUnsubscribe) chatUnsubscribe();
-
-  currentRoomId = null;
-  playerId = null;
-  playerName = null;
-  pendingWildCard = null;
-  isCreator = false;
-
-  resetGameArea();
-  lobby.classList.remove('hidden');
-  gameArea.classList.add('hidden');
-});
-
-function resetGameArea() {
-  opponentsList.innerHTML = '';
-  discardPileEl.textContent = '';
-  discardPileEl.className = 'card';
-  playerHand.innerHTML = '';
-  chatLog.innerHTML = '';
-  activityLog.innerHTML = '';
-  roomCodeDisplay.textContent = '';
-  yourNameDisplay.textContent = '';
-  playerCountDisplay.textContent = '';
-  maxPlayersDisplay.textContent = '';
-  turnIndicator.textContent = '';
-}

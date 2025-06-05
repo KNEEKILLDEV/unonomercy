@@ -148,6 +148,13 @@ form button:hover {
   user-select: none;
 }
 
+/* color variants */
+.card.red { background-color: #e53935; }
+.card.yellow { background-color: #fdd835; color: #333; }
+.card.green { background-color: #43a047; }
+.card.blue { background-color: #1e88e5; }
+.card.wild { background-color: #7c4dff; }
+
 /* ======== PLAYER HAND ======== */
 #handArea {
   background-color: #2a2a2a;
@@ -181,11 +188,6 @@ form button:hover {
 .card:hover {
   transform: scale(1.1);
 }
-.card.red { background-color: #e53935; }
-.card.yellow { background-color: #fdd835; color: #333; }
-.card.green { background-color: #43a047; }
-.card.blue { background-color: #1e88e5; }
-.card.wild { background-color: #7c4dff; }
 
 /* ======== CONTROLS ======== */
 #handArea button {
