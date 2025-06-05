@@ -1,7 +1,6 @@
 // script.js
 
 // ======================= FIREBASE CONFIG AND INITIALIZATION =======================
-
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -16,7 +15,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ======================= GLOBAL VARIABLES =======================
-
 let currentRoomId = null;
 let playerId = null;
 let playerName = null;
@@ -26,7 +24,6 @@ let gameStateUnsubscribe = null;
 let chatUnsubscribe = null;
 
 // ======================= DOM ELEMENTS =======================
-
 const lobby = document.getElementById('lobby');
 const gameArea = document.getElementById('gameArea');
 
@@ -62,15 +59,12 @@ const joinForm = document.getElementById('joinForm');
 const lobbyMessage = document.getElementById('lobbyMessage');
 
 // ======================= UTILITY FUNCTIONS =======================
-
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
-
 function generatePlayerId() {
   return Math.random().toString(36).substring(2, 10);
 }
-
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -78,7 +72,6 @@ function shuffle(array) {
   }
   return array;
 }
-
 function reshuffleDiscardIntoDeck(deck, discardPile) {
   if (discardPile.length <= 1) return deck;
   const top = discardPile.pop();
@@ -88,32 +81,27 @@ function reshuffleDiscardIntoDeck(deck, discardPile) {
   discardPile.push(top);
   return extras;
 }
-
 function logActivity(message) {
   const p = document.createElement('p');
   p.textContent = message;
   activityLog.appendChild(p);
   activityLog.scrollTop = activityLog.scrollHeight;
 }
-
 function appendChatMessage({ playerName, message }) {
   const p = document.createElement('p');
   p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
   chatLog.appendChild(p);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
-
 function showLobbyMessage(msg) {
   lobbyMessage.textContent = msg;
 }
 
 // ======================= DECK & GAME SETUP =======================
-
 function generateDeck() {
   const colors = ['red', 'yellow', 'green', 'blue'];
   const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
   let deck = [];
-
   colors.forEach(color => {
     deck.push({ color, value: '0' });
     values.slice(1).forEach(val => {
@@ -121,15 +109,12 @@ function generateDeck() {
       deck.push({ color, value: val });
     });
   });
-
   for (let i = 0; i < 4; i++) {
     deck.push({ color: 'wild', value: 'wild' });
     deck.push({ color: 'wild', value: 'wild4' });
   }
-
   return shuffle(deck);
 }
-
 function canPlayCard(card, topCard, currentColor) {
   return (
     card.color === 'wild' ||
@@ -139,7 +124,6 @@ function canPlayCard(card, topCard, currentColor) {
 }
 
 // ======================= CREATE & JOIN ROOM =======================
-
 createForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const nameVal = document.getElementById('createName').value.trim();
@@ -148,13 +132,11 @@ createForm.addEventListener('submit', async (e) => {
     showLobbyMessage("Enter valid name and 2–10 players.");
     return;
   }
-
   playerName = nameVal;
   playerId = generatePlayerId();
   isCreator = true;
   const roomCode = generateRoomCode();
   currentRoomId = roomCode;
-
   const deck = generateDeck();
   const roomRef = db.collection('rooms').doc(roomCode);
   await roomRef.set({
@@ -170,11 +152,9 @@ createForm.addEventListener('submit', async (e) => {
     deck,
     chatLog: []
   });
-
   showGameArea();
   subscribeToRoom(roomCode);
 });
-
 joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const nameVal = document.getElementById('joinName').value.trim();
@@ -183,47 +163,38 @@ joinForm.addEventListener('submit', async (e) => {
     showLobbyMessage("Enter valid name and room code.");
     return;
   }
-
   const roomRef = db.collection('rooms').doc(codeVal);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) {
     showLobbyMessage("Room not found.");
     return;
   }
-
   const data = roomDoc.data();
   const playerCount = Object.keys(data.players).length;
   if (playerCount >= data.maxPlayers) {
     showLobbyMessage("Room is full.");
     return;
   }
-
   playerName = nameVal;
   playerId = generatePlayerId();
   isCreator = false;
   currentRoomId = codeVal;
-
   await roomRef.update({
     [`players.${playerId}`]: { name: playerName, hand: [], calledUno: false }
   });
-
   showGameArea();
   subscribeToRoom(currentRoomId);
 });
-
 function showGameArea() {
   lobby.classList.add('hidden');
   gameArea.classList.remove('hidden');
 }
 
 // ======================= SUBSCRIBE TO ROOM CHANGES =======================
-
 function subscribeToRoom(roomCode) {
   const roomRef = db.collection('rooms').doc(roomCode);
-
   if (gameStateUnsubscribe) gameStateUnsubscribe();
   if (chatUnsubscribe) chatUnsubscribe();
-
   gameStateUnsubscribe = roomRef.onSnapshot(doc => {
     if (!doc.exists) {
       alert("Room closed.");
@@ -233,7 +204,6 @@ function subscribeToRoom(roomCode) {
     const data = doc.data();
     updateGameUI(data);
   });
-
   chatUnsubscribe = roomRef.collection('chatLog').orderBy('timestamp')
     .onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
@@ -245,24 +215,19 @@ function subscribeToRoom(roomCode) {
 }
 
 // ======================= UPDATE GAME UI =======================
-
 function updateGameUI(data) {
   roomCodeDisplay.textContent = currentRoomId;
   yourNameDisplay.textContent = playerName;
-
   const playerIds = Object.keys(data.players);
   playerCountDisplay.textContent = playerIds.length;
   maxPlayersDisplay.textContent = data.maxPlayers;
-
   if (data.currentTurn) {
     turnIndicator.textContent = `${data.players[data.currentTurn].name}'s Turn`;
   } else {
     turnIndicator.textContent = '';
   }
-
   startGameBtn.style.display = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended') ? 'inline-block' : 'none';
-
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
     if (pid === playerId) return;
@@ -275,12 +240,9 @@ function updateGameUI(data) {
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    // If topCard.color is 'wild', use currentColor; otherwise use topCard.color
     const displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
-    // Overwrite className so it's always "card <color>"
     discardPileEl.className = `card ${displayColor}`;
   } else {
-    // No cards yet
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
   }
@@ -305,7 +267,6 @@ function updateGameUI(data) {
 }
 
 // ======================= START, RESTART, LEAVE =======================
-
 startGameBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -313,7 +274,6 @@ startGameBtn.addEventListener('click', async () => {
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
   const playerIds = Object.keys(data.players);
-
   if (playerIds.length < 2) {
     alert("Need at least 2 players to start.");
     return;
@@ -322,7 +282,6 @@ startGameBtn.addEventListener('click', async () => {
     alert("Game already started.");
     return;
   }
-
   let deck = generateDeck();
   const updatedPlayers = {};
   playerIds.forEach(pid => {
@@ -332,17 +291,14 @@ startGameBtn.addEventListener('click', async () => {
       calledUno: false
     };
   });
-
   // Ensure first card is non‑wild
   let firstCard;
   do {
     firstCard = deck.shift();
     deck.push(firstCard);
   } while (firstCard.color === 'wild');
-
   const currentColor = firstCard.color;
   const currentTurn = playerIds[0];
-
   await roomRef.update({
     players: updatedPlayers,
     deck,
@@ -354,19 +310,16 @@ startGameBtn.addEventListener('click', async () => {
     activityLog: [`Game started. Top card: ${firstCard.color} ${firstCard.value}`]
   });
 });
-
 restartGameBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
-
   if (data.gameState !== 'ended') {
     alert("Game not over yet.");
     return;
   }
-
   let deck = generateDeck();
   const updatedPlayers = {};
   Object.keys(data.players).forEach(pid => {
@@ -376,7 +329,6 @@ restartGameBtn.addEventListener('click', async () => {
       calledUno: false
     };
   });
-
   await roomRef.update({
     players: updatedPlayers,
     deck,
@@ -389,7 +341,6 @@ restartGameBtn.addEventListener('click', async () => {
     chatLog: []
   });
 });
-
 // Single leaveRoomBtn listener
 leaveRoomBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
@@ -397,10 +348,8 @@ leaveRoomBtn.addEventListener('click', async () => {
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
-
   const updatedPlayers = { ...data.players };
   delete updatedPlayers[playerId];
-
   if (Object.keys(updatedPlayers).length === 0) {
     await roomRef.delete();
   } else {
@@ -412,21 +361,17 @@ leaveRoomBtn.addEventListener('click', async () => {
       await roomRef.update({ currentTurn: nextTurnId });
     }
   }
-
   if (gameStateUnsubscribe) gameStateUnsubscribe();
   if (chatUnsubscribe) chatUnsubscribe();
-
   currentRoomId = null;
   playerId = null;
   playerName = null;
   pendingWildCard = null;
   isCreator = false;
-
   resetGameArea();
   lobby.classList.remove('hidden');
   gameArea.classList.add('hidden');
 });
-
 function resetGameArea() {
   opponentsList.innerHTML = '';
   discardPileEl.textContent = '';
@@ -440,17 +385,13 @@ function resetGameArea() {
   maxPlayersDisplay.textContent = '';
   turnIndicator.textContent = '';
 }
-
 // ======================= PLAY CARD FUNCTION INCLUDING SPECIAL LOGIC =======================
-
 async function handlePlayCard(card) {
   if (!currentRoomId || !playerId) return;
-
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
-
   if (data.currentTurn !== playerId) {
     alert("It's not your turn.");
     return;
@@ -459,7 +400,6 @@ async function handlePlayCard(card) {
     alert("Game not started yet.");
     return;
   }
-
   const playerData = data.players[playerId];
   const hand = [...playerData.hand];
   const cardIndex = hand.findIndex(c => c.color === card.color && c.value === card.value);
@@ -467,20 +407,16 @@ async function handlePlayCard(card) {
     alert("You don't have that card.");
     return;
   }
-
   const topCard = data.discardPile[data.discardPile.length - 1];
   const currentColor = data.currentColor;
-
   if (!canPlayCard(card, topCard, currentColor)) {
     alert("You can't play that card now.");
     return;
   }
-
   // Remove chosen card from player's hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
-
   // Add that card to discard pile
   let newDiscardPile = [...data.discardPile, card];
   const playerIds = Object.keys(data.players);
@@ -488,13 +424,11 @@ async function handlePlayCard(card) {
   let direction = data.direction;
   let nextTurnId = null;
   let activityEntry = `${playerData.name} played ${card.color} ${card.value}`;
-
   switch (card.value) {
     case 'skip':
       nextTurnId = playerIds[(currentIndex + 2 * direction + playerIds.length) % playerIds.length];
       activityEntry += ` - skipped next player`;
       break;
-
     case 'reverse':
       if (playerIds.length === 2) {
         nextTurnId = playerIds[(currentIndex + 2 * direction + playerIds.length) % playerIds.length];
@@ -505,7 +439,6 @@ async function handlePlayCard(card) {
         activityEntry += ` - reversed direction`;
       }
       break;
-
     case 'draw2':
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       activityEntry += ` - ${data.players[nextTurnId].name} draws 2`;
@@ -519,7 +452,6 @@ async function handlePlayCard(card) {
       nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
       await roomRef.update({ deck });
       break;
-
     case 'wild':
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
@@ -528,7 +460,6 @@ async function handlePlayCard(card) {
       };
       colorModal.classList.remove('hidden');
       return;
-
     case 'wild4':
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
@@ -537,12 +468,10 @@ async function handlePlayCard(card) {
       };
       colorModal.classList.remove('hidden');
       return;
-
     default:
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       break;
   }
-
   await roomRef.update({
     players: updatedPlayers,
     discardPile: newDiscardPile,
@@ -552,9 +481,7 @@ async function handlePlayCard(card) {
     activityLog: firebase.firestore.FieldValue.arrayUnion(activityEntry)
   });
 }
-
 // ======================= FINISH WILD CARD PLAY =======================
-
 async function finishWildCardPlay(chosenColor) {
   if (!pendingWildCard) return;
   const {
@@ -562,14 +489,11 @@ async function finishWildCardPlay(chosenColor) {
     playerId, card, activityEntry, playerIds,
     currentIndex, direction
   } = pendingWildCard;
-
   let nextTurnId = null;
   let updatedActivityEntry = `${activityEntry} - color chosen: ${chosenColor}`;
-
   if (card.value === 'wild4') {
     nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
     updatedActivityEntry += `, ${data.players[nextTurnId].name} draws 4`;
-
     let deck = [...data.deck];
     if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
     const drawn4 = deck.splice(0, 4);
@@ -578,12 +502,10 @@ async function finishWildCardPlay(chosenColor) {
       hand: [...data.players[nextTurnId].hand, ...drawn4]
     };
     await roomRef.update({ deck });
-
     nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
   } else {
     nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
   }
-
   await roomRef.update({
     players: updatedPlayers,
     discardPile: newDiscardPile,
@@ -592,61 +514,49 @@ async function finishWildCardPlay(chosenColor) {
     direction,
     activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry)
   });
-
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 }
-
 // ======================= COLOR BUTTON EVENT LISTENERS =======================
-
 colorButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const chosenColor = btn.getAttribute('data-color');
     finishWildCardPlay(chosenColor);
   });
 });
-
 closeModalBtn.addEventListener('click', () => {
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 });
-
 // ======================= DRAW CARD BUTTON =======================
-
 drawCardBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
-
   if (data.currentTurn !== playerId) {
     alert("It's not your turn.");
     return;
   }
-
   let deck = [...data.deck];
   let discardPile = [...data.discardPile];
   if (deck.length === 0) {
     deck = reshuffleDiscardIntoDeck(deck, discardPile);
   }
-
   if (deck.length === 0) {
     alert('No cards left to draw!');
     return;
   }
-
   const drawnCard = deck.shift();
   const updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = {
     ...data.players[playerId],
     hand: [...data.players[playerId].hand, drawnCard]
   };
-
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
   const nextTurnId = playerIds[(currentIndex + data.direction + playerIds.length) % playerIds.length];
-
   await roomRef.update({
     players: updatedPlayers,
     deck,
@@ -654,19 +564,15 @@ drawCardBtn.addEventListener('click', async () => {
     activityLog: firebase.firestore.FieldValue.arrayUnion(`${data.players[playerId].name} drew a card and ended their turn`)
   });
 });
-
 // ======================= CALL UNO BUTTON =======================
-
 callUnoBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
   const roomDoc = await roomRef.get();
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
-
   const playerData = data.players[playerId];
   if (!playerData) return;
-
   if (playerData.hand.length === 1) {
     const updatedPlayers = { ...data.players };
     updatedPlayers[playerId] = {
@@ -681,14 +587,11 @@ callUnoBtn.addEventListener('click', async () => {
     alert("You can only call UNO when you have exactly one card!");
   }
 });
-
 // ======================= CHAT FUNCTIONALITY =======================
-
 sendChatBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
   const msg = chatInput.value.trim();
   if (!msg) return;
-
   const chatRef = db.collection('rooms').doc(currentRoomId).collection('chatLog');
   await chatRef.add({
     playerId,
@@ -696,10 +599,8 @@ sendChatBtn.addEventListener('click', async () => {
     message: msg,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
-
   chatInput.value = '';
 });
-
 chatInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();

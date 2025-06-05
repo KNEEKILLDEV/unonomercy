@@ -3,85 +3,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>UnoMercy Online UNO Game</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-  <!-- ======== LOBBY SECTION ======== -->
-  <div id="lobby">
-    <h1>Welcome to UnoMercy</h1>
-    <div id="createSection">
-      <h2>Create Room</h2>
-      <form id="createForm">
-        <input type="text" id="createName" placeholder="Your Name" required />
-        <input type="number" id="maxPlayers" placeholder="Max Players (2-10)" min="2" max="10" required />
-        <button type="submit">Create Room</button>
-      </form>
-    </div>
-    <div id="joinSection">
-      <h2>Join Room</h2>
-      <form id="joinForm">
-        <input type="text" id="joinName" placeholder="Your Name" required />
-        <input type="text" id="joinCode" placeholder="Room Code" required />
-        <button type="submit">Join Room</button>
-      </form>
-    </div>
-    <p id="lobbyMessage"></p>
-  </div>
-
-  <!-- ======== GAME AREA ======== -->
-  <div id="gameArea" class="hidden">
-    <div id="roomInfo">
-      <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
-      <p><strong>Your Name:</strong> <span id="yourNameDisplay"></span></p>
-      <p><strong>Players:</strong> <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
+  <div id="container">
+    <!-- Room Info + Turn Indicator (10vh) -->
+    <div id="roomInfoContainer">
+      <div id="roomInfo">
+        <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
+        <p><strong>Your Name:</strong> <span id="yourNameDisplay"></span></p>
+        <p><strong>Players:</strong> <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
+      </div>
       <button id="startGameBtn">Start Game</button>
       <button id="restartGameBtn">Restart Game</button>
       <button id="leaveRoomBtn">Leave Room</button>
+      <div id="turnIndicator"></div>
     </div>
 
-    <div id="turnIndicator"></div>
-
-    <div id="opponentsArea">
-      <h3>Opponents</h3>
-      <ul id="opponentsList"></ul>
+    <!-- Main Area: Opponents (20vh) | Discard (20vh) | Chat (20vh) -->
+    <div id="mainArea">
+      <div id="opponentsArea">
+        <h3>Opponents</h3>
+        <ul id="opponentsList"></ul>
+      </div>
+      <div id="centerArea">
+        <h3>Discard Pile</h3>
+        <div id="discardPile" class="card"></div>
+      </div>
+      <div id="chatArea">
+        <h3>Chat</h3>
+        <div id="chatLog"></div>
+        <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
+        <button id="sendChatBtn">Send</button>
+      </div>
     </div>
 
-    <div id="discardArea">
-      <h3>Discard Pile</h3>
-      <div id="discardPile" class="card"></div>
+    <!-- Hand & Controls (20vh) -->
+    <div id="handControlsArea">
+      <div id="handArea">
+        <h3>Your Hand</h3>
+        <div id="playerHand"></div>
+      </div>
+      <div id="controlButtons">
+        <button id="drawCardBtn">Draw Card</button>
+        <button id="callUnoBtn">Call UNO</button>
+      </div>
     </div>
 
-    <div id="handArea">
-      <h3>Your Hand</h3>
-      <div id="playerHand"></div>
-      <button id="drawCardBtn">Draw Card</button>
-      <button id="callUnoBtn">Call UNO</button>
-    </div>
-
-    <div id="chatArea">
-      <h3>Chat</h3>
-      <div id="chatLog"></div>
-      <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
-      <button id="sendChatBtn">Send</button>
-    </div>
-
+    <!-- Activity Log (10vh) -->
     <div id="activityArea">
       <h3>Activity Log</h3>
       <div id="activityLog"></div>
     </div>
   </div>
 
-  <!-- ======== COLOR PICKER MODAL ======== -->
+  <!-- Color Picker Modal -->
   <div id="colorModal" class="modal hidden">
     <div class="modalContent">
       <button id="closeModalBtn" class="closeModalBtn">&times;</button>
-      <h3>Select a Color</h3>
+      <h3>Select Color</h3>
       <div id="colorOptions">
         <button class="colorBtn red" data-color="red">Red</button>
         <button class="colorBtn yellow" data-color="yellow">Yellow</button>

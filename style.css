@@ -1,278 +1,265 @@
 /* style.css */
-body, html {
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0 20px 20px 20px;
+}
+#container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
 }
 
-h1, h2, h3 {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-/* ======== LOBBY ======== */
-#lobby {
-  max-width: 400px;
-  margin: 50px auto;
-  text-align: center;
-}
-
-form {
-  background: #222;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-form input, form button {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 5px;
-  border: none;
-  font-size: 1rem;
-}
-
-form button {
-  background-color: #1e88e5;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-form button:hover {
-  background-color: #1565c0;
-}
-
-#lobbyMessage {
-  color: #f44336;
-  margin-top: 10px;
-}
-
-/* ======== GAME AREA ======== */
-.hidden {
-  display: none !important;
-}
-
-#gameArea {
-  max-width: 900px;
-  margin: 20px auto;
+/* ===== Room Info + Turn (10vh) ===== */
+#roomInfoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 10vh;
+  padding: 0 10px;
   background-color: #1e1e1e;
-  border-radius: 10px;
-  padding: 20px;
 }
-
 #roomInfo {
-  background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-#roomInfo p {
-  margin: 6px 0;
+  display: flex;
+  gap: 10px;
   font-size: 1rem;
 }
-
-#roomInfo button {
-  padding: 8px 16px;
-  margin: 8px 10px 0 0;
-  border: none;
-  border-radius: 6px;
+#roomInfo p {
+  margin-right: 15px;
+}
+#roomInfoContainer button {
+  padding: 5px 10px;
+  margin-right: 5px;
   background-color: #1e88e5;
+  border: none;
+  border-radius: 5px;
   color: white;
-  cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-
-#restartGameBtn {
-  background-color: #e67e22;
-}
-
-#leaveRoomBtn {
-  background-color: #f44336;
-}
-
-#roomInfo button:hover {
-  background-color: #1565c0;
-}
-
-/* ======== TURN INDICATOR ======== */
+#restartGameBtn { background-color: #e67e22; }
+#leaveRoomBtn { background-color: #f44336; }
+#roomInfoContainer button:hover { opacity: 0.8; }
 #turnIndicator {
-  text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  margin-bottom: 20px;
   color: #ffd54f;
+  flex-shrink: 0;
 }
 
-/* ======== OPPONENTS ======== */
-#opponentsArea {
+/* ===== Main Area (50vh) ===== */
+#mainArea {
+  display: flex;
+  height: 50vh;
+}
+#opponentsArea, #centerArea, #chatArea {
   background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border: 1px solid #333;
+  overflow: hidden;
+}
+#opponentsArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+#opponentsArea h3 {
+  text-align: center;
+  margin: 5px 0;
+  font-size: 1rem;
 }
 #opponentsList {
   list-style: none;
-  padding: 0;
-  margin: 0;
+  overflow-y: auto;
+  padding: 5px;
+  font-size: 0.9rem;
 }
 #opponentsList li {
-  margin: 6px 0;
+  margin: 4px 0;
+}
+
+/* Center: Discard */
+#centerArea {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#centerArea h3 {
+  margin: 5px 0;
   font-size: 1rem;
 }
-
-/* ======== DISCARD PILE ======== */
-#discardArea {
-  background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  text-align: center;
-}
 #discardPile {
-  width: 60px;
-  height: 90px;
+  width: 12vw;
+  max-width: 80px;
+  height: 18vw;
+  max-height: 120px;
   border-radius: 8px;
-  display: inline-flex;
-  justify-content: center;
+  display: flex;
   align-items: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-bottom: 8px;
-  user-select: none;
+  justify-content: center;
+  font-size: 1.5rem;
   background-color: transparent;
+  color: white;
 }
 
-/* color variants for discard pile & cards */
+/* Chat Area */
+#chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+#chatArea h3 {
+  text-align: center;
+  margin: 5px 0;
+  font-size: 1rem;
+}
+#chatLog {
+  flex: 1;
+  background-color: #333;
+  margin: 5px;
+  border-radius: 5px;
+  padding: 5px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+#chatLog p {
+  margin-bottom: 4px;
+}
+#chatArea input {
+  width: 70%;
+  padding: 5px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px 0 0 5px;
+  background-color: #444;
+  color: #eee;
+  font-size: 0.9rem;
+}
+#chatArea button {
+  width: 25%;
+  padding: 5px;
+  margin: 5px;
+  border: none;
+  border-radius: 0 5px 5px 0;
+  background-color: #1e88e5;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+#chatArea button:hover {
+  opacity: 0.8;
+}
+
+/* ===== Hand & Controls (20vh) ===== */
+#handControlsArea {
+  display: flex;
+  height: 20vh;
+}
+#handArea {
+  flex: 2;
+  background-color: #2a2a2a;
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  align-items: center;
+}
+#handArea h3 {
+  margin: 5px 0;
+  font-size: 1rem;
+}
+#playerHand {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  overflow-x: auto;
+}
+.card {
+  min-width: 10vw;
+  max-width: 60px;
+  min-height: 15vw;
+  max-height: 90px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  color: white;
+}
+.card:hover {
+  transform: scale(1.1);
+}
 .card.red { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green { background-color: #43a047; }
 .card.blue { background-color: #1e88e5; }
 .card.wild { background-color: #7c4dff; }
 
-/* ======== PLAYER HAND ======== */
-#handArea {
+#controlButtons {
+  flex: 1;
   background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-#playerHand {
+  border: 1px solid #333;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-.card {
-  width: 60px;
-  height: 90px;
-  border-radius: 8px;
-  display: inline-flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.2s ease;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-  color: white;
 }
-.card:hover {
-  transform: scale(1.1);
-}
-
-/* ======== CONTROLS ======== */
-#handArea button {
-  padding: 8px 20px;
-  margin: 10px 10px 0 0;
+#controlButtons button {
+  width: 80%;
+  padding: 8px;
+  margin: 5px 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   background-color: #4caf50;
   color: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
-}
-#handArea button:hover {
-  background-color: #388e3c;
-}
-
-/* ======== CHAT AREA ======== */
-#chatArea {
-  background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-#chatLog {
-  background-color: #333;
-  height: 150px;
-  overflow-y: auto;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-}
-#chatLog p {
-  margin: 6px 0;
-}
-#chatInput {
-  width: 70%;
-  padding: 8px;
-  border: none;
-  border-radius: 6px 0 0 6px;
-  background-color: #444;
-  color: #eee;
-  font-size: 0.9rem;
-}
-#sendChatBtn {
-  width: 25%;
-  padding: 9px 0;
-  border: none;
-  border-radius: 0 6px 6px 0;
-  background-color: #1e88e5;
-  color: white;
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
 }
-#sendChatBtn:hover {
-  background-color: #1565c0;
+#controlButtons button:hover {
+  opacity: 0.8;
 }
 
-/* ======== ACTIVITY LOG ======== */
+/* ===== Activity Log (10vh) ===== */
 #activityArea {
   background-color: #2a2a2a;
-  padding: 15px;
-  border-radius: 8px;
+  border-top: 1px solid #333;
+  height: 10vh;
+  padding: 5px;
+  overflow-y: auto;
+}
+#activityArea h3 {
+  text-align: center;
+  font-size: 1rem;
+  margin-bottom: 4px;
 }
 #activityLog {
   background-color: #333;
-  height: 150px;
+  height: calc(100% - 24px);
+  border-radius: 5px;
+  padding: 5px;
   overflow-y: auto;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 #activityLog p {
-  margin: 6px 0;
+  margin-bottom: 4px;
 }
 
-/* ======== COLOR MODAL ======== */
+/* ===== Color Modal ===== */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -283,36 +270,44 @@ form button:hover {
 }
 .modalContent {
   background-color: #2a2a2a;
-  padding: 20px 30px;
-  border-radius: 10px;
+  padding: 20px;
+  border-radius: 8px;
   text-align: center;
 }
+.closeModalBtn {
+  background: none;
+  border: none;
+  color: #f44336;
+  font-size: 1.5rem;
+  position: absolute;
+  top: 10px; right: 15px;
+  cursor: pointer;
+}
+#colorOptions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
 .colorBtn {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
-  margin: 10px;
   cursor: pointer;
-  transition: transform 0.2s ease;
-}
-.colorBtn:hover {
-  transform: scale(1.2);
 }
 .colorBtn.red { background-color: #e53935; }
 .colorBtn.yellow { background-color: #fdd835; }
 .colorBtn.green { background-color: #43a047; }
 .colorBtn.blue { background-color: #1e88e5; }
-.closeModalBtn {
-  margin-top: 10px;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 6px;
-  background-color: #f44336;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.closeModalBtn:hover {
-  background-color: #c62828;
+
+/* ===== Responsive: Mobile Portrait ===== */
+@media (max-width: 600px) {
+  #roomInfoContainer { flex-wrap: wrap; row-gap: 5px; height: auto; padding: 5px; }
+  #mainArea { flex-direction: column; height: 50vh; }
+  #opponentsArea, #centerArea, #chatArea { height: 16vh; }
+  #handControlsArea { flex-direction: column; height: 20vh; }
+  #handArea { height: 12vh; }
+  #controlButtons { height: 8vh; }
+  #activityArea { height: 10vh; }
 }
