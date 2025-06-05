@@ -199,16 +199,13 @@ html, body {
 }
 
 #discardPile {
-  width: 12vw;
-  max-width: 80px;
-  height: 18vw;
-  max-height: 120px;
+  width: 60px;
+  height: 90px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background-color: transparent;
   user-select: none;
 }
 
@@ -285,8 +282,10 @@ html, body {
   border-top: 1px solid #333;
   display: flex;
   flex-direction: column;
+  /* Only horizontal scroll, no wrapping */
   overflow-x: auto;
-  align-items: center;
+  overflow-y: hidden;
+  align-items: flex-start;
 }
 
 #handArea h3 {
@@ -294,18 +293,19 @@ html, body {
   font-size: 1rem;
 }
 
+/* Each card is fixed 60×90 px, won’t wrap */
 #playerHand {
   display: flex;
   gap: 5px;
   padding: 5px;
+  flex-wrap: nowrap;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .card {
-  min-width: 10vw;
-  max-width: 60px;
-  min-height: 15vw;
-  max-height: 90px;
+  width: 60px;
+  height: 90px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -317,16 +317,15 @@ html, body {
   box-shadow: 0 0 4px rgba(0,0,0,0.5);
   color: white;
 }
-
 .card:hover {
   transform: scale(1.1);
 }
 
-.card.red { background-color: #e53935; }
+.card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
-.card.green { background-color: #43a047; }
-.card.blue { background-color: #1e88e5; }
-.card.wild { background-color: #7c4dff; }
+.card.green  { background-color: #43a047; }
+.card.blue   { background-color: #1e88e5; }
+.card.wild   { background-color: #7c4dff; }
 
 #controlButtons {
   flex: 1;

@@ -18,7 +18,7 @@ const db = firebase.firestore();
 let currentRoomId   = null;
 let playerId        = null;
 let playerName      = null;
-let pendingWildCard = null;   // for wild/wild4 until color chosen
+let pendingWildCard = null;   // holds interim data for wild/wild4 until color chosen
 let isCreator       = false;
 let gameStateUnsub  = null;
 let chatUnsub       = null;
@@ -60,12 +60,12 @@ const turnIndicator      = document.getElementById('turnIndicator');
 
 // ======================= UTILITY FUNCTIONS =======================
 
-// Generate a 5‑character uppercase room code
+// Generate a random 5-character uppercase room code
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
 
-// Generate an 8‑character player ID
+// Generate an 8-character player ID
 function generatePlayerId() {
   return Math.random().toString(36).substring(2, 10);
 }
@@ -79,7 +79,7 @@ function shuffle(array) {
   return array;
 }
 
-// When deck runs low, reshuffle old discards (except top) back into deck
+// If deck runs low, reshuffle discard pile (except top card) back into deck
 function reshuffleDiscardIntoDeck(deck, discardPile) {
   if (!Array.isArray(discardPile) || discardPile.length <= 1) return deck;
   const top = discardPile.pop();
@@ -90,7 +90,7 @@ function reshuffleDiscardIntoDeck(deck, discardPile) {
   return extras;
 }
 
-// Append a single string to the activity log panel
+// Append a message to the activity log panel
 function logActivity(message) {
   const p = document.createElement('p');
   p.textContent = message;
@@ -98,7 +98,7 @@ function logActivity(message) {
   activityLog.scrollTop = activityLog.scrollHeight;
 }
 
-// Append one chat message to the chat panel
+// Append a chat message to the chat panel
 function appendChatMessage({ playerName, message }) {
   const p = document.createElement('p');
   p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
@@ -106,18 +106,17 @@ function appendChatMessage({ playerName, message }) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-// Show a red validation message in the lobby area
+// Display a validation or error message in the lobby
 function showLobbyMessage(msg) {
   lobbyMessage.textContent = msg;
 }
 
-// Build a fresh UNO deck (108 cards) and shuffle it
+// Build a standard UNO deck and shuffle it
 function generateDeck() {
   const colors = ['red', 'yellow', 'green', 'blue'];
   const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
   let deck = [];
 
-  // One “0” of each color, two of each other value
   colors.forEach(color => {
     deck.push({ color, value: '0' });
     values.slice(1).forEach(val => {
@@ -126,7 +125,6 @@ function generateDeck() {
     });
   });
 
-  // Four “wild” and four “wild4”
   for (let i = 0; i < 4; i++) {
     deck.push({ color: 'wild', value: 'wild' });
     deck.push({ color: 'wild', value: 'wild4' });
@@ -135,7 +133,7 @@ function generateDeck() {
   return shuffle(deck);
 }
 
-// Check if a card can be played on top of the current topCard & color
+// Determine if “card” can be played on top of “topCard” given the currentColor
 function canPlayCard(card, topCard, currentColor) {
   return (
     card.color === 'wild' ||
@@ -151,35 +149,35 @@ createForm.addEventListener('submit', async (e) => {
   const nameVal    = document.getElementById('createName').value.trim();
   const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
 
-  // Simple validation
+  // Validate input
   if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
     showLobbyMessage("Enter valid name and 2–10 players.");
     return;
   }
 
-  playerName = nameVal;
-  playerId   = generatePlayerId();
-  isCreator  = true;
+  playerName  = nameVal;
+  playerId    = generatePlayerId();
+  isCreator   = true;
   const roomCode = generateRoomCode();
   currentRoomId  = roomCode;
 
-  // Build initial deck + players object
+  // Build initial deck + players object in Firestore
   const deck = generateDeck();
   const roomRef = db.collection('rooms').doc(roomCode);
-
   await roomRef.set({
     creator: playerId,
     maxPlayers,
     players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
-    gameState: 'waiting',        // waiting → started → ended
+    gameState: 'waiting',        // “waiting” → “started” → “ended”
     currentTurn: null,
     discardPile: [],
     currentColor: null,
-    direction: 1,                // 1 = normal, -1 = reversed
+    direction: 1,                // 1 = normal order, -1 = reversed
     activityLog: [],
     deck
   });
 
+  // Hide lobby, show game area
   lobby.classList.add('hidden');
   container.classList.remove('hidden');
   subscribeToRoom(roomCode);
@@ -209,12 +207,12 @@ joinForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  playerName     = nameVal;
-  playerId       = generatePlayerId();
-  isCreator      = false;
-  currentRoomId  = codeVal;
+  playerName    = nameVal;
+  playerId      = generatePlayerId();
+  isCreator     = false;
+  currentRoomId = codeVal;
 
-  // Add this player to the players object (no initial hand yet)
+  // Add this player to the “players” object
   await roomRef.update({
     [`players.${playerId}`]: { name: playerName, hand: [], calledUno: false }
   });
@@ -228,11 +226,11 @@ joinForm.addEventListener('submit', async (e) => {
 function subscribeToRoom(roomCode) {
   const roomRef = db.collection('rooms').doc(roomCode);
 
-  // Unsubscribe prior if any
+  // Unsubscribe existing listeners if any
   if (gameStateUnsub) gameStateUnsub();
   if (chatUnsub) chatUnsub();
 
-  // Listen to room document
+  // Listen to main room document
   gameStateUnsub = roomRef.onSnapshot(doc => {
     if (!doc.exists) {
       alert("Room closed.");
@@ -257,7 +255,7 @@ function subscribeToRoom(roomCode) {
 
 // ======================= UPDATE MAIN GAME UI =======================
 function updateGameUI(data) {
-  // Always show current room code & your name
+  // Always show room code & your name
   roomCodeDisplay.textContent    = currentRoomId;
   yourNameDisplay.textContent    = playerName;
   const playerIds = Object.keys(data.players);
@@ -271,11 +269,11 @@ function updateGameUI(data) {
     turnIndicator.textContent = '';
   }
 
-  // Show/hide Start & Restart depending on creator + gameState
+  // Show/hide Start & Restart
   startGameBtn.style.display   = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended')  ? 'inline-block' : 'none';
 
-  // Render opponents list (excluding self)
+  // Render opponents list
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
     if (pid === playerId) return;
@@ -289,7 +287,7 @@ function updateGameUI(data) {
   const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    // If it’s actually a wild on top, use the currentColor; otherwise use topCard.color
+    // If topCard.color is “wild”, use data.currentColor instead; otherwise use topCard.color
     const displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
     discardPileEl.className = `card ${displayColor}`;
   } else {
@@ -345,7 +343,7 @@ startGameBtn.addEventListener('click', async () => {
     };
   });
 
-  // Find first non‑wild to start face‑up
+  // Ensure first face-up card is non‑wild
   let firstCard;
   do {
     firstCard = deck.shift();
@@ -429,10 +427,10 @@ leaveRoomBtn.addEventListener('click', async () => {
   if (chatUnsub) chatUnsub();
 
   currentRoomId = null;
-  playerId = null;
-  playerName = null;
+  playerId      = null;
+  playerName    = null;
   pendingWildCard = null;
-  isCreator = false;
+  isCreator     = false;
 
   container.classList.add('hidden');
   lobby.classList.remove('hidden');
@@ -488,7 +486,7 @@ async function handlePlayCard(card) {
     return;
   }
 
-  // Remove card from player's hand
+  // Remove card from player’s hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
@@ -521,22 +519,19 @@ async function handlePlayCard(card) {
     case 'draw2':
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       activityEntry += ` – ${data.players[nextTurnId].name} draws 2`;
-
       let deck = Array.isArray(data.deck) ? [...data.deck] : [];
       if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
       const drawn2 = deck.splice(0, Math.min(2, deck.length));
-
       updatedPlayers[nextTurnId] = {
         ...data.players[nextTurnId],
         hand: [...data.players[nextTurnId].hand, ...drawn2]
       };
-
       nextTurnId = playerIds[(playerIds.indexOf(nextTurnId) + direction + playerIds.length) % playerIds.length];
       await roomRef.update({ deck });
       break;
 
     case 'wild':
-      // Wait for color selection
+      // Show color modal, wait for user to pick color
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -546,7 +541,7 @@ async function handlePlayCard(card) {
       return;
 
     case 'wild4':
-      // Wait for color selection + draw 4
+      // Show color modal and handle +4 draw
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -605,7 +600,6 @@ async function finishWildCardPlay(chosenColor) {
     let deck = Array.isArray(data.deck) ? [...data.deck] : [];
     if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
     const drawn4 = deck.splice(0, Math.min(4, deck.length));
-
     updatedPlayers[nextTurnId] = {
       ...data.players[nextTurnId],
       hand: [...data.players[nextTurnId].hand, ...drawn4]
