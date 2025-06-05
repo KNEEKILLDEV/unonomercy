@@ -8,6 +8,59 @@ html, body {
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+/* ======== LOBBY ======== */
+#lobby {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#lobby h1 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+#createSection, #joinSection {
+  width: 90%;
+  max-width: 400px;
+  background: #222;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+#createSection h2, #joinSection h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+#createSection input, #joinSection input,
+#createSection button, #joinSection button {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: none;
+  font-size: 1rem;
+}
+#createSection button, #joinSection button {
+  background-color: #1e88e5;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+#createSection button:hover, #joinSection button:hover {
+  background-color: #1565c0;
+}
+#lobbyMessage {
+  color: #f44336;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ======== GAME CONTAINER ======== */
+.hidden {
+  display: none !important;
+}
 #container {
   display: flex;
   flex-direction: column;
@@ -32,20 +85,28 @@ html, body {
 #roomInfo p {
   margin-right: 15px;
 }
-#roomInfoContainer button {
+#roomButtons {
+  display: flex;
+  gap: 5px;
+}
+#roomButtons button {
   padding: 5px 10px;
-  margin-right: 5px;
   background-color: #1e88e5;
   border: none;
   border-radius: 5px;
   color: white;
   font-size: 0.9rem;
   cursor: pointer;
-  flex-shrink: 0;
 }
-#restartGameBtn { background-color: #e67e22; }
-#leaveRoomBtn { background-color: #f44336; }
-#roomInfoContainer button:hover { opacity: 0.8; }
+#restartGameBtn {
+  background-color: #e67e22;
+}
+#leaveRoomBtn {
+  background-color: #f44336;
+}
+#roomButtons button:hover {
+  opacity: 0.8;
+}
 #turnIndicator {
   font-size: 1.2rem;
   font-weight: bold;
@@ -89,6 +150,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 #centerArea h3 {
   margin: 5px 0;
@@ -272,6 +334,7 @@ html, body {
   background-color: #2a2a2a;
   padding: 20px;
   border-radius: 8px;
+  position: relative;
   text-align: center;
 }
 .closeModalBtn {

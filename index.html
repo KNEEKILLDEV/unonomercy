@@ -10,7 +10,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div id="container">
+  <!-- ======== LOBBY SECTION ======== -->
+  <div id="lobby">
+    <h1>Welcome to UnoMercy</h1>
+    <div id="createSection">
+      <h2>Create Room</h2>
+      <form id="createForm">
+        <input type="text" id="createName" placeholder="Your Name" required />
+        <input type="number" id="maxPlayers" placeholder="Max Players (2-10)" min="2" max="10" required />
+        <button type="submit">Create Room</button>
+      </form>
+    </div>
+    <div id="joinSection">
+      <h2>Join Room</h2>
+      <form id="joinForm">
+        <input type="text" id="joinName" placeholder="Your Name" required />
+        <input type="text" id="joinCode" placeholder="Room Code" required />
+        <button type="submit">Join Room</button>
+      </form>
+    </div>
+    <p id="lobbyMessage"></p>
+  </div>
+
+  <!-- ======== GAME CONTAINER ======== -->
+  <div id="container" class="hidden">
     <!-- Room Info + Turn Indicator (10vh) -->
     <div id="roomInfoContainer">
       <div id="roomInfo">
@@ -18,9 +41,11 @@
         <p><strong>Your Name:</strong> <span id="yourNameDisplay"></span></p>
         <p><strong>Players:</strong> <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
       </div>
-      <button id="startGameBtn">Start Game</button>
-      <button id="restartGameBtn">Restart Game</button>
-      <button id="leaveRoomBtn">Leave Room</button>
+      <div id="roomButtons">
+        <button id="startGameBtn">Start Game</button>
+        <button id="restartGameBtn">Restart Game</button>
+        <button id="leaveRoomBtn">Leave Room</button>
+      </div>
       <div id="turnIndicator"></div>
     </div>
 
@@ -61,7 +86,7 @@
     </div>
   </div>
 
-  <!-- Color Picker Modal -->
+  <!-- ======== COLOR PICKER MODAL ======== -->
   <div id="colorModal" class="modal hidden">
     <div class="modalContent">
       <button id="closeModalBtn" class="closeModalBtn">&times;</button>

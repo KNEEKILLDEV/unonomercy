@@ -25,7 +25,11 @@ let chatUnsubscribe = null;
 
 // ======================= DOM ELEMENTS =======================
 const lobby = document.getElementById('lobby');
-const gameArea = document.getElementById('gameArea');
+const container = document.getElementById('container');
+
+const createForm = document.getElementById('createForm');
+const joinForm = document.getElementById('joinForm');
+const lobbyMessage = document.getElementById('lobbyMessage');
 
 const roomCodeDisplay = document.getElementById('roomCodeDisplay');
 const yourNameDisplay = document.getElementById('yourNameDisplay');
@@ -54,10 +58,6 @@ const closeModalBtn = document.querySelector('.closeModalBtn');
 
 const turnIndicator = document.getElementById('turnIndicator');
 
-const createForm = document.getElementById('createForm');
-const joinForm = document.getElementById('joinForm');
-const lobbyMessage = document.getElementById('lobbyMessage');
-
 // ======================= UTILITY FUNCTIONS =======================
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -73,7 +73,7 @@ function shuffle(array) {
   return array;
 }
 function reshuffleDiscardIntoDeck(deck, discardPile) {
-  if (discardPile.length <= 1) return deck;
+  if (!Array.isArray(discardPile) || discardPile.length <= 1) return deck;
   const top = discardPile.pop();
   let extras = discardPile.slice();
   extras = shuffle(extras);
@@ -149,10 +149,10 @@ createForm.addEventListener('submit', async (e) => {
     currentColor: null,
     direction: 1,
     activityLog: [],
-    deck,
-    chatLog: []
+    deck
   });
-  showGameArea();
+  lobby.classList.add('hidden');
+  container.classList.remove('hidden');
   subscribeToRoom(roomCode);
 });
 joinForm.addEventListener('submit', async (e) => {
@@ -182,19 +182,15 @@ joinForm.addEventListener('submit', async (e) => {
   await roomRef.update({
     [`players.${playerId}`]: { name: playerName, hand: [], calledUno: false }
   });
-  showGameArea();
+  lobby.classList.add('hidden');
+  container.classList.remove('hidden');
   subscribeToRoom(currentRoomId);
 });
-function showGameArea() {
-  lobby.classList.add('hidden');
-  gameArea.classList.remove('hidden');
-}
 
 // ======================= SUBSCRIBE TO ROOM CHANGES =======================
 function subscribeToRoom(roomCode) {
   const roomRef = db.collection('rooms').doc(roomCode);
   if (gameStateUnsubscribe) gameStateUnsubscribe();
-  if (chatUnsubscribe) chatUnsubscribe();
   gameStateUnsubscribe = roomRef.onSnapshot(doc => {
     if (!doc.exists) {
       alert("Room closed.");
@@ -204,6 +200,7 @@ function subscribeToRoom(roomCode) {
     const data = doc.data();
     updateGameUI(data);
   });
+  if (chatUnsubscribe) chatUnsubscribe();
   chatUnsubscribe = roomRef.collection('chatLog').orderBy('timestamp')
     .onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
@@ -228,6 +225,7 @@ function updateGameUI(data) {
   }
   startGameBtn.style.display = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended') ? 'inline-block' : 'none';
+  // Render opponents
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
     if (pid === playerId) return;
@@ -235,9 +233,9 @@ function updateGameUI(data) {
     li.textContent = `${data.players[pid].name} (${data.players[pid].hand.length})`;
     opponentsList.appendChild(li);
   });
-
   // --- DISCARD PILE UPDATE ---
-  const topCard = data.discardPile[data.discardPile.length - 1];
+  const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
+  const topCard = discardArr.length ? discardArr[discardArr.length - 1] : null;
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
     const displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
@@ -246,7 +244,6 @@ function updateGameUI(data) {
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
   }
-
   // Render player hand
   const myHand = data.players[playerId]?.hand || [];
   playerHand.innerHTML = '';
@@ -258,10 +255,9 @@ function updateGameUI(data) {
     cardEl.addEventListener('click', () => handlePlayCard(card));
     playerHand.appendChild(cardEl);
   });
-
   // Activity log
   activityLog.innerHTML = '';
-  data.activityLog.forEach(entry => {
+  (Array.isArray(data.activityLog) ? data.activityLog : []).forEach(entry => {
     logActivity(entry);
   });
 }
@@ -279,7 +275,7 @@ startGameBtn.addEventListener('click', async () => {
     return;
   }
   if (data.gameState !== 'waiting') {
-    alert("Game already started.");
+    alert("Game already started or ended.");
     return;
   }
   let deck = generateDeck();
@@ -337,11 +333,9 @@ restartGameBtn.addEventListener('click', async () => {
     currentTurn: null,
     gameState: 'waiting',
     direction: 1,
-    activityLog: [],
-    chatLog: []
+    activityLog: []
   });
 });
-// Single leaveRoomBtn listener
 leaveRoomBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -368,9 +362,8 @@ leaveRoomBtn.addEventListener('click', async () => {
   playerName = null;
   pendingWildCard = null;
   isCreator = false;
-  resetGameArea();
+  container.classList.add('hidden');
   lobby.classList.remove('hidden');
-  gameArea.classList.add('hidden');
 });
 function resetGameArea() {
   opponentsList.innerHTML = '';
@@ -385,6 +378,7 @@ function resetGameArea() {
   maxPlayersDisplay.textContent = '';
   turnIndicator.textContent = '';
 }
+
 // ======================= PLAY CARD FUNCTION INCLUDING SPECIAL LOGIC =======================
 async function handlePlayCard(card) {
   if (!currentRoomId || !playerId) return;
@@ -407,18 +401,17 @@ async function handlePlayCard(card) {
     alert("You don't have that card.");
     return;
   }
-  const topCard = data.discardPile[data.discardPile.length - 1];
+  const topCardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
+  const topCard = topCardArr.length ? topCardArr[topCardArr.length - 1] : { color: null, value: null };
   const currentColor = data.currentColor;
   if (!canPlayCard(card, topCard, currentColor)) {
     alert("You can't play that card now.");
     return;
   }
-  // Remove chosen card from player's hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
-  // Add that card to discard pile
-  let newDiscardPile = [...data.discardPile, card];
+  let newDiscardPile = [...topCardArr, card];
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
   let direction = data.direction;
@@ -442,9 +435,9 @@ async function handlePlayCard(card) {
     case 'draw2':
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       activityEntry += ` - ${data.players[nextTurnId].name} draws 2`;
-      let deck = [...data.deck];
+      let deck = Array.isArray(data.deck) ? [...data.deck] : [];
       if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
-      const drawn2 = deck.splice(0, 2);
+      const drawn2 = deck.splice(0, Math.min(2, deck.length));
       updatedPlayers[nextTurnId] = {
         ...data.players[nextTurnId],
         hand: [...data.players[nextTurnId].hand, ...drawn2]
@@ -472,6 +465,19 @@ async function handlePlayCard(card) {
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       break;
   }
+  // Check for win
+  if (hand.length === 0) {
+    await roomRef.update({
+      players: updatedPlayers,
+      discardPile: newDiscardPile,
+      currentColor: (card.color === 'wild') ? data.currentColor : card.color,
+      currentTurn: null,
+      direction,
+      gameState: 'ended',
+      activityLog: firebase.firestore.FieldValue.arrayUnion(`${activityEntry}. ${playerData.name} wins!`)
+    });
+    return;
+  }
   await roomRef.update({
     players: updatedPlayers,
     discardPile: newDiscardPile,
@@ -481,6 +487,7 @@ async function handlePlayCard(card) {
     activityLog: firebase.firestore.FieldValue.arrayUnion(activityEntry)
   });
 }
+
 // ======================= FINISH WILD CARD PLAY =======================
 async function finishWildCardPlay(chosenColor) {
   if (!pendingWildCard) return;
@@ -491,12 +498,13 @@ async function finishWildCardPlay(chosenColor) {
   } = pendingWildCard;
   let nextTurnId = null;
   let updatedActivityEntry = `${activityEntry} - color chosen: ${chosenColor}`;
+
   if (card.value === 'wild4') {
     nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
     updatedActivityEntry += `, ${data.players[nextTurnId].name} draws 4`;
-    let deck = [...data.deck];
+    let deck = Array.isArray(data.deck) ? [...data.deck] : [];
     if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
-    const drawn4 = deck.splice(0, 4);
+    const drawn4 = deck.splice(0, Math.min(4, deck.length));
     updatedPlayers[nextTurnId] = {
       ...data.players[nextTurnId],
       hand: [...data.players[nextTurnId].hand, ...drawn4]
@@ -506,6 +514,24 @@ async function finishWildCardPlay(chosenColor) {
   } else {
     nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
   }
+
+  // Check win after wild if needed (rare, but if someone had 1 card and played wild)
+  const handNow = updatedPlayers[playerId].hand;
+  if (handNow.length === 0) {
+    await roomRef.update({
+      players: updatedPlayers,
+      discardPile: newDiscardPile,
+      currentColor: chosenColor,
+      currentTurn: null,
+      direction,
+      gameState: 'ended',
+      activityLog: firebase.firestore.FieldValue.arrayUnion(`${updatedPlayers[playerId].name} wins!`)
+    });
+    pendingWildCard = null;
+    colorModal.classList.add('hidden');
+    return;
+  }
+
   await roomRef.update({
     players: updatedPlayers,
     discardPile: newDiscardPile,
@@ -514,9 +540,11 @@ async function finishWildCardPlay(chosenColor) {
     direction,
     activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry)
   });
+
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 }
+
 // ======================= COLOR BUTTON EVENT LISTENERS =======================
 colorButtons.forEach(btn => {
   btn.addEventListener('click', () => {
@@ -528,6 +556,7 @@ closeModalBtn.addEventListener('click', () => {
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 });
+
 // ======================= DRAW CARD BUTTON =======================
 drawCardBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
@@ -539,8 +568,8 @@ drawCardBtn.addEventListener('click', async () => {
     alert("It's not your turn.");
     return;
   }
-  let deck = [...data.deck];
-  let discardPile = [...data.discardPile];
+  let deck = Array.isArray(data.deck) ? [...data.deck] : [];
+  let discardPile = Array.isArray(data.discardPile) ? [...data.discardPile] : [];
   if (deck.length === 0) {
     deck = reshuffleDiscardIntoDeck(deck, discardPile);
   }
@@ -564,6 +593,7 @@ drawCardBtn.addEventListener('click', async () => {
     activityLog: firebase.firestore.FieldValue.arrayUnion(`${data.players[playerId].name} drew a card and ended their turn`)
   });
 });
+
 // ======================= CALL UNO BUTTON =======================
 callUnoBtn.addEventListener('click', async () => {
   if (!currentRoomId) return;
@@ -587,6 +617,7 @@ callUnoBtn.addEventListener('click', async () => {
     alert("You can only call UNO when you have exactly one card!");
   }
 });
+
 // ======================= CHAT FUNCTIONALITY =======================
 sendChatBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
