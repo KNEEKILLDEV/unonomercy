@@ -271,16 +271,21 @@ function updateGameUI(data) {
     opponentsList.appendChild(li);
   });
 
+  // --- DISCARD PILE UPDATE ---
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
-    let displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
+    // If topCard.color is 'wild', use currentColor; otherwise use topCard.color
+    const displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
+    // Overwrite className so it's always "card <color>"
     discardPileEl.className = `card ${displayColor}`;
   } else {
+    // No cards yet
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
   }
 
+  // Render player hand
   const myHand = data.players[playerId]?.hand || [];
   playerHand.innerHTML = '';
   myHand.forEach(card => {
@@ -292,6 +297,7 @@ function updateGameUI(data) {
     playerHand.appendChild(cardEl);
   });
 
+  // Activity log
   activityLog.innerHTML = '';
   data.activityLog.forEach(entry => {
     logActivity(entry);
@@ -327,6 +333,7 @@ startGameBtn.addEventListener('click', async () => {
     };
   });
 
+  // Ensure first card is non‑wild
   let firstCard;
   do {
     firstCard = deck.shift();
@@ -469,10 +476,12 @@ async function handlePlayCard(card) {
     return;
   }
 
+  // Remove chosen card from player's hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
+  // Add that card to discard pile
   let newDiscardPile = [...data.discardPile, card];
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
