@@ -225,6 +225,7 @@ function updateGameUI(data) {
   }
   startGameBtn.style.display = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended') ? 'inline-block' : 'none';
+
   // Render opponents
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
@@ -233,6 +234,7 @@ function updateGameUI(data) {
     li.textContent = `${data.players[pid].name} (${data.players[pid].hand.length})`;
     opponentsList.appendChild(li);
   });
+
   // --- DISCARD PILE UPDATE ---
   const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
   const topCard = discardArr.length ? discardArr[discardArr.length - 1] : null;
@@ -244,6 +246,7 @@ function updateGameUI(data) {
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
   }
+
   // Render player hand
   const myHand = data.players[playerId]?.hand || [];
   playerHand.innerHTML = '';
@@ -255,6 +258,7 @@ function updateGameUI(data) {
     cardEl.addEventListener('click', () => handlePlayCard(card));
     playerHand.appendChild(cardEl);
   });
+
   // Activity log
   activityLog.innerHTML = '';
   (Array.isArray(data.activityLog) ? data.activityLog : []).forEach(entry => {
@@ -401,8 +405,8 @@ async function handlePlayCard(card) {
     alert("You don't have that card.");
     return;
   }
-  const topCardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
-  const topCard = topCardArr.length ? topCardArr[topCardArr.length - 1] : { color: null, value: null };
+  const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
+  const topCard = discardArr.length ? discardArr[discardArr.length - 1] : { color: null, value: null };
   const currentColor = data.currentColor;
   if (!canPlayCard(card, topCard, currentColor)) {
     alert("You can't play that card now.");
@@ -411,12 +415,13 @@ async function handlePlayCard(card) {
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
-  let newDiscardPile = [...topCardArr, card];
+  let newDiscardPile = [...discardArr, card];
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
   let direction = data.direction;
   let nextTurnId = null;
   let activityEntry = `${playerData.name} played ${card.color} ${card.value}`;
+
   switch (card.value) {
     case 'skip':
       nextTurnId = playerIds[(currentIndex + 2 * direction + playerIds.length) % playerIds.length];
@@ -465,19 +470,21 @@ async function handlePlayCard(card) {
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       break;
   }
-  // Check for win
+
+  // Check for win (hand emptied)
   if (hand.length === 0) {
     await roomRef.update({
       players: updatedPlayers,
       discardPile: newDiscardPile,
       currentColor: (card.color === 'wild') ? data.currentColor : card.color,
       currentTurn: null,
-      direction,
       gameState: 'ended',
+      direction,
       activityLog: firebase.firestore.FieldValue.arrayUnion(`${activityEntry}. ${playerData.name} wins!`)
     });
     return;
   }
+
   await roomRef.update({
     players: updatedPlayers,
     discardPile: newDiscardPile,
@@ -515,16 +522,16 @@ async function finishWildCardPlay(chosenColor) {
     nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
   }
 
-  // Check win after wild if needed (rare, but if someone had 1 card and played wild)
-  const handNow = updatedPlayers[playerId].hand;
-  if (handNow.length === 0) {
+  // If the player who played wild has no cards left, they win immediately
+  const newHand = updatedPlayers[playerId].hand;
+  if (newHand.length === 0) {
     await roomRef.update({
       players: updatedPlayers,
       discardPile: newDiscardPile,
       currentColor: chosenColor,
       currentTurn: null,
-      direction,
       gameState: 'ended',
+      direction,
       activityLog: firebase.firestore.FieldValue.arrayUnion(`${updatedPlayers[playerId].name} wins!`)
     });
     pendingWildCard = null;
