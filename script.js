@@ -254,18 +254,15 @@ function updateGameUI(data) {
   playerCountDisplay.textContent = playerIds.length;
   maxPlayersDisplay.textContent = data.maxPlayers;
 
-  // Show whose turn it is in big text
   if (data.currentTurn) {
     turnIndicator.textContent = `${data.players[data.currentTurn].name}'s Turn`;
   } else {
     turnIndicator.textContent = '';
   }
 
-  // Show/hide start and restart based on creator and gameState
   startGameBtn.style.display = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended') ? 'inline-block' : 'none';
 
-  // Render opponents
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
     if (pid === playerId) return;
@@ -274,7 +271,6 @@ function updateGameUI(data) {
     opponentsList.appendChild(li);
   });
 
-  // Render discard pile top card with color
   const topCard = data.discardPile[data.discardPile.length - 1];
   if (topCard) {
     discardPileEl.textContent = topCard.value.toUpperCase();
@@ -285,7 +281,6 @@ function updateGameUI(data) {
     discardPileEl.className = 'card';
   }
 
-  // Render player hand
   const myHand = data.players[playerId]?.hand || [];
   playerHand.innerHTML = '';
   myHand.forEach(card => {
@@ -297,7 +292,6 @@ function updateGameUI(data) {
     playerHand.appendChild(cardEl);
   });
 
-  // Render activity log
   activityLog.innerHTML = '';
   data.activityLog.forEach(entry => {
     logActivity(entry);
@@ -333,7 +327,6 @@ startGameBtn.addEventListener('click', async () => {
     };
   });
 
-  // Find first non-wild to start
   let firstCard;
   do {
     firstCard = deck.shift();
@@ -390,7 +383,7 @@ restartGameBtn.addEventListener('click', async () => {
   });
 });
 
-// Single leaveRoomBtn listener (duplicate removed)
+// Single leaveRoomBtn listener
 leaveRoomBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -476,12 +469,10 @@ async function handlePlayCard(card) {
     return;
   }
 
-  // Remove chosen card from player's hand
   hand.splice(cardIndex, 1);
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
-  // Add that card to discard pile
   let newDiscardPile = [...data.discardPile, card];
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
@@ -521,7 +512,6 @@ async function handlePlayCard(card) {
       break;
 
     case 'wild':
-      // Wait for color selection
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -531,7 +521,6 @@ async function handlePlayCard(card) {
       return;
 
     case 'wild4':
-      // Wait for color selection and draw 4 logic
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,

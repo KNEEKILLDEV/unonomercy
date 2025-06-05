@@ -138,7 +138,6 @@ form button:hover {
   width: 60px;
   height: 90px;
   border-radius: 8px;
-  background-color: #333;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -146,9 +145,10 @@ form button:hover {
   font-size: 1.2rem;
   margin-bottom: 8px;
   user-select: none;
+  background-color: transparent;
 }
 
-/* color variants */
+/* color variants for discard pile & cards */
 .card.red { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green { background-color: #43a047; }
