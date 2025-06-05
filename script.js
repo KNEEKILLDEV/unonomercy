@@ -764,6 +764,7 @@ async function finishWildCardPlay(chosenColor) {
       pendingUnoChallenge
     });
 
+    // Close modal and clear pendingWildCard
     pendingWildCard = null;
     colorModal.classList.add('hidden');
     return;
@@ -813,6 +814,7 @@ async function finishWildCardPlay(chosenColor) {
     pendingUnoChallenge
   });
 
+  // Close modal and clear pendingWildCard
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 }
@@ -1057,3 +1059,19 @@ chatInput.addEventListener('keydown', (e) => {
     sendChatBtn.click();
   }
 });
+
+// ======================= COLOR MODAL EVENT HANDLERS & BUG FIXES =======================
+// Add listeners for each color button so finishWildCardPlay() is called
+colorButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const chosenColor = btn.dataset.color;
+    finishWildCardPlay(chosenColor);
+  });
+});
+
+// Add listener for close (×) button in modal to allow users to cancel/close
+closeModalBtn.addEventListener('click', () => {
+  pendingWildCard = null;
+  colorModal.classList.add('hidden');
+});
+
