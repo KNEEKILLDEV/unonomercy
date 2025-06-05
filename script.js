@@ -1,7 +1,6 @@
 // script.js
 
 // ======================= FIREBASE CONFIG & INITIALIZATION =======================
-// Replace with your own Firebase credentials if needed
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -43,7 +42,7 @@ const playerHand         = document.getElementById('playerHand');
 
 const drawCardBtn        = document.getElementById('drawCardBtn');
 const callUnoBtn         = document.getElementById('callUnoBtn');
-const challengeBtn       = document.getElementById('challengeBtn'); // New challenge button
+const challengeBtn       = document.getElementById('challengeBtn'); // Now only for UNO challenges
 const leaveRoomBtn       = document.getElementById('leaveRoomBtn');
 const startGameBtn       = document.getElementById('startGameBtn');
 const restartGameBtn     = document.getElementById('restartGameBtn');
@@ -186,11 +185,11 @@ createForm.addEventListener('submit', async (e) => {
     direction: 1,                // 1 = normal order, -1 = reversed
     activityLog: [],
     deck,
-    lastWild4: null,             // for Wild+4 challenge
+    lastWild4: null,             // for Wild+4 challenge (no longer used)
     pendingUnoChallenge: null    // for UNO‐no‐mercy challenge
   });
 
-  // Play join-room sound and animate container slide-in
+  // Play join‐room sound and animate container slide‐in
   if (sfxJoinRoom) {
     sfxJoinRoom.currentTime = 0;
     sfxJoinRoom.play();
@@ -239,7 +238,7 @@ joinForm.addEventListener('submit', async (e) => {
     [`players.${playerId}`]: { name: playerName, hand: [], calledUno: false }
   });
 
-  // Play join-room sound and animate container slide-in
+  // Play join‐room sound and animate container slide‐in
   if (sfxJoinRoom) {
     sfxJoinRoom.currentTime = 0;
     sfxJoinRoom.play();
@@ -355,24 +354,16 @@ function updateGameUI(data) {
     logActivity(entry);
   });
 
-  // -------- Wild +4 Challenge Button Visibility --------
-  if (data.lastWild4
+  // -------- Challenge Button Visibility (ONLY for UNO challenge) --------
+  // Show challengeBtn only if there's a pending UNO challenge and it's your turn:
+  if (data.pendingUnoChallenge
       && data.currentTurn === playerId
+      && data.currentTurn !== data.pendingUnoChallenge.offender
       && data.gameState === 'started'
   ) {
     challengeBtn.style.display = 'inline-block';
-    challengeBtn.textContent = 'Challenge +4';
   } else {
-    if (data.pendingUnoChallenge
-        && data.currentTurn !== data.pendingUnoChallenge.offender
-        && data.currentTurn === playerId
-        && data.gameState === 'started'
-    ) {
-      challengeBtn.style.display = 'inline-block';
-      challengeBtn.textContent = 'Challenge UNO';
-    } else {
-      challengeBtn.style.display = 'none';
-    }
+    challengeBtn.style.display = 'none';
   }
 }
 
@@ -538,7 +529,7 @@ async function handlePlayCard(card) {
   }
 
   const playerData = data.players[playerId];
-  // Snapshot of hand before removal (for Wild+4 challenge)
+  // Snapshot of hand before removal (for potential penalty logic)
   const handSnapshot = playerData.hand.slice();
   const colorBefore   = data.currentColor;
 
@@ -558,22 +549,22 @@ async function handlePlayCard(card) {
     return;
   }
 
-  // Play “card-play” sound effect
-  if (sfxCardPlay) {
-    sfxCardPlay.currentTime = 0;
-    sfxCardPlay.play();
-  }
-
-  // Animate the clicked card element with “.played” class
-  const matchingCardEl = Array.from(playerHand.children).find(el => {
-    return el.textContent.toLowerCase() === card.value.toLowerCase() &&
-           el.classList.contains(card.color);
-  });
-  if (matchingCardEl) {
-    matchingCardEl.classList.add('played');
-    matchingCardEl.addEventListener('animationend', () => {
-      matchingCardEl.classList.remove('played');
-    }, { once: true });
+  // For non‐wild cards, play “card-play” sound and animate immediately
+  if (card.value !== 'wild' && card.value !== 'wild4') {
+    if (sfxCardPlay) {
+      sfxCardPlay.currentTime = 0;
+      sfxCardPlay.play();
+    }
+    const matchingCardEl = Array.from(playerHand.children).find(el => {
+      return el.textContent.toLowerCase() === card.value.toLowerCase() &&
+             el.classList.contains(card.color);
+    });
+    if (matchingCardEl) {
+      matchingCardEl.classList.add('played');
+      matchingCardEl.addEventListener('animationend', () => {
+        matchingCardEl.classList.remove('played');
+      }, { once: true });
+    }
   }
 
   // Remove the chosen card from the player's hand
@@ -581,8 +572,12 @@ async function handlePlayCard(card) {
   let updatedPlayers = { ...data.players };
   updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
-  // Add this card to discardPile
-  let newDiscardPile = [...discardArr, card];
+  // Add this card to discardPile (for non‐wild, done now; for wild, defer until color chosen)
+  let newDiscardPile = [...discardArr];
+  if (card.value !== 'wild' && card.value !== 'wild4') {
+    newDiscardPile = [...discardArr, card];
+  }
+
   const playerIds = Object.keys(data.players);
   const currentIndex = playerIds.indexOf(playerId);
   let direction = data.direction;
@@ -635,7 +630,7 @@ async function handlePlayCard(card) {
       break;
 
     case 'wild':
-      // Show color picker modal. Clear UNO challenge if any, because wild interrupts window.
+      // Defer sound and discard until color chosen
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -647,7 +642,7 @@ async function handlePlayCard(card) {
       return;
 
     case 'wild4':
-      // Show color picker modal + set lastWild4 info for challenge
+      // Defer sound and discard until color chosen
       pendingWildCard = {
         data, roomRef, updatedPlayers, newDiscardPile,
         playerId, card, activityEntry, playerIds,
@@ -659,6 +654,7 @@ async function handlePlayCard(card) {
       return;
 
     default:
+      // For non-wild, discard was already appended
       nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
       break;
   }
@@ -679,7 +675,6 @@ async function handlePlayCard(card) {
       await roomRef.update({
         players: updatedPlayers,
         deck,
-        // Remain on offender's turn so they must play again:
         currentTurn: playerId,
         activityLog: firebase.firestore.FieldValue.arrayUnion(
           `${playerData.name} tried to win without saying UNO and draws 2 as penalty.`
@@ -691,6 +686,7 @@ async function handlePlayCard(card) {
     }
 
     // Otherwise, they legally win:
+    // For non-wild, we already appended to newDiscardPile above
     await roomRef.update({
       players: updatedPlayers,
       discardPile: newDiscardPile,
@@ -737,50 +733,53 @@ async function finishWildCardPlay(chosenColor) {
     pendingUnoChallenge
   } = pendingWildCard;
 
-  let nextTurnId = null;
+  // Now add the wild card itself to discard pile
+  const mergedDiscardPile = [...newDiscardPile, card];
+  let nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
   let updatedActivityEntry = `${activityEntry} – color chosen: ${chosenColor}`;
 
   if (card.value === 'wild4') {
-    // Determine nextTurn (temporarily, before Wild4 challenge)
-    nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
-    updatedActivityEntry += `, ${data.players[nextTurnId].name} must draw 4 (unless challenged)`;
-
-    // Record lastWild4 for challenge logic
-    const lastWild4 = {
-      by: playerId,          // who played the Wild4
-      handSnapshot,          // cards held before playing
-      colorBefore,           // color in play before Wild4
-      nextTurnId             // who would draw 4 normally
+    // Wild‐4 is not challengeable in this version; simply apply effect
+    // Next player draws 4:
+    let deck = Array.isArray(data.deck) ? [...data.deck] : [];
+    if (deck.length < 4) deck = reshuffleDiscardIntoDeck(deck, mergedDiscardPile);
+    const drawn4 = deck.splice(0, Math.min(4, deck.length));
+    const updatedPlayersDraw = { ...updatedPlayers };
+    updatedPlayersDraw[nextTurnId] = {
+      ...data.players[nextTurnId],
+      hand: [...data.players[nextTurnId].hand, ...drawn4]
     };
 
     await roomRef.update({
-      players: updatedPlayers,
-      discardPile: newDiscardPile,
+      players: updatedPlayersDraw,
+      deck,
+      discardPile: mergedDiscardPile,
       currentColor: chosenColor,
       currentTurn: nextTurnId,
       direction,
       activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry),
-      lastWild4,
+      lastWild4: null,
       pendingUnoChallenge
     });
 
-    // Close modal and clear pendingWildCard
+    // Play sound now that wild4 is fully played
+    if (sfxCardPlay) {
+      sfxCardPlay.currentTime = 0;
+      sfxCardPlay.play();
+    }
+
     pendingWildCard = null;
     colorModal.classList.add('hidden');
     return;
   }
 
-  // If it was a plain “Wild” (no +4), just proceed normally
-  nextTurnId = playerIds[(currentIndex + direction + playerIds.length) % playerIds.length];
-
-  // Check UNO‐No‐Mercy: if after playing, hand length became 0,
-  // but they did not call UNO, penalize them with draw‐2. (Though wild with zero cards is rare)
+  // For plain wild (no +4):
   const newHand = updatedPlayers[playerId].hand;
   const hadCalledUno = data.players[playerId].calledUno;
   if (newHand.length === 0 && hadCalledUno === false) {
-    // Penalty: draw 2 instead of winning
+    // Penalty draw 2
     let deck = Array.isArray(data.deck) ? [...data.deck] : [];
-    if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
+    if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, mergedDiscardPile);
     const drawn2Penalty = deck.splice(0, Math.min(2, deck.length));
     updatedPlayers[playerId] = {
       ...updatedPlayers[playerId],
@@ -797,29 +796,36 @@ async function finishWildCardPlay(chosenColor) {
       lastWild4: null,
       pendingUnoChallenge: null
     });
+
+    // Do not play card-play sound because they failed UNO
     pendingWildCard = null;
     colorModal.classList.add('hidden');
     return;
   }
 
-  // Otherwise, normal update
+  // Otherwise normal wild play:
   await roomRef.update({
     players: updatedPlayers,
-    discardPile: newDiscardPile,
+    discardPile: mergedDiscardPile,
     currentColor: chosenColor,
     currentTurn: nextTurnId,
     direction,
-    activityLog: firebase.firestore.FieldValue.arrayUnion(`${activityEntry} – color chosen: ${chosenColor}`),
+    activityLog: firebase.firestore.FieldValue.arrayUnion(updatedActivityEntry),
     lastWild4: null,
     pendingUnoChallenge
   });
 
-  // Close modal and clear pendingWildCard
+  // Play sound now that wild is fully played
+  if (sfxCardPlay) {
+    sfxCardPlay.currentTime = 0;
+    sfxCardPlay.play();
+  }
+
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 }
 
-// ======================= CHALLENGE BUTTON LOGIC =======================
+// ======================= CHALLENGE BUTTON LOGIC (UNO only) =======================
 challengeBtn.addEventListener('click', async () => {
   if (!currentRoomId || !playerId) return;
   const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -827,75 +833,7 @@ challengeBtn.addEventListener('click', async () => {
   if (!roomDoc.exists) return;
   const data = roomDoc.data();
 
-  // First check Wild+4 challenge scenario
-  if (data.lastWild4 && data.currentTurn === playerId && data.gameState === 'started') {
-    const lw4 = data.lastWild4;
-    const challengerId = playerId;
-    const challengedId = lw4.by;
-    const colorBefore  = lw4.colorBefore;
-    const handSnapshot = lw4.handSnapshot;  // the cards that Wild4‐player had before playing
-    const intendedNext = lw4.nextTurnId;
-
-    // Check if Wild4‐player had any card matching colorBefore
-    const hadMatchingColor = handSnapshot.some(c => c.color === colorBefore);
-
-    if (hadMatchingColor) {
-      // Challenge success: Wild4‐player draws 4, challenger keeps turn
-      let deck = Array.isArray(data.deck) ? [...data.deck] : [];
-      if (deck.length < 4) {
-        deck = reshuffleDiscardIntoDeck(deck, data.discardPile.slice());
-      }
-      const drawn4 = deck.splice(0, Math.min(4, deck.length));
-
-      const updatedPlayers = { ...data.players };
-      updatedPlayers[challengedId] = {
-        ...data.players[challengedId],
-        hand: [...data.players[challengedId].hand, ...drawn4]
-      };
-
-      await roomRef.update({
-        players: updatedPlayers,
-        deck,
-        // currentTurn remains on challenger
-        activityLog: firebase.firestore.FieldValue.arrayUnion(
-          `${data.players[challengerId].name} challenged successfully! ${data.players[challengedId].name} draws 4.`
-        ),
-        lastWild4: null
-      });
-      return;
-    } else {
-      // Challenge failed: challenger draws 6, skip their turn
-      let deck = Array.isArray(data.deck) ? [...data.deck] : [];
-      if (deck.length < 6) {
-        deck = reshuffleDiscardIntoDeck(deck, data.discardPile.slice());
-      }
-      const drawn6 = deck.splice(0, Math.min(6, deck.length));
-
-      const updatedPlayers = { ...data.players };
-      updatedPlayers[challengerId] = {
-        ...data.players[challengerId],
-        hand: [...data.players[challengerId].hand, ...drawn6]
-      };
-
-      // Determine next turn (skip challenger)
-      const playerIds = Object.keys(data.players);
-      const currIndex = playerIds.indexOf(challengerId);
-      const nextAfter  = playerIds[(currIndex + data.direction + playerIds.length) % playerIds.length];
-
-      await roomRef.update({
-        players: updatedPlayers,
-        deck,
-        currentTurn: nextAfter,
-        activityLog: firebase.firestore.FieldValue.arrayUnion(
-          `${data.players[challengerId].name} challenged & failed: draws 6, turn skipped.`
-        ),
-        lastWild4: null
-      });
-      return;
-    }
-  }
-
-  // Otherwise, check UNO‐No‐Mercy challenge scenario
+  // Only handle UNO-No-Mercy challenge here
   if (data.pendingUnoChallenge
       && data.currentTurn === playerId
       && data.gameState === 'started'
@@ -918,13 +856,11 @@ challengeBtn.addEventListener('click', async () => {
     await roomRef.update({
       players: updatedPlayers,
       deck,
-      // Turn remains with current challenger (they proceed normally)
       activityLog: firebase.firestore.FieldValue.arrayUnion(
         `${data.players[playerId].name} challenged ${data.players[offenderId].name} for not calling UNO: ${data.players[offenderId].name} draws 2.`
       ),
       pendingUnoChallenge: null
     });
-    return;
   }
 });
 
@@ -1027,9 +963,12 @@ callUnoBtn.addEventListener('click', async () => {
       ...playerData,
       calledUno: true
     };
+
+    // Clear pending UNO challenge when user successfully calls UNO
     await roomRef.update({
       players: updatedPlayers,
-      activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} called UNO!`)
+      activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} called UNO!`),
+      pendingUnoChallenge: null
     });
   } else {
     alert("You can only call UNO when you have exactly one card!");
@@ -1074,4 +1013,3 @@ closeModalBtn.addEventListener('click', () => {
   pendingWildCard = null;
   colorModal.classList.add('hidden');
 });
-
