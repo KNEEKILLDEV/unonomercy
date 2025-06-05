@@ -1,19 +1,26 @@
 /* style.css */
+
+/*-------------------------*
+ |  Global & Reset Styles  |
+ *-------------------------*/
 * {
-  margin: 0; 
-  padding: 0; 
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
+
 html, body {
-  width: 100%; 
-  height: 100%; 
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;            /* no outer scrolling */
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ======== LOBBY ======== */
+/*---------------------------*
+ |      LOBBY SECTION (100vh)   |
+ *---------------------------*/
 #lobby {
   height: 100vh;
   display: flex;
@@ -21,10 +28,12 @@ html, body {
   justify-content: center;
   align-items: center;
 }
+
 #lobby h1 {
   margin-bottom: 20px;
   font-size: 2rem;
 }
+
 #createSection, #joinSection {
   width: 90%;
   max-width: 400px;
@@ -33,10 +42,13 @@ html, body {
   border-radius: 8px;
   margin-bottom: 20px;
 }
+
 #createSection h2, #joinSection h2 {
   text-align: center;
   margin-bottom: 10px;
+  font-size: 1.2rem;
 }
+
 #createSection input, #joinSection input,
 #createSection button, #joinSection button {
   width: 100%;
@@ -46,25 +58,32 @@ html, body {
   border: none;
   font-size: 1rem;
 }
+
 #createSection button, #joinSection button {
-  background-color: #1e88e5;
+  background-color: #1976d2;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 #createSection button:hover, #joinSection button:hover {
-  background-color: #1565c0;
+  background-color: #115293;
 }
+
 #lobbyMessage {
   color: #f44336;
   margin-top: 10px;
   text-align: center;
+  font-size: 0.9rem;
 }
 
-/* ======== GAME CONTAINER ======== */
+/*---------------------------*
+ |  GAME CONTAINER (100vh)    |
+ *---------------------------*/
 .hidden {
   display: none !important;
 }
+
 #container {
   display: flex;
   flex-direction: column;
@@ -72,7 +91,9 @@ html, body {
   width: 100vw;
 }
 
-/* ===== Room Info + Turn (10vh) ===== */
+/*---------------------------*
+ |  Room Info + Turn (10vh)   |
+ *---------------------------*/
 #roomInfoContainer {
   display: flex;
   align-items: center;
@@ -80,37 +101,46 @@ html, body {
   height: 10vh;
   padding: 0 10px;
   background-color: #1e1e1e;
+  border-bottom: 1px solid #333;
 }
+
 #roomInfo {
   display: flex;
   gap: 10px;
   font-size: 1rem;
 }
+
 #roomInfo p {
   margin-right: 15px;
 }
+
 #roomButtons {
   display: flex;
   gap: 5px;
 }
+
 #roomButtons button {
   padding: 5px 10px;
-  background-color: #1e88e5;
+  background-color: #1976d2;
   border: none;
   border-radius: 5px;
   color: white;
   font-size: 0.9rem;
   cursor: pointer;
 }
+
 #restartGameBtn {
-  background-color: #e67e22;
+  background-color: #ff8f00;
 }
+
 #leaveRoomBtn {
-  background-color: #f44336;
+  background-color: #d32f2f;
 }
+
 #roomButtons button:hover {
   opacity: 0.8;
 }
+
 #turnIndicator {
   font-size: 1.2rem;
   font-weight: bold;
@@ -118,48 +148,56 @@ html, body {
   flex-shrink: 0;
 }
 
-/* ===== Main Area (50vh) ===== */
+/*---------------------------*
+ |    Main Area (50vh)        |
+ *---------------------------*/
 #mainArea {
   display: flex;
   height: 50vh;
 }
-#opponentsArea, #centerArea, #chatArea {
-  background-color: #2a2a2a;
-  border: 1px solid #333;
-  overflow: hidden;
-}
+
+/* Opponents Panel */
 #opponentsArea {
   flex: 1;
+  background-color: #2a2a2a;
+  border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
 }
+
 #opponentsArea h3 {
   text-align: center;
   margin: 5px 0;
   font-size: 1rem;
 }
+
 #opponentsList {
   list-style: none;
   overflow-y: auto;
   padding: 5px;
   font-size: 0.9rem;
 }
+
 #opponentsList li {
   margin: 4px 0;
 }
 
-/* Center: Discard */
+/* Discard Center Panel */
 #centerArea {
   flex: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background-color: #2a2a2a;
+  border-right: 1px solid #333;
 }
+
 #centerArea h3 {
   margin: 5px 0;
   font-size: 1rem;
 }
+
 #discardPile {
   width: 12vw;
   max-width: 80px;
@@ -171,20 +209,23 @@ html, body {
   justify-content: center;
   font-size: 1.5rem;
   background-color: transparent;
-  color: white;
+  user-select: none;
 }
 
-/* Chat Area */
+/* Chat Panel */
 #chatArea {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background-color: #2a2a2a;
 }
+
 #chatArea h3 {
   text-align: center;
   margin: 5px 0;
   font-size: 1rem;
 }
+
 #chatLog {
   flex: 1;
   background-color: #333;
@@ -194,58 +235,72 @@ html, body {
   overflow-y: auto;
   font-size: 0.9rem;
 }
+
 #chatLog p {
   margin-bottom: 4px;
 }
-#chatArea input {
-  width: 70%;
+
+#chatInputArea {
+  display: flex;
   padding: 5px;
-  margin: 5px;
+  gap: 5px;
+}
+
+#chatInput {
+  flex: 1;
+  padding: 5px;
   border: none;
   border-radius: 5px 0 0 5px;
   background-color: #444;
   color: #eee;
   font-size: 0.9rem;
 }
-#chatArea button {
-  width: 25%;
+
+#sendChatBtn {
+  width: 80px;
   padding: 5px;
-  margin: 5px;
   border: none;
   border-radius: 0 5px 5px 0;
-  background-color: #1e88e5;
+  background-color: #1976d2;
   color: white;
   font-size: 0.9rem;
   cursor: pointer;
 }
-#chatArea button:hover {
+
+#sendChatBtn:hover {
   opacity: 0.8;
 }
 
-/* ===== Hand & Controls (20vh) ===== */
+/*---------------------------*
+ | Hand & Controls (20vh)     |
+ *---------------------------*/
 #handControlsArea {
   display: flex;
   height: 20vh;
 }
+
 #handArea {
   flex: 2;
   background-color: #2a2a2a;
-  border: 1px solid #333;
+  border-top: 1px solid #333;
   display: flex;
   flex-direction: column;
   overflow-x: auto;
   align-items: center;
 }
+
 #handArea h3 {
   margin: 5px 0;
   font-size: 1rem;
 }
+
 #playerHand {
   display: flex;
   gap: 5px;
   padding: 5px;
   overflow-x: auto;
 }
+
 .card {
   min-width: 10vw;
   max-width: 60px;
@@ -262,9 +317,11 @@ html, body {
   box-shadow: 0 0 4px rgba(0,0,0,0.5);
   color: white;
 }
+
 .card:hover {
   transform: scale(1.1);
 }
+
 .card.red { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green { background-color: #43a047; }
@@ -274,12 +331,13 @@ html, body {
 #controlButtons {
   flex: 1;
   background-color: #2a2a2a;
-  border: 1px solid #333;
+  border-top: 1px solid #333;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
+
 #controlButtons button {
   width: 80%;
   padding: 8px;
@@ -291,11 +349,14 @@ html, body {
   font-size: 1rem;
   cursor: pointer;
 }
+
 #controlButtons button:hover {
   opacity: 0.8;
 }
 
-/* ===== Activity Log (10vh) ===== */
+/*---------------------------*
+ | Activity Log (10vh)        |
+ *---------------------------*/
 #activityArea {
   background-color: #2a2a2a;
   border-top: 1px solid #333;
@@ -303,11 +364,13 @@ html, body {
   padding: 5px;
   overflow-y: auto;
 }
+
 #activityArea h3 {
   text-align: center;
   font-size: 1rem;
   margin-bottom: 4px;
 }
+
 #activityLog {
   background-color: #333;
   height: calc(100% - 24px);
@@ -316,11 +379,14 @@ html, body {
   overflow-y: auto;
   font-size: 0.8rem;
 }
+
 #activityLog p {
   margin-bottom: 4px;
 }
 
-/* ===== Color Modal ===== */
+/*---------------------------*
+ |   Color Picker Modal       |
+ *---------------------------*/
 .modal {
   position: fixed;
   top: 0; left: 0;
@@ -331,9 +397,11 @@ html, body {
   align-items: center;
   z-index: 100;
 }
+
 .modal.hidden {
   display: none;
 }
+
 .modalContent {
   background-color: #2a2a2a;
   padding: 20px;
@@ -341,6 +409,7 @@ html, body {
   position: relative;
   text-align: center;
 }
+
 .closeModalBtn {
   background: none;
   border: none;
@@ -350,12 +419,14 @@ html, body {
   top: 10px; right: 15px;
   cursor: pointer;
 }
+
 #colorOptions {
   display: flex;
   justify-content: center;
   gap: 10px;
   margin-top: 10px;
 }
+
 .colorBtn {
   width: 40px;
   height: 40px;
@@ -363,18 +434,40 @@ html, body {
   border: none;
   cursor: pointer;
 }
-.colorBtn.red { background-color: #e53935; }
-.colorBtn.yellow { background-color: #fdd835; }
-.colorBtn.green { background-color: #43a047; }
-.colorBtn.blue { background-color: #1e88e5; }
 
-/* ===== Responsive: Mobile Portrait ===== */
+.colorBtn.red    { background-color: #e53935; }
+.colorBtn.yellow { background-color: #fdd835; }
+.colorBtn.green  { background-color: #43a047; }
+.colorBtn.blue   { background-color: #1e88e5; }
+
+/*---------------------------*
+ |  Responsive Adjustments    |
+ *---------------------------*/
 @media (max-width: 600px) {
-  #roomInfoContainer { flex-wrap: wrap; row-gap: 5px; height: auto; padding: 5px; }
-  #mainArea { flex-direction: column; height: 50vh; }
-  #opponentsArea, #centerArea, #chatArea { height: 16vh; }
-  #handControlsArea { flex-direction: column; height: 20vh; }
-  #handArea { height: 12vh; }
-  #controlButtons { height: 8vh; }
-  #activityArea { height: 10vh; }
+  #roomInfoContainer {
+    flex-wrap: wrap;
+    row-gap: 5px;
+    height: auto;
+    padding: 5px;
+  }
+  #mainArea {
+    flex-direction: column;
+    height: 50vh;
+  }
+  #opponentsArea, #centerArea, #chatArea {
+    height: 16vh;
+  }
+  #handControlsArea {
+    flex-direction: column;
+    height: 20vh;
+  }
+  #handArea {
+    height: 12vh;
+  }
+  #controlButtons {
+    height: 8vh;
+  }
+  #activityArea {
+    height: 10vh;
+  }
 }

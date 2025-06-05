@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>UnoMercy Online UNO Game</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -13,14 +14,16 @@
   <!-- ======== LOBBY SECTION ======== -->
   <div id="lobby">
     <h1>Welcome to UnoMercy</h1>
+
     <div id="createSection">
       <h2>Create Room</h2>
       <form id="createForm">
         <input type="text" id="createName" placeholder="Your Name" required />
-        <input type="number" id="maxPlayers" placeholder="Max Players (2-10)" min="2" max="10" required />
+        <input type="number" id="maxPlayers" placeholder="Max Players (2–10)" min="2" max="10" required />
         <button type="submit">Create Room</button>
       </form>
     </div>
+
     <div id="joinSection">
       <h2>Join Room</h2>
       <form id="joinForm">
@@ -29,6 +32,7 @@
         <button type="submit">Join Room</button>
       </form>
     </div>
+
     <p id="lobbyMessage"></p>
   </div>
 
@@ -49,21 +53,28 @@
       <div id="turnIndicator"></div>
     </div>
 
-    <!-- Main Area: Opponents (20vh) | Discard (20vh) | Chat (20vh) -->
+    <!-- Main Area (50vh) -->
     <div id="mainArea">
+      <!-- Opponents List (scrolls if needed) -->
       <div id="opponentsArea">
         <h3>Opponents</h3>
         <ul id="opponentsList"></ul>
       </div>
+
+      <!-- Discard Pile Center -->
       <div id="centerArea">
         <h3>Discard Pile</h3>
         <div id="discardPile" class="card"></div>
       </div>
+
+      <!-- Chat Panel -->
       <div id="chatArea">
         <h3>Chat</h3>
         <div id="chatLog"></div>
-        <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
-        <button id="sendChatBtn">Send</button>
+        <div id="chatInputArea">
+          <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off" />
+          <button id="sendChatBtn">Send</button>
+        </div>
       </div>
     </div>
 
@@ -90,12 +101,12 @@
   <div id="colorModal" class="modal hidden">
     <div class="modalContent">
       <button id="closeModalBtn" class="closeModalBtn">&times;</button>
-      <h3>Select Color</h3>
+      <h3>Select a Color</h3>
       <div id="colorOptions">
-        <button class="colorBtn red" data-color="red">Red</button>
-        <button class="colorBtn yellow" data-color="yellow">Yellow</button>
-        <button class="colorBtn green" data-color="green">Green</button>
-        <button class="colorBtn blue" data-color="blue">Blue</button>
+        <button class="colorBtn red" data-color="red"></button>
+        <button class="colorBtn yellow" data-color="yellow"></button>
+        <button class="colorBtn green" data-color="green"></button>
+        <button class="colorBtn blue" data-color="blue"></button>
       </div>
     </div>
   </div>
