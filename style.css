@@ -172,7 +172,6 @@ html, body {
   font-size: 0.9rem;
 }
 
-/* Each opponent entry */
 #opponentsList li {
   margin: 4px 0;
 }
@@ -218,7 +217,7 @@ html, body {
   font-size: 1rem;
 }
 
-/* Remove scrolling; allow content to overflow */
+/* Remove scrolling; allow overflow */
 #chatLog {
   flex: 1;
   background-color: #333;
@@ -228,9 +227,17 @@ html, body {
   font-size: 0.9rem;
   overflow: hidden;
 }
-
 #chatLog p {
   margin-bottom: 4px;
+}
+
+/* New chat message fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.newMessage {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Chat input area */
@@ -308,35 +315,47 @@ html, body {
   transform: scale(1.1);
 }
 
-/* UNO card colors for both hand & discard */
+/* UNO card colors */
 .card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green  { background-color: #43a047; }
 .card.blue   { background-color: #1e88e5; }
 .card.wild   { background-color: #7c4dff; }
 
-/* Control buttons panel */
-#controlButtons {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
+/* Animations for played/drawn cards */
+@keyframes popCard {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes glow {
+  0%   { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+  50%  { box-shadow: 0 0 16px rgba(255, 255, 0, 0.8); }
+  100% { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+}
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-8px); }
+  50%  { transform: translateX(8px); }
+  75%  { transform: translateX(-8px); }
+  100% { transform: translateX(0); }
+}
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);  opacity: 1; }
 }
 
-#controlButtons button {
-  width: 80%;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4caf50;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
+.card.played {
+  animation: popCard 0.3s ease-in-out;
 }
-#controlButtons button:hover {
-  opacity: 0.8;
+.card.newTop {
+  animation: glow 1s ease-in-out;
+}
+#playerHand .card.drawn {
+  animation: shake 0.3s ease-in-out;
+}
+#container.slideIn {
+  animation: slideIn 0.4s ease-out;
 }
 
 /*---------------------------*
@@ -349,7 +368,7 @@ html, body {
   padding: 5px;
 }
 
-/* Remove scrolling for activity log */
+/* Remove scrolling; allow overflow */
 #activityLog {
   background-color: #333;
   height: calc(100% - 24px);
@@ -416,51 +435,6 @@ html, body {
 .colorBtn.yellow { background-color: #fdd835; }
 .colorBtn.green  { background-color: #43a047; }
 .colorBtn.blue   { background-color: #1e88e5; }
-
-/*---------------------------*
- |  CSS KEYFRAME ANIMATIONS   |
- *---------------------------*/
-@keyframes popCard {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.3); }
-  100% { transform: scale(1); }
-}
-
-@keyframes glow {
-  0%   { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
-  50%  { box-shadow: 0 0 16px rgba(255, 255, 0, 0.8); }
-  100% { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
-}
-
-@keyframes shake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-8px); }
-  50%  { transform: translateX(8px); }
-  75%  { transform: translateX(-8px); }
-  100% { transform: translateX(0); }
-}
-
-@keyframes slideIn {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);  opacity: 1; }
-}
-
-/* Utility classes to attach animations */
-.card.played {
-  animation: popCard 0.3s ease-in-out;
-}
-
-.card.newTop {
-  animation: glow 1s ease-in-out;
-}
-
-#playerHand .card.drawn {
-  animation: shake 0.3s ease-in-out;
-}
-
-#container.slideIn {
-  animation: slideIn 0.4s ease-out;
-}
 
 /*---------------------------*
  |  Responsive Adjustments    |
