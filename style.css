@@ -12,7 +12,7 @@
 html, body {
   width: 100%;
   height: 100%;
-  overflow: hidden;            /* no outer scrolling */
+  overflow: hidden;            /* Prevent scrolling */
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -165,19 +165,14 @@ html, body {
   flex-direction: column;
 }
 
-#opponentsArea h3 {
-  text-align: center;
-  margin: 5px 0;
-  font-size: 1rem;
-}
-
+/* Remove scrolling for opponents list */
 #opponentsList {
   list-style: none;
-  overflow-y: auto;
   padding: 5px;
   font-size: 0.9rem;
 }
 
+/* Each opponent entry */
 #opponentsList li {
   margin: 4px 0;
 }
@@ -198,7 +193,6 @@ html, body {
   font-size: 1rem;
 }
 
-/* Removed “background-color: transparent;” so .card.red/.card.green can show */
 #discardPile {
   width: 60px;
   height: 90px;
@@ -224,20 +218,22 @@ html, body {
   font-size: 1rem;
 }
 
+/* Remove scrolling; allow content to overflow */
 #chatLog {
   flex: 1;
   background-color: #333;
   margin: 5px;
   border-radius: 5px;
   padding: 5px;
-  overflow-y: auto;
   font-size: 0.9rem;
+  overflow: hidden;
 }
 
 #chatLog p {
   margin-bottom: 4px;
 }
 
+/* Chat input area */
 #chatInputArea {
   display: flex;
   padding: 5px;
@@ -270,9 +266,8 @@ html, body {
 }
 
 /*---------------------------*
- | Hand & Controls (auto‑height) |
+ | Hand & Controls (auto-height) |
  *---------------------------*/
-/* Remove fixed 20vh—allow it to grow to fit wrapped cards */
 #handControlsArea {
   display: flex;
   flex-shrink: 0;
@@ -280,7 +275,6 @@ html, body {
   border-top: 1px solid #333;
 }
 
-/* Let #handArea expand vertically as needed */
 #handArea {
   flex: 2;
   display: flex;
@@ -288,7 +282,6 @@ html, body {
   align-items: center;
 }
 
-/* Wrap cards instead of requiring horizontal scroll */
 #playerHand {
   display: flex;
   flex-wrap: wrap;
@@ -322,6 +315,7 @@ html, body {
 .card.blue   { background-color: #1e88e5; }
 .card.wild   { background-color: #7c4dff; }
 
+/* Control buttons panel */
 #controlButtons {
   flex: 1;
   display: flex;
@@ -353,22 +347,16 @@ html, body {
   border-top: 1px solid #333;
   height: 10vh;
   padding: 5px;
-  overflow-y: auto;
 }
 
-#activityArea h3 {
-  text-align: center;
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
+/* Remove scrolling for activity log */
 #activityLog {
   background-color: #333;
   height: calc(100% - 24px);
   border-radius: 5px;
   padding: 5px;
-  overflow-y: auto;
   font-size: 0.8rem;
+  overflow: hidden;
 }
 #activityLog p {
   margin-bottom: 4px;
@@ -430,6 +418,51 @@ html, body {
 .colorBtn.blue   { background-color: #1e88e5; }
 
 /*---------------------------*
+ |  CSS KEYFRAME ANIMATIONS   |
+ *---------------------------*/
+@keyframes popCard {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes glow {
+  0%   { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+  50%  { box-shadow: 0 0 16px rgba(255, 255, 0, 0.8); }
+  100% { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-8px); }
+  50%  { transform: translateX(8px); }
+  75%  { transform: translateX(-8px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);  opacity: 1; }
+}
+
+/* Utility classes to attach animations */
+.card.played {
+  animation: popCard 0.3s ease-in-out;
+}
+
+.card.newTop {
+  animation: glow 1s ease-in-out;
+}
+
+#playerHand .card.drawn {
+  animation: shake 0.3s ease-in-out;
+}
+
+#container.slideIn {
+  animation: slideIn 0.4s ease-out;
+}
+
+/*---------------------------*
  |  Responsive Adjustments    |
  *---------------------------*/
 @media (max-width: 600px) {
@@ -446,10 +479,8 @@ html, body {
   #opponentsArea, #centerArea, #chatArea {
     height: 16vh;
   }
-  /* Let handControlsArea auto‑height on mobile */
   #handControlsArea {
     flex-direction: column;
-    /* no forced height */
   }
   #handArea {
     width: 100%;

@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <!-- Hand & Controls (20vh) -->
+    <!-- Hand & Controls -->
     <div id="handControlsArea">
       <div id="handArea">
         <h3>Your Hand</h3>
@@ -87,6 +87,8 @@
       <div id="controlButtons">
         <button id="drawCardBtn">Draw Card</button>
         <button id="callUnoBtn">Call UNO</button>
+        <!-- Added Challenge button so script.js can show/hide it -->
+        <button id="challengeBtn" style="display: none;">Challenge</button>
       </div>
     </div>
 
@@ -110,6 +112,13 @@
       </div>
     </div>
   </div>
+
+  <!-- AUDIO ELEMENTS FOR SOUND EFFECTS -->
+  <audio id="sfxCardPlay" src="assets/card-play.mp3" preload="auto"></audio>
+  <audio id="sfxCardDraw" src="assets/card-draw.mp3" preload="auto"></audio>
+  <audio id="sfxUnoCall" src="assets/uno-call.mp3" preload="auto"></audio>
+  <audio id="sfxWin" src="assets/win.mp3" preload="auto"></audio>
+  <audio id="sfxJoinRoom" src="assets/slide-in.mp3" preload="auto"></audio>
 
   <script src="script.js"></script>
 </body>
