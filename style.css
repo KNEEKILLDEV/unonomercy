@@ -198,6 +198,7 @@ html, body {
   font-size: 1rem;
 }
 
+/* Removed “background-color: transparent;” so .card.red/.card.green can show */
 #discardPile {
   width: 60px;
   height: 90px;
@@ -269,38 +270,31 @@ html, body {
 }
 
 /*---------------------------*
- | Hand & Controls (20vh)     |
+ | Hand & Controls (auto‑height) |
  *---------------------------*/
+/* Remove fixed 20vh—allow it to grow to fit wrapped cards */
 #handControlsArea {
   display: flex;
-  height: 20vh;
-}
-
-#handArea {
-  flex: 2;
+  flex-shrink: 0;
   background-color: #2a2a2a;
   border-top: 1px solid #333;
+}
+
+/* Let #handArea expand vertically as needed */
+#handArea {
+  flex: 2;
   display: flex;
   flex-direction: column;
-  /* Only horizontal scroll, no wrapping */
-  overflow-x: auto;
-  overflow-y: hidden;
-  align-items: flex-start;
+  align-items: center;
 }
 
-#handArea h3 {
-  margin: 5px 0;
-  font-size: 1rem;
-}
-
-/* Each card is fixed 60×90 px, won’t wrap */
+/* Wrap cards instead of requiring horizontal scroll */
 #playerHand {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 5px;
   padding: 5px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .card {
@@ -321,6 +315,7 @@ html, body {
   transform: scale(1.1);
 }
 
+/* UNO card colors for both hand & discard */
 .card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green  { background-color: #43a047; }
@@ -329,18 +324,16 @@ html, body {
 
 #controlButtons {
   flex: 1;
-  background-color: #2a2a2a;
-  border-top: 1px solid #333;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 5px;
 }
 
 #controlButtons button {
   width: 80%;
   padding: 8px;
-  margin: 5px 0;
   border: none;
   border-radius: 5px;
   background-color: #4caf50;
@@ -348,7 +341,6 @@ html, body {
   font-size: 1rem;
   cursor: pointer;
 }
-
 #controlButtons button:hover {
   opacity: 0.8;
 }
@@ -378,7 +370,6 @@ html, body {
   overflow-y: auto;
   font-size: 0.8rem;
 }
-
 #activityLog p {
   margin-bottom: 4px;
 }
@@ -433,7 +424,6 @@ html, body {
   border: none;
   cursor: pointer;
 }
-
 .colorBtn.red    { background-color: #e53935; }
 .colorBtn.yellow { background-color: #fdd835; }
 .colorBtn.green  { background-color: #43a047; }
@@ -456,15 +446,19 @@ html, body {
   #opponentsArea, #centerArea, #chatArea {
     height: 16vh;
   }
+  /* Let handControlsArea auto‑height on mobile */
   #handControlsArea {
     flex-direction: column;
-    height: 20vh;
+    /* no forced height */
   }
   #handArea {
-    height: 12vh;
+    width: 100%;
+  }
+  #playerHand {
+    justify-content: center;
   }
   #controlButtons {
-    height: 8vh;
+    width: 100%;
   }
   #activityArea {
     height: 10vh;
