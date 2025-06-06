@@ -538,10 +538,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // If the leaving player was currentTurn, pass turn to next
       if (data.currentTurn === playerId) {
-        const oldDirection = data.direction || 1;
-        // Calculate next turn from the updated list
-        const nextIdx = 0; // simply give turn to first in updated list
-        const nextTurnId = remainingIds[nextIdx];
+        // Simply hand turn to the first remaining player
+        const nextTurnId = remainingIds[0];
         await roomRef.update({ currentTurn: nextTurnId });
       }
     }
@@ -623,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert("You don't have that card.");
       return;
     }
-    hand.splice(cardIndex, 1);
+    hand.splice(cardIndex, 1); // remove the card right away
 
     // Clear any old UNO challenge as soon as you play a card
     let updatedPendingUno = null;
@@ -633,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updatedPendingUno = { offender: playerId };
     }
 
-    // Build a base updatedPlayers object
+    // Build a base updatedPlayers object (with this card removed already)
     let updatedPlayers = { ...playersObj };
     updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
@@ -643,8 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== HANDLE SWAP (as Wild‐like) ==========
     if (card.value === "swap") {
-      // Immediately consume the card from hand
-      // newDiscardPile contains the Swap card
+      // newDiscardPile holds the Swap card in discard
       const newDiscardPile = [...discardArr, card];
 
       // Prepare pendingWildCard context
@@ -679,7 +676,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Remove card from handSnapshot already done
         const newDiscardPile = [...discardArr, card];
         const increment = (card.value === "draw2") ? 2 : 4;
         const newPendingCount = pendingDrawCount + increment;
@@ -718,7 +714,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== HANDLE WILD, WILD4, WILD SHUFFLE ==========
     if (card.value === "wild") {
-      hand.splice(cardIndex, 1);
       updatedPlayers[playerId] = { ...updatedPlayers[playerId], calledUno: false };
 
       pendingWildCard = {
@@ -736,7 +731,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (card.value === "wild4") {
-      hand.splice(cardIndex, 1);
       updatedPlayers[playerId] = { ...updatedPlayers[playerId], calledUno: false };
 
       pendingWildCard = {
@@ -754,7 +748,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (card.value === "shuffle") {
-      hand.splice(cardIndex, 1);
       updatedPlayers[playerId] = { ...updatedPlayers[playerId], calledUno: false };
 
       pendingWildCard = {
@@ -786,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // We've already removed it from `hand` above
     updatedPlayers[playerId] = { ...updatedPlayers[playerId], hand, calledUno: false };
 
     const newDiscardPile = [...discardArr, card];
@@ -839,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         direction: dir,
         activityLog: firebase.firestore.FieldValue.arrayUnion(
           `${playerData.name} played Skip & skipped ${skipName}.`
-        ),
+        ),  
         pendingDrawCount: 0,
         pendingDrawType: null,
         pendingUnoChallenge: updatedPendingUno
@@ -875,7 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (playerData.calledUno === false) {
         // Penalty: draw 2
         let deck = Array.isArray(data.deck) ? [...data.deck] : [];
-        if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
+        if (deck.length < newDiscardPile.length) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
         const penaltyDraw = deck.splice(0, Math.min(2, deck.length));
         updatedPlayers[playerId] = {
           ...updatedPlayers[playerId],
@@ -1256,9 +1248,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const allCards = Array.from(playerHand.children);
       if (allCards.length) {
         const newlyDrawn = allCards[allCards.length - 1];
-        newlyDrawn.classList.add('drawn');
-        newlyDrawn.addEventListener('animationend', () => {
-          newlyDrawn.classList.remove('drawn');
+        newlyDrawn.classList.add("drawn");
+        newlyDrawn.addEventListener("animationend", () => {
+          newlyDrawn.classList.remove("drawn");
         }, { once: true });
       }
     }, 200);
@@ -1281,9 +1273,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const handCards = Array.from(playerHand.children);
       if (handCards.length === 1) {
-        handCards[0].classList.add('played');
-        handCards[0].addEventListener('animationend', () => {
-          handCards[0].classList.remove('played');
+        handCards[0].classList.add("played");
+        handCards[0].addEventListener("animationend", () => {
+          handCards[0].classList.remove("played");
         }, { once: true });
       }
       const newPlayers = { ...data.players };
