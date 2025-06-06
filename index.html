@@ -55,7 +55,7 @@
       <div id="turnIndicator"></div>
     </div>
 
-    <!-- Main Area -->
+    <!-- Main Area (opponents + discard + chat on desktop) -->
     <div id="mainArea">
       <!-- Opponents List -->
       <div id="opponentsArea">
@@ -69,8 +69,8 @@
         <div id="discardPile" class="card"></div>
       </div>
 
-      <!-- Combined Chat & Activity Panel -->
-      <div id="chatArea">
+      <!-- Chat & Activity (desktop only) -->
+      <div id="chatAreaDesktop">
         <h3>Chat & Activity</h3>
         <div id="logArea"></div>
         <div id="chatInputArea">
@@ -90,6 +90,16 @@
         <button id="drawCardBtn" class="primaryBtn">Draw Card</button>
         <button id="callUnoBtn" class="secondaryBtn">Call UNO</button>
         <button id="challengeBtn" class="dangerBtn" style="display: none;">Challenge UNO</button>
+      </div>
+    </div>
+
+    <!-- Chat & Activity (mobile only, placed below hand) -->
+    <div id="chatAreaMobile" class="hidden">
+      <h3>Chat & Activity</h3>
+      <div id="logAreaMobile"></div>
+      <div id="chatInputAreaMobile">
+        <input type="text" id="chatInputMobile" placeholder="Type a message…" autocomplete="off" />
+        <button id="sendChatBtnMobile" class="primaryBtn">Send</button>
       </div>
     </div>
   </div>

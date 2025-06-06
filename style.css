@@ -250,16 +250,17 @@ html, body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-/* Combined Chat & Activity Panel */
-#chatArea {
+/* Chat & Activity (Desktop) */
+#chatAreaDesktop {
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: #2a2a2a;
   padding: 10px;
+  border-left: 1px solid #333;
 }
 
-#chatArea h3 {
+#chatAreaDesktop h3 {
   text-align: center;
   margin: 12px 0;
   font-size: 1.2rem;
@@ -336,14 +337,21 @@ html, body {
   color: #f1f1f1;
 }
 
+/* 
+   On desktop/tablet, allow wrapping of cards (up to two rows) 
+   and vertical scroll if too many; on mobile, force a single row
+   with horizontal scroll.
+*/
 #playerHand {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap;              /* desktop: let cards wrap */
   justify-content: center;
   gap: 8px;
+  max-height: calc(100vh - 340px); /* limit height so that it won't push controls too far */
+  overflow-y: auto;               /* vertical scroll when many cards */
 }
 
-/* UNO card styling */
+/* For cards */
 .card {
   width: min(100px, 15vw);
   aspect-ratio: 2 / 3;
@@ -386,6 +394,62 @@ html, body {
 
 #controlButtons button {
   width: 80%;
+  padding: 10px;
+}
+
+/*---------------------------*
+ | Chat & Activity (Mobile)  |
+ *---------------------------*/
+#chatAreaMobile {
+  display: none; /* hidden by default (desktop) */
+  background-color: #2a2a2a;
+  padding: 10px;
+  border-top: 1px solid #333;
+}
+
+#chatAreaMobile h3 {
+  text-align: center;
+  margin: 12px 0;
+  font-size: 1.2rem;
+  color: #f1f1f1;
+}
+
+#logAreaMobile {
+  background-color: #333;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  max-height: 200px; /* limit so it doesn’t push controls offscreen */
+  overflow-y: auto;
+}
+
+#logAreaMobile p {
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+#chatInputAreaMobile {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#chatInputMobile {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px 0 0 5px;
+  background-color: #444;
+  color: #eee;
+  font-size: 1rem;
+}
+
+#sendChatBtnMobile {
+  width: 80px;
   padding: 10px;
 }
 
@@ -498,155 +562,91 @@ html, body {
 /*---------------------------*
  | Responsive Adjustments     |
  *---------------------------*/
-@media (max-width: 768px) {
-  /* Lobby adjustments */
-  #lobbyContent {
-    flex-direction: column;
-    gap: 20px;
-  }
-  .cardPanel {
-    width: 90%;
-    max-width: 400px;
-  }
 
-  /* Main layout */
+/*===== Mobile First: =====*/
+/*   Default visible:       */
+/*   - chatAreaMobile       */
+/*   - hand area scroll X   */
+#mainArea, #chatAreaDesktop {
+  display: none;
+}
+#chatAreaMobile {
+  display: block;
+}
+
+/* Hand area (mobile): force single‐row, horizontal scroll */
+#playerHand {
+  flex-wrap: nowrap;       /* one row only */
+  overflow-x: auto;        /* horizontal scroll for extra cards */
+  overflow-y: hidden;      /* no vertical scroll on mobile */
+}
+
+/* Opponents + Discard hidden on mobile: */
+#opponentsArea, #centerArea {
+  display: none;
+}
+
+/* HandControls: keep as-is, but ensure draw‐buttons aren’t pushed up */
+#handControlsArea {
+  flex-direction: column;
+}
+
+/* When chat is tall, limit its height so it does not push buttons off-screen */
+#logAreaMobile {
+  max-height: 200px;
+}
+
+/* Adjust font‐size & padding slightly */
+#handArea h3, #chatAreaMobile h3 {
+  font-size: 1.2rem;
+}
+#controlButtons button, #chatInputMobile, #sendChatBtnMobile {
+  font-size: 0.95rem;
+  padding: 8px;
+}
+
+/*===== Tablet & Desktop (min-width: 768px) =====*/
+@media (min-width: 768px) {
+  /* Show mainArea (with desktop chat), hide mobile chat */
   #mainArea {
-    flex-direction: column;
+    display: flex;
   }
+  #chatAreaDesktop {
+    display: flex;
+  }
+  #chatAreaMobile {
+    display: none;
+  }
+
+  /* Show opponents & discard again */
   #opponentsArea, #centerArea {
-    flex: 0 0 100px;
-    border-right: none;
-    border-bottom: 1px solid #333;
-  }
-  #opponentsArea {
-    align-items: center;
-  }
-  #opponentsArea h3, #centerArea h3 {
-    margin: 8px 0;
+    display: flex;
   }
 
-  /* Make discard larger on mobile */
-  #discardPile {
-    width: min(120px, 25vw);
-    font-size: 1.5rem;
-  }
-
-  /* Chat area larger */
-  #chatArea {
-    flex: 1;
-    padding: 8px;
-  }
-  #logArea {
-    padding: 8px;
-    font-size: 0.85rem;
-  }
-  #chatInputArea {
-    gap: 8px;
-    margin-top: 8px;
-  }
-  #chatInput {
-    padding: 8px;
-    font-size: 0.95rem;
-  }
-  #sendChatBtn {
-    width: 70px;
-    padding: 8px;
-  }
-
-  /* Hand & Controls adjustments */
-  #handControlsArea {
-    flex-direction: column;
-    padding: 8px;
-  }
-  #handArea h3 {
-    margin-bottom: 6px;
-    font-size: 1.1rem;
-  }
+  /* Hand area (desktop): allow wrap and vertical scroll */
   #playerHand {
-    gap: 6px;
-  }
-  .card {
-    width: min(80px, 20vw);
-    font-size: clamp(0.7rem, 2vw, 1rem);
-  }
-  #controlButtons {
-    width: 100%;
-    gap: 6px;
-  }
-  #controlButtons button {
-    width: 70%;
-    padding: 8px;
-    font-size: 0.95rem;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
-  /* Color modal narrower */
-  .modalContent {
-    width: 90%;
-    max-width: 280px;
+  /* Main area layout */
+  #mainArea {
+    display: flex;
+    flex: 1;
   }
-  .colorBtn {
-    width: 40px;
-    height: 40px;
+
+  /* Chat desktop gets a fixed column */
+  #chatAreaDesktop {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 }
 
-@media (max-width: 480px) {
-  /* Further scaling */
-  #roomInfoContainer {
-    flex-direction: column;
-    row-gap: 6px;
-    padding: 6px 10px;
-  }
-  #roomInfo p {
-    font-size: 0.9rem;
-    margin-right: 12px;
-  }
-  #roomButtons {
-    gap: 6px;
-  }
-  #turnIndicator {
-    font-size: 1rem;
-  }
-
-  #opponentsArea, #centerArea {
-    flex: 0 0 80px;
-  }
-
-  #discardPile {
-    width: min(70px, 20vw);
-    font-size: 1.2rem;
-  }
-
-  #logArea {
-    font-size: 0.8rem;
-  }
-  #chatInput {
-    font-size: 0.9rem;
-  }
-  #sendChatBtn {
-    width: 60px;
-    padding: 6px;
-    font-size: 0.9rem;
-  }
-
-  #handControlsArea {
-    padding: 6px;
-  }
-  .card {
-    width: min(60px, 25vw);
-    font-size: clamp(0.6rem, 3vw, 0.9rem);
-  }
-  #controlButtons button {
-    width: 80%;
-    padding: 6px;
-    font-size: 0.9rem;
-  }
-  .modalContent {
-    max-width: 240px;
-    padding: 16px;
-  }
-  .colorBtn {
-    width: 36px;
-    height: 36px;
+/*===== Larger Desktop (min-width: 1024px) =====*/
+@media (min-width: 1024px) {
+  #playerHand {
+    max-height: calc(100vh - 340px); /* more vertical space */
   }
 }
