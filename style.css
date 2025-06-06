@@ -30,7 +30,7 @@ html, body {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -45,7 +45,7 @@ html, body {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -60,7 +60,7 @@ html, body {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -80,6 +80,7 @@ html, body {
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #2c3e50, #4ca1af);
+  padding: 20px;
 }
 
 .logo {
@@ -94,6 +95,8 @@ html, body {
   gap: 40px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  max-width: 900px;
 }
 
 .cardPanel {
@@ -192,11 +195,12 @@ html, body {
   border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
+  min-width: 120px;
 }
 
 #opponentsArea h3 {
   text-align: center;
-  margin: 10px 0;
+  margin: 12px 0;
   font-size: 1.2rem;
   color: #f1f1f1;
 }
@@ -207,20 +211,25 @@ html, body {
   font-size: 1rem;
   overflow-y: auto;
   color: #ddd;
+  flex: 1;
 }
 
 #opponentsList li {
   margin: 6px 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 /* Discard Pile Center */
 #centerArea {
-  flex: 2;
+  flex: 1.5;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border-right: 1px solid #333;
+  padding: 10px;
 }
 
 #centerArea h3 {
@@ -230,13 +239,13 @@ html, body {
 }
 
 #discardPile {
-  width: min(100px, 15vw);
+  width: min(120px, 20vw);
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   user-select: none;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
@@ -247,11 +256,12 @@ html, body {
   display: flex;
   flex-direction: column;
   background-color: #2a2a2a;
+  padding: 10px;
 }
 
 #chatArea h3 {
   text-align: center;
-  margin: 10px 0;
+  margin: 12px 0;
   font-size: 1.2rem;
   color: #f1f1f1;
 }
@@ -260,23 +270,21 @@ html, body {
 #logArea {
   flex: 1 1 0;
   background-color: #333;
-  margin: 5px 10px;
   border-radius: 5px;
   padding: 10px;
   font-size: 0.9rem;
   color: #ddd;
 
-  /* Display as column, bottom-aligned */
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 
-  /* No scrollbar */
   overflow: hidden;
 }
 
 #logArea p {
   margin-bottom: 6px;
+  line-height: 1.2;
 }
 
 .newMessage {
@@ -285,13 +293,13 @@ html, body {
 
 #chatInputArea {
   display: flex;
-  padding: 10px;
   gap: 10px;
+  margin-top: 10px;
 }
 
 #chatInput {
   flex: 1;
-  padding: 8px;
+  padding: 10px;
   border: none;
   border-radius: 5px 0 0 5px;
   background-color: #444;
@@ -301,7 +309,7 @@ html, body {
 
 #sendChatBtn {
   width: 80px;
-  padding: 8px;
+  padding: 10px;
 }
 
 /*---------------------------*
@@ -337,14 +345,14 @@ html, body {
 
 /* UNO card styling */
 .card {
-  width: min(100px, 15vw);        /* Dynamic width: max 100px or 15% of viewport */
+  width: min(100px, 15vw);
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: clamp(0.8rem, 1.5vw, 1.2rem);  /* Responsive font-size */
+  font-size: clamp(0.8rem, 1.5vw, 1.2rem);
   text-transform: uppercase;
   cursor: pointer;
   user-select: none;
@@ -352,7 +360,6 @@ html, body {
   color: white;
 }
 
-/* Standard UNO colors */
 .card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green  { background-color: #43a047; }
@@ -360,10 +367,9 @@ html, body {
 .card.wild   { background-color: #7c4dff; }
 
 /* New Special Cards */
-.card.swap    { background-color: #ff5722; } /* Swap Hands (color-specific) */
-.card.shuffle { background-color: #9c27b0; } /* Wild Shuffle Hands (wild-like) */
+.card.swap    { background-color: #ff5722; }
+.card.shuffle { background-color: #9c27b0; }
 
-/* Hover animations */
 .card:hover {
   transform: scale(1.05);
 }
@@ -380,6 +386,7 @@ html, body {
 
 #controlButtons button {
   width: 80%;
+  padding: 10px;
 }
 
 /*---------------------------*
@@ -406,7 +413,8 @@ html, body {
   border-radius: 8px;
   position: relative;
   text-align: center;
-  width: 300px;
+  width: 90%;
+  max-width: 300px;
 }
 
 .closeModalBtn {
@@ -439,7 +447,7 @@ html, body {
 .colorBtn.blue   { background-color: #1e88e5; }
 
 /*---------------------------*
- |  Animations &Keyframes     |
+ |  Animations & Keyframes    |
  *---------------------------*/
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -490,28 +498,155 @@ html, body {
 /*---------------------------*
  | Responsive Adjustments     |
  *---------------------------*/
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  /* Lobby adjustments */
   #lobbyContent {
     flex-direction: column;
     gap: 20px;
   }
   .cardPanel {
     width: 90%;
+    max-width: 400px;
   }
+
+  /* Main layout */
   #mainArea {
     flex-direction: column;
   }
-  #opponentsArea, #centerArea, #chatArea {
-    height: auto;
-    flex: 0 0 auto;
+  #opponentsArea, #centerArea {
+    flex: 0 0 100px;
+    border-right: none;
+    border-bottom: 1px solid #333;
   }
+  #opponentsArea {
+    align-items: center;
+  }
+  #opponentsArea h3, #centerArea h3 {
+    margin: 8px 0;
+  }
+
+  /* Make discard larger on mobile */
+  #discardPile {
+    width: min(120px, 25vw);
+    font-size: 1.5rem;
+  }
+
+  /* Chat area larger */
+  #chatArea {
+    flex: 1;
+    padding: 8px;
+  }
+  #logArea {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+  #chatInputArea {
+    gap: 8px;
+    margin-top: 8px;
+  }
+  #chatInput {
+    padding: 8px;
+    font-size: 0.95rem;
+  }
+  #sendChatBtn {
+    width: 70px;
+    padding: 8px;
+  }
+
+  /* Hand & Controls adjustments */
   #handControlsArea {
     flex-direction: column;
+    padding: 8px;
+  }
+  #handArea h3 {
+    margin-bottom: 6px;
+    font-size: 1.1rem;
   }
   #playerHand {
-    justify-content: center;
+    gap: 6px;
+  }
+  .card {
+    width: min(80px, 20vw);
+    font-size: clamp(0.7rem, 2vw, 1rem);
   }
   #controlButtons {
     width: 100%;
+    gap: 6px;
+  }
+  #controlButtons button {
+    width: 70%;
+    padding: 8px;
+    font-size: 0.95rem;
+  }
+
+  /* Color modal narrower */
+  .modalContent {
+    width: 90%;
+    max-width: 280px;
+  }
+  .colorBtn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further scaling */
+  #roomInfoContainer {
+    flex-direction: column;
+    row-gap: 6px;
+    padding: 6px 10px;
+  }
+  #roomInfo p {
+    font-size: 0.9rem;
+    margin-right: 12px;
+  }
+  #roomButtons {
+    gap: 6px;
+  }
+  #turnIndicator {
+    font-size: 1rem;
+  }
+
+  #opponentsArea, #centerArea {
+    flex: 0 0 80px;
+  }
+
+  #discardPile {
+    width: min(70px, 20vw);
+    font-size: 1.2rem;
+  }
+
+  #logArea {
+    font-size: 0.8rem;
+  }
+  #chatInput {
+    font-size: 0.9rem;
+  }
+  #sendChatBtn {
+    width: 60px;
+    padding: 6px;
+    font-size: 0.9rem;
+  }
+
+  #handControlsArea {
+    padding: 6px;
+  }
+  .card {
+    width: min(60px, 25vw);
+    font-size: clamp(0.6rem, 3vw, 0.9rem);
+  }
+  #controlButtons button {
+    width: 80%;
+    padding: 6px;
+    font-size: 0.9rem;
+  }
+  .modalContent {
+    max-width: 240px;
+    padding: 16px;
+  }
+  .colorBtn {
+    width: 36px;
+    height: 36px;
   }
 }
