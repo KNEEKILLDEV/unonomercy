@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>UnoMercy Online UNO Game</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Firebase JS SDK -->
@@ -38,7 +38,7 @@
 
   <!-- ======== GAME CONTAINER ======== -->
   <div id="container" class="hidden">
-    <!-- Room Info + Turn Indicator (10vh) -->
+    <!-- Room Info + Turn Indicator -->
     <div id="roomInfoContainer">
       <div id="roomInfo">
         <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
@@ -53,7 +53,7 @@
       <div id="turnIndicator"></div>
     </div>
 
-    <!-- Main Area (50vh) -->
+    <!-- Main Area -->
     <div id="mainArea">
       <!-- Opponents List -->
       <div id="opponentsArea">
@@ -87,12 +87,11 @@
       <div id="controlButtons">
         <button id="drawCardBtn">Draw Card</button>
         <button id="callUnoBtn">Call UNO</button>
-        <!-- Now only used for UNO-no-mercy challenges -->
         <button id="challengeBtn" style="display: none;">Challenge UNO</button>
       </div>
     </div>
 
-    <!-- Activity Log (10vh) -->
+    <!-- Activity Log -->
     <div id="activityArea">
       <h3>Activity Log</h3>
       <div id="activityLog"></div>
@@ -114,11 +113,26 @@
   </div>
 
   <!-- AUDIO ELEMENTS FOR SOUND EFFECTS -->
-  <audio id="sfxCardPlay" src="assets/card-play.mp3" preload="auto"></audio>
-  <audio id="sfxCardDraw" src="assets/card-draw.mp3" preload="auto"></audio>
-  <audio id="sfxUnoCall" src="assets/uno-call.mp3" preload="auto"></audio>
-  <audio id="sfxWin" src="assets/win.mp3" preload="auto"></audio>
-  <audio id="sfxJoinRoom" src="assets/slide-in.mp3" preload="auto"></audio>
+  <audio id="sfxCardPlay" preload="auto">
+    <source src="assets/card-play.ogg" type="audio/ogg" />
+    <source src="assets/card-play.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="sfxCardDraw" preload="auto">
+    <source src="assets/card-draw.ogg" type="audio/ogg" />
+    <source src="assets/card-draw.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="sfxUnoCall" preload="auto">
+    <source src="assets/uno-call.ogg" type="audio/ogg" />
+    <source src="assets/uno-call.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="sfxWin" preload="auto">
+    <source src="assets/win.ogg" type="audio/ogg" />
+    <source src="assets/win.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="sfxJoinRoom" preload="auto">
+    <source src="assets/slide-in.ogg" type="audio/ogg" />
+    <source src="assets/slide-in.mp3" type="audio/mpeg" />
+  </audio>
 
   <script src="script.js"></script>
 </body>

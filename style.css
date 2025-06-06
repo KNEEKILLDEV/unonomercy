@@ -12,10 +12,18 @@
 html, body {
   width: 100%;
   height: 100%;
-  overflow: hidden;            /* Prevent scrolling */
+  /* allow scrolling when needed */
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container fills full height */
+#container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 /*---------------------------*
@@ -78,27 +86,13 @@ html, body {
 }
 
 /*---------------------------*
- |  GAME CONTAINER (100vh)    |
- *---------------------------*/
-.hidden {
-  display: none !important;
-}
-
-#container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-}
-
-/*---------------------------*
- |  Room Info + Turn (10vh)   |
+ |  Room Info + Turn (fixed height) |
  *---------------------------*/
 #roomInfoContainer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 10vh;
+  flex: 0 0 60px; /* fixed ~60px top bar */
   padding: 0 10px;
   background-color: #1e1e1e;
   border-bottom: 1px solid #333;
@@ -149,11 +143,11 @@ html, body {
 }
 
 /*---------------------------*
- |    Main Area (50vh)        |
+ |    Main Area (flexible)    |
  *---------------------------*/
 #mainArea {
   display: flex;
-  height: 50vh;
+  flex: 1; /* fill remaining space */
 }
 
 /* Opponents Panel */
@@ -165,7 +159,7 @@ html, body {
   flex-direction: column;
 }
 
-/* Remove scrolling for opponents list */
+/* Remove outer scrolling */
 #opponentsList {
   list-style: none;
   padding: 5px;
@@ -193,8 +187,9 @@ html, body {
 }
 
 #discardPile {
-  width: 60px;
-  height: 90px;
+  width: 15vw;
+  max-width: 60px;
+  aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -217,7 +212,7 @@ html, body {
   font-size: 1rem;
 }
 
-/* Remove scrolling; allow overflow */
+/* Chat log can scroll if overflowing */
 #chatLog {
   flex: 1;
   background-color: #333;
@@ -225,8 +220,9 @@ html, body {
   border-radius: 5px;
   padding: 5px;
   font-size: 0.9rem;
-  overflow: hidden;
+  overflow-y: auto;
 }
+
 #chatLog p {
   margin-bottom: 4px;
 }
@@ -273,11 +269,11 @@ html, body {
 }
 
 /*---------------------------*
- | Hand & Controls (auto-height) |
+ | Hand & Controls (dynamic)  |
  *---------------------------*/
 #handControlsArea {
   display: flex;
-  flex-shrink: 0;
+  flex-shrink: 0; /* auto height */
   background-color: #2a2a2a;
   border-top: 1px solid #333;
 }
@@ -298,84 +294,73 @@ html, body {
 }
 
 .card {
-  width: 60px;
-  height: 90px;
+  width: calc(100% / 5 - 8px);
+  max-width: 60px;
+  aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
   cursor: pointer;
   user-select: none;
   box-shadow: 0 0 4px rgba(0,0,0,0.5);
   color: white;
 }
-.card:hover {
-  transform: scale(1.1);
-}
 
-/* UNO card colors */
 .card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green  { background-color: #43a047; }
 .card.blue   { background-color: #1e88e5; }
 .card.wild   { background-color: #7c4dff; }
 
-/* Animations for played/drawn cards */
-@keyframes popCard {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.3); }
-  100% { transform: scale(1); }
-}
-@keyframes glow {
-  0%   { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
-  50%  { box-shadow: 0 0 16px rgba(255, 255, 0, 0.8); }
-  100% { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
-}
-@keyframes shake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-8px); }
-  50%  { transform: translateX(8px); }
-  75%  { transform: translateX(-8px); }
-  100% { transform: translateX(0); }
-}
-@keyframes slideIn {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);  opacity: 1; }
+.card:hover {
+  transform: scale(1.05);
 }
 
-.card.played {
-  animation: popCard 0.3s ease-in-out;
+/* Control buttons */
+#controlButtons {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
 }
-.card.newTop {
-  animation: glow 1s ease-in-out;
+
+#controlButtons button {
+  width: 80%;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4caf50;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
 }
-#playerHand .card.drawn {
-  animation: shake 0.3s ease-in-out;
-}
-#container.slideIn {
-  animation: slideIn 0.4s ease-out;
+#controlButtons button:hover {
+  opacity: 0.8;
 }
 
 /*---------------------------*
- | Activity Log (10vh)        |
+ | Activity Log (fixed height) |
  *---------------------------*/
 #activityArea {
+  flex: 0 0 80px; /* fixed ~80px at bottom */
   background-color: #2a2a2a;
   border-top: 1px solid #333;
-  height: 10vh;
   padding: 5px;
 }
 
-/* Remove scrolling; allow overflow */
 #activityLog {
   background-color: #333;
   height: calc(100% - 24px);
   border-radius: 5px;
   padding: 5px;
   font-size: 0.8rem;
-  overflow: hidden;
+  overflow-y: auto;
 }
 #activityLog p {
   margin-bottom: 4px;
@@ -437,27 +422,68 @@ html, body {
 .colorBtn.blue   { background-color: #1e88e5; }
 
 /*---------------------------*
+ |  CSS KEYFRAME ANIMATIONS   |
+ *---------------------------*/
+@keyframes popCard {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes glow {
+  0%   { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+  50%  { box-shadow: 0 0 16px rgba(255, 255, 0, 0.8); }
+  100% { box-shadow: 0 0 4px rgba(255, 255, 0, 0.2); }
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-8px); }
+  50%  { transform: translateX(8px); }
+  75%  { transform: translateX(-8px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);  opacity: 1; }
+}
+
+.card.played {
+  animation: popCard 0.3s ease-in-out;
+}
+
+.card.newTop {
+  animation: glow 1s ease-in-out;
+}
+
+#playerHand .card.drawn {
+  animation: shake 0.3s ease-in-out;
+}
+
+#container.slideIn {
+  animation: slideIn 0.4s ease-out;
+}
+
+/*---------------------------*
  |  Responsive Adjustments    |
  *---------------------------*/
 @media (max-width: 600px) {
   #roomInfoContainer {
     flex-wrap: wrap;
     row-gap: 5px;
-    height: auto;
+    flex: 0 0 auto;
     padding: 5px;
   }
   #mainArea {
     flex-direction: column;
-    height: 50vh;
   }
   #opponentsArea, #centerArea, #chatArea {
-    height: 16vh;
+    height: auto;
+    flex: 0 0 auto;
   }
   #handControlsArea {
     flex-direction: column;
-  }
-  #handArea {
-    width: 100%;
   }
   #playerHand {
     justify-content: center;
@@ -466,6 +492,6 @@ html, body {
     width: 100%;
   }
   #activityArea {
-    height: 10vh;
+    flex: 0 0 60px;
   }
 }
