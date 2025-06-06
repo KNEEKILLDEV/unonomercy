@@ -256,15 +256,23 @@ html, body {
   color: #f1f1f1;
 }
 
+/* FIXED HEIGHT LOG AREA */
 #logArea {
-  flex: 1;
+  flex: 1 1 0;
   background-color: #333;
   margin: 5px 10px;
   border-radius: 5px;
   padding: 10px;
   font-size: 0.9rem;
-  overflow-y: auto;
   color: #ddd;
+
+  /* Display as column, bottom‐aligned */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  /* No scrollbar, older entries will be out of view */
+  overflow: hidden;
 }
 
 #logArea p {
