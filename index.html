@@ -15,26 +15,25 @@
 <body>
   <!-- ======== LOBBY SECTION ======== -->
   <div id="lobby">
-    <h1>Welcome to UnoMercy</h1>
-
-    <div id="createSection">
-      <h2>Create Room</h2>
-      <form id="createForm">
-        <input type="text" id="createName" placeholder="Your Name" required />
-        <input type="number" id="maxPlayers" placeholder="Max Players (2–10)" min="2" max="10" required />
-        <button type="submit">Create Room</button>
-      </form>
+    <h1>UnoMercy</h1>
+    <div id="lobbyContent">
+      <div class="cardPanel" id="createPanel">
+        <h2>Create Room</h2>
+        <form id="createForm">
+          <input type="text" id="createName" placeholder="Your Name" required />
+          <input type="number" id="maxPlayers" placeholder="Max Players (2–10)" min="2" max="10" required />
+          <button type="submit" class="primaryBtn">Create Room</button>
+        </form>
+      </div>
+      <div class="cardPanel" id="joinPanel">
+        <h2>Join Room</h2>
+        <form id="joinForm">
+          <input type="text" id="joinName" placeholder="Your Name" required />
+          <input type="text" id="joinCode" placeholder="Room Code" required />
+          <button type="submit" class="primaryBtn">Join Room</button>
+        </form>
+      </div>
     </div>
-
-    <div id="joinSection">
-      <h2>Join Room</h2>
-      <form id="joinForm">
-        <input type="text" id="joinName" placeholder="Your Name" required />
-        <input type="text" id="joinCode" placeholder="Room Code" required />
-        <button type="submit">Join Room</button>
-      </form>
-    </div>
-
     <p id="lobbyMessage"></p>
   </div>
 
@@ -48,9 +47,9 @@
         <p><strong>Players:</strong> <span id="playerCountDisplay"></span> / <span id="maxPlayersDisplay"></span></p>
       </div>
       <div id="roomButtons">
-        <button id="startGameBtn">Start Game</button>
-        <button id="restartGameBtn">Restart Game</button>
-        <button id="leaveRoomBtn">Leave Room</button>
+        <button id="startGameBtn" class="primaryBtn">Start Game</button>
+        <button id="restartGameBtn" class="secondaryBtn">Restart Game</button>
+        <button id="leaveRoomBtn" class="dangerBtn">Leave Room</button>
       </div>
       <div id="turnIndicator"></div>
     </div>
@@ -69,13 +68,13 @@
         <div id="discardPile" class="card"></div>
       </div>
 
-      <!-- Chat Panel -->
+      <!-- Combined Chat & Activity Panel -->
       <div id="chatArea">
-        <h3>Chat</h3>
-        <div id="chatLog"></div>
+        <h3>Chat & Activity</h3>
+        <div id="logArea"></div>
         <div id="chatInputArea">
           <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off" />
-          <button id="sendChatBtn">Send</button>
+          <button id="sendChatBtn" class="primaryBtn">Send</button>
         </div>
       </div>
     </div>
@@ -87,16 +86,10 @@
         <div id="playerHand"></div>
       </div>
       <div id="controlButtons">
-        <button id="drawCardBtn">Draw Card</button>
-        <button id="callUnoBtn">Call UNO</button>
-        <button id="challengeBtn" style="display: none;">Challenge UNO</button>
+        <button id="drawCardBtn" class="primaryBtn">Draw Card</button>
+        <button id="callUnoBtn" class="secondaryBtn">Call UNO</button>
+        <button id="challengeBtn" class="dangerBtn" style="display: none;">Challenge UNO</button>
       </div>
-    </div>
-
-    <!-- Activity Log -->
-    <div id="activityArea">
-      <h3>Activity Log</h3>
-      <div id="activityLog"></div>
     </div>
   </div>
 

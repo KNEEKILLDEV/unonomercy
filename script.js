@@ -1,6 +1,6 @@
 // script.js
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration (v7.20.0+)
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let gameStateUnsub  = null;
   let chatUnsub       = null;
 
-  // ======================= DOM ELEMENT REFERENCES =======================
+  // ======================= DOM REFERENCES =======================
   const lobby              = document.getElementById('lobby');
   const container          = document.getElementById('container');
 
@@ -51,11 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn       = document.getElementById('startGameBtn');
   const restartGameBtn     = document.getElementById('restartGameBtn');
 
-  const chatLog            = document.getElementById('chatLog');
+  const logArea            = document.getElementById('logArea');
   const chatInput          = document.getElementById('chatInput');
   const sendChatBtn        = document.getElementById('sendChatBtn');
-
-  const activityLog        = document.getElementById('activityLog');
 
   const colorModal         = document.getElementById('colorModal');
   const colorButtons       = document.querySelectorAll('.colorBtn');
@@ -63,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const turnIndicator      = document.getElementById('turnIndicator');
 
-  // ======================= AUDIO ELEMENT REFERENCES =======================
+  // ======================= AUDIO REFERENCES =======================
   const sfxCardPlay  = document.getElementById('sfxCardPlay');
   const sfxCardDraw  = document.getElementById('sfxCardDraw');
   const sfxUnoCall   = document.getElementById('sfxUnoCall');
@@ -87,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 
   // ======================= UTILITY FUNCTIONS =======================
-
   function generateRoomCode() {
     return Math.random().toString(36).substring(2, 7).toUpperCase();
   }
@@ -114,18 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return extras;
   }
 
-  function logActivity(message) {
+  function appendLog(message, isChat = false, playerName = "") {
     const p = document.createElement('p');
-    p.textContent = message;
-    activityLog.appendChild(p);
-  }
-
-  function appendChatMessage({ playerName, message }) {
-    const p = document.createElement('p');
-    p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
+    if (isChat) {
+      p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
+    } else {
+      p.textContent = message;
+    }
     p.classList.add('newMessage');
-    chatLog.appendChild(p);
+    logArea.appendChild(p);
     p.addEventListener('animationend', () => p.classList.remove('newMessage'), { once: true });
+    logArea.scrollTop = logArea.scrollHeight;
   }
 
   function showLobbyMessage(msg) {
@@ -165,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ======================= LOBBY: CREATE & JOIN HANDLERS =======================
-
   createForm.addEventListener('submit', async (e) => {
     console.log("👉 Create Room handler invoked");
     e.preventDefault();
@@ -320,7 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("→ chatLog onSnapshot fired, changes:", snapshot.docChanges().length);
         snapshot.docChanges().forEach(change => {
           if (change.type === 'added') {
-            appendChatMessage(change.doc.data());
+            const { playerName, message } = change.doc.data();
+            appendLog(message, true, playerName);
           }
         });
       });
@@ -385,10 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
       playerHand.appendChild(cardEl);
     });
 
-    activityLog.innerHTML = '';
-    (Array.isArray(data.activityLog) ? data.activityLog : []).forEach(entry => {
-      logActivity(entry);
-    });
+    if (data.activityLog && data.activityLog.length) {
+      data.activityLog.slice(-5).forEach(entry => {
+        appendLog(entry, false);
+      });
+    }
 
     if (
       data.pendingUnoChallenge &&
@@ -447,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentTurn,
       gameState: 'started',
       direction: 1,
-      activityLog: [`Game started. Top card: ${firstCard.color} ${firstCard.value}`],
+      activityLog: firebase.firestore.FieldValue.arrayUnion(`Game started. Top card: ${firstCard.color} ${firstCard.value}`),
       pendingDrawCount: 0,
       pendingDrawType: null,
       pendingUnoChallenge: null
@@ -532,8 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     discardPileEl.textContent = '';
     discardPileEl.className = 'card';
     playerHand.innerHTML = '';
-    chatLog.innerHTML = '';
-    activityLog.innerHTML = '';
+    logArea.innerHTML = '';
     roomCodeDisplay.textContent = '';
     yourNameDisplay.textContent = '';
     playerCountDisplay.textContent = '';
@@ -542,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     challengeBtn.style.display = 'none';
   }
 
-  // ======================= PLAY CARD + SPECIAL CARD LOGIC =======================
+  // ======================= PLAY CARD + SPECIAL LOGIC =======================
   async function handlePlayCard(card) {
     if (!currentRoomId || !playerId) return;
 
@@ -1086,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ======================= CHAT FUNCTIONALITY =======================
+  // ======================= CHAT & ACTIVITY LOG =======================
   sendChatBtn.addEventListener('click', async () => {
     if (!currentRoomId || !playerId) return;
     const msg = chatInput.value.trim();
@@ -1105,6 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+
       e.preventDefault();
       sendChatBtn.click();
     }

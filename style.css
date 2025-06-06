@@ -25,6 +25,116 @@ html, body {
   display: none !important;
 }
 
+.primaryBtn {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.primaryBtn:hover {
+  background-color: #115293;
+}
+
+.secondaryBtn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.secondaryBtn:hover {
+  background-color: #357a38;
+}
+
+.dangerBtn {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dangerBtn:hover {
+  background-color: #921a1a;
+}
+
+/*---------------------------*
+ |      LOBBY SECTION       |
+ *---------------------------*/
+#lobby {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #2c3e50, #4ca1af);
+}
+
+#lobby h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #f1f1f1;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+#lobbyContent {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cardPanel {
+  background-color: #1e1e1e;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  width: 300px;
+}
+
+.cardPanel h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #f1f1f1;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+.cardPanel input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #2a2a2a;
+  color: #eee;
+  font-size: 1rem;
+}
+
+.cardPanel input::placeholder {
+  color: #bbb;
+}
+
+#lobbyMessage {
+  color: #f44336;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 1rem;
+}
+
 /*---------------------------*
  |  Room Info + Turn (fixed) |
  *---------------------------*/
@@ -40,46 +150,24 @@ html, body {
   align-items: center;
   justify-content: space-between;
   flex: 0 0 60px;
-  padding: 0 10px;
+  padding: 0 15px;
   background-color: #1e1e1e;
   border-bottom: 1px solid #333;
 }
 
 #roomInfo {
   display: flex;
-  gap: 10px;
+  gap: 20px;
   font-size: 1rem;
 }
 
 #roomInfo p {
-  margin-right: 15px;
+  margin-right: 20px;
 }
 
 #roomButtons {
   display: flex;
-  gap: 5px;
-}
-
-#roomButtons button {
-  padding: 5px 10px;
-  background-color: #1976d2;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-#restartGameBtn {
-  background-color: #ff8f00;
-}
-
-#leaveRoomBtn {
-  background-color: #d32f2f;
-}
-
-#roomButtons button:hover {
-  opacity: 0.8;
+  gap: 10px;
 }
 
 #turnIndicator {
@@ -95,12 +183,12 @@ html, body {
 #mainArea {
   display: flex;
   flex: 1;
+  background-color: #2a2a2a;
 }
 
 /* Opponents Panel */
 #opponentsArea {
   flex: 1;
-  background-color: #2a2a2a;
   border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
@@ -108,19 +196,21 @@ html, body {
 
 #opponentsArea h3 {
   text-align: center;
-  margin: 5px 0;
-  font-size: 1rem;
+  margin: 10px 0;
+  font-size: 1.2rem;
+  color: #f1f1f1;
 }
 
 #opponentsList {
   list-style: none;
-  padding: 5px;
-  font-size: 0.9rem;
+  padding: 10px;
+  font-size: 1rem;
   overflow-y: auto;
+  color: #ddd;
 }
 
 #opponentsList li {
-  margin: 4px 0;
+  margin: 6px 0;
 }
 
 /* Discard Pile Center */
@@ -130,28 +220,28 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #2a2a2a;
   border-right: 1px solid #333;
 }
 
 #centerArea h3 {
-  margin: 5px 0;
-  font-size: 1rem;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #f1f1f1;
 }
 
 #discardPile {
-  width: 15vw;
-  max-width: 60px;
+  width: min(100px, 15vw);
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-/* Chat Panel */
+/* Combined Chat & Activity Panel */
 #chatArea {
   flex: 1;
   display: flex;
@@ -161,61 +251,49 @@ html, body {
 
 #chatArea h3 {
   text-align: center;
-  margin: 5px 0;
-  font-size: 1rem;
+  margin: 10px 0;
+  font-size: 1.2rem;
+  color: #f1f1f1;
 }
 
-#chatLog {
+#logArea {
   flex: 1;
   background-color: #333;
-  margin: 5px;
+  margin: 5px 10px;
   border-radius: 5px;
-  padding: 5px;
+  padding: 10px;
   font-size: 0.9rem;
   overflow-y: auto;
+  color: #ddd;
 }
 
-#chatLog p {
-  margin-bottom: 4px;
+#logArea p {
+  margin-bottom: 6px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
 .newMessage {
   animation: fadeIn 0.3s ease-out;
 }
 
 #chatInputArea {
   display: flex;
-  padding: 5px;
-  gap: 5px;
+  padding: 10px;
+  gap: 10px;
 }
 
 #chatInput {
   flex: 1;
-  padding: 5px;
+  padding: 8px;
   border: none;
   border-radius: 5px 0 0 5px;
   background-color: #444;
   color: #eee;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 #sendChatBtn {
   width: 80px;
-  padding: 5px;
-  border: none;
-  border-radius: 0 5px 5px 0;
-  background-color: #1976d2;
-  color: white;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-#sendChatBtn:hover {
-  opacity: 0.8;
+  padding: 8px;
 }
 
 /*---------------------------*
@@ -226,6 +304,7 @@ html, body {
   flex-shrink: 0;
   background-color: #2a2a2a;
   border-top: 1px solid #333;
+  padding: 10px;
 }
 
 #handArea {
@@ -235,25 +314,29 @@ html, body {
   align-items: center;
 }
 
+#handArea h3 {
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+  color: #f1f1f1;
+}
+
 #playerHand {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
-  padding: 5px;
+  gap: 8px;
 }
 
 /* UNO card styling */
 .card {
-  width: calc(100% / 5 - 8px);
-  max-width: 60px;
+  width: min(100px, 15vw);
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.5vw, 1.2rem);
   text-transform: uppercase;
   cursor: pointer;
   user-select: none;
@@ -271,51 +354,18 @@ html, body {
   transform: scale(1.05);
 }
 
+/* Control Buttons */
 #controlButtons {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
 }
 
 #controlButtons button {
   width: 80%;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4caf50;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-#controlButtons button:hover {
-  opacity: 0.8;
-}
-
-/*---------------------------*
- | Activity Log (fixed height) |
- *---------------------------*/
-#activityArea {
-  flex: 0 0 80px;
-  background-color: #2a2a2a;
-  border-top: 1px solid #333;
-  padding: 5px;
-}
-
-#activityLog {
-  background-color: #333;
-  height: calc(100% - 24px);
-  border-radius: 5px;
-  padding: 5px;
-  font-size: 0.8rem;
-  overflow-y: auto;
-}
-
-#activityLog p {
-  margin-bottom: 4px;
 }
 
 /*---------------------------*
@@ -342,6 +392,7 @@ html, body {
   border-radius: 8px;
   position: relative;
   text-align: center;
+  width: 300px;
 }
 
 .closeModalBtn {
@@ -358,12 +409,12 @@ html, body {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .colorBtn {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -374,8 +425,13 @@ html, body {
 .colorBtn.blue   { background-color: #1e88e5; }
 
 /*---------------------------*
- |  CSS Keyframe Animations   |
+ |  Animations &Keyframes     |
  *---------------------------*/
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @keyframes popCard {
   0%   { transform: scale(1); }
   50%  { transform: scale(1.3); }
@@ -418,14 +474,15 @@ html, body {
 }
 
 /*---------------------------*
- |  Responsive Adjustments    |
+ | Responsive Adjustments     |
  *---------------------------*/
 @media (max-width: 600px) {
-  #roomInfoContainer {
-    flex-wrap: wrap;
-    row-gap: 5px;
-    flex: 0 0 auto;
-    padding: 5px;
+  #lobbyContent {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .cardPanel {
+    width: 90%;
   }
   #mainArea {
     flex-direction: column;
@@ -442,8 +499,5 @@ html, body {
   }
   #controlButtons {
     width: 100%;
-  }
-  #activityArea {
-    flex: 0 0 60px;
   }
 }
