@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Ensure the viewport is set so mobile devices scale correctly -->
+  <!-- Ensure correct scaling on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>UnoMercy Online UNO Game</title>
 
-  <!-- Link to our CSS (no scrolling, all fixed‐height containers) -->
+  <!-- Link to our corrected CSS -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase JS SDK (compat version for Firestore) -->
+  <!-- Firebase JS SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -21,11 +21,11 @@
     <div id="createSection">
       <h2>Create Room</h2>
       <form id="createForm">
-        <!-- Player name input -->
+        <!-- Player name -->
         <input type="text" id="createName" placeholder="Your Name" required />
-        <!-- Max players input (2–10) -->
+        <!-- Max players (2–10) -->
         <input type="number" id="maxPlayers" placeholder="Max Players (2–10)" min="2" max="10" required />
-        <!-- Must be type="submit" so the form’s submit event fires -->
+        <!-- Must be type="submit" -->
         <button type="submit">Create Room</button>
       </form>
     </div>
@@ -33,9 +33,9 @@
     <div id="joinSection">
       <h2>Join Room</h2>
       <form id="joinForm">
-        <!-- Join name input -->
+        <!-- Joiner’s name -->
         <input type="text" id="joinName" placeholder="Your Name" required />
-        <!-- Room code input -->
+        <!-- Room code -->
         <input type="text" id="joinCode" placeholder="Room Code" required />
         <button type="submit">Join Room</button>
       </form>
@@ -46,7 +46,7 @@
 
   <!-- ======== GAME CONTAINER ======== -->
   <div id="container" class="hidden">
-    <!-- Room Info + Turn Indicator (fixed 60px tall) -->
+    <!-- Room Info + Turn Indicator (fixed height) -->
     <div id="roomInfoContainer">
       <div id="roomInfo">
         <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
@@ -95,12 +95,12 @@
       <div id="controlButtons">
         <button id="drawCardBtn">Draw Card</button>
         <button id="callUnoBtn">Call UNO</button>
-        <!-- Challenge button appears only for UNO‐no‐mercy scenarios -->
+        <!-- Challenge button (shown only when UNO can be challenged) -->
         <button id="challengeBtn" style="display: none;">Challenge UNO</button>
       </div>
     </div>
 
-    <!-- Activity Log (fixed 80px tall) -->
+    <!-- Activity Log (fixed height) -->
     <div id="activityArea">
       <h3>Activity Log</h3>
       <div id="activityLog"></div>
@@ -121,7 +121,7 @@
     </div>
   </div>
 
-  <!-- AUDIO ELEMENTS (preloaded, but only played on user gesture) -->
+  <!-- AUDIO ELEMENTS (preloaded) -->
   <audio id="sfxCardPlay" preload="auto">
     <source src="assets/card-play.ogg" type="audio/ogg" />
     <source src="assets/card-play.mp3" type="audio/mpeg" />
@@ -143,7 +143,7 @@
     <source src="assets/slide-in.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Main script.js loaded at end of body so all DOM elements exist -->
+  <!-- Main script.js (after the DOM) -->
   <script src="script.js"></script>
 </body>
 </html>

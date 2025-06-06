@@ -12,24 +12,20 @@ const firebaseConfig = {
   appId: "1:243436738671:web:8bfad4bc693acde225959a",
   measurementId: "G-2DP7FTJPCR"
 };
-
-// Initialize Firebase App & Firestore
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// After initialization, log the projectId to confirm it loaded
+// Log right away to confirm we loaded the correct project
 console.log("👉 Firebase initialized. Current project:", firebase.app().options.projectId);
 
-
-// We wrap ALL our code in DOMContentLoaded so that
-// getElementById(...) never returns null (DOM is ready).
+// Wrap everything in DOMContentLoaded so that getElementById never returns null
 document.addEventListener('DOMContentLoaded', () => {
 
   // ======================= GLOBAL STATE =======================
   let currentRoomId   = null;
   let playerId        = null;
   let playerName      = null;
-  let pendingWildCard = null;   // Holds data when a Wild/Wild+4 is played until color chosen
+  let pendingWildCard = null;   // Holds data when a Wild/Wild+4 is played (until color is chosen)
   let isCreator       = false;
   let gameStateUnsub  = null;
   let chatUnsub       = null;
@@ -77,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sfxWin       = document.getElementById('sfxWin');
   const sfxJoinRoom  = document.getElementById('sfxJoinRoom');
 
-  // On first user touch/click, unlock all audio to prevent autoplay errors
+  // On first user touch/click, unlock audio (prevent autoplay issues)
   document.body.addEventListener('touchstart', () => {
     [sfxCardPlay, sfxCardDraw, sfxUnoCall, sfxWin, sfxJoinRoom].forEach(audio => {
       if (audio) {
@@ -88,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { once: true });
 
-  // Log DOM elements to confirm they’re found
+  // Verify that our important elements actually exist
   console.log("Looking up DOM elements…",
     "createForm =", createForm,
     "createName =", document.getElementById("createName"),
@@ -116,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return array;
   }
 
-  // If deck runs low, reshuffle discard pile (keeping the top card) back into deck
+  // If deck runs low, reshuffle discard pile (except the top card) back into deck
   function reshuffleDiscardIntoDeck(deck, discardPile) {
     if (!Array.isArray(discardPile) || discardPile.length <= 1) return deck;
     const top = discardPile.pop();
@@ -184,15 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-
   // ======================= LOBBY: CREATE & JOIN HANDLERS =======================
 
-  // --- CREATE ROOM ---
+  // ------ CREATE ROOM ------
   createForm.addEventListener('submit', async (e) => {
     console.log("👉 Create Room handler invoked");
     e.preventDefault();
 
-    // Read and trim inputs
+    // Read inputs
     const nameVal    = document.getElementById('createName').value.trim();
     const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
     console.log("Raw inputs → nameVal:", nameVal, ", maxPlayers:", maxPlayers);
@@ -205,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log("✅ Create-Room validation passed");
 
-    // Set up our local player state
+    // Set up player state
     playerName  = nameVal;
     playerId    = generatePlayerId();
     isCreator   = true;
@@ -213,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Generated roomCode =", roomCode);
     currentRoomId  = roomCode;
 
-    // Build initial deck and write Firestore document
+    // Build initial deck + write Firestore document
     const deck = generateDeck();
     const roomRef = db.collection('rooms').doc(roomCode);
 
@@ -240,10 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Play “join room” sound (don’t await, so UI changes immediately)
+    // Play join‐room sound (don’t await so UI toggles immediately)
     if (sfxJoinRoom) {
       sfxJoinRoom.currentTime = 0;
-      sfxJoinRoom.play().catch(() => { /* ignore autoplay errors */ });
+      sfxJoinRoom.play().catch(() => { /* ignore autoplay issues */ });
     }
 
     // Hide lobby, show game container
@@ -259,12 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
       container.classList.remove('slideIn');
     }, { once: true });
 
-    // Subscribe to room updates & chat
+    // Begin listening for game state + chat
     subscribeToRoom(roomCode);
   });
 
-
-  // --- JOIN ROOM ---
+  // ------ JOIN ROOM ------
   joinForm.addEventListener('submit', async (e) => {
     console.log("👉 Join Room handler invoked");
     e.preventDefault();
@@ -313,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sfxJoinRoom) {
       sfxJoinRoom.currentTime = 0;
-      sfxJoinRoom.play().catch(() => { /* ignore autoplay errors */ });
+      sfxJoinRoom.play().catch(() => { /* ignore autoplay issues */ });
     }
 
     lobby.classList.add('hidden');
@@ -332,11 +326,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("🔔 subscribeToRoom() called with roomCode =", roomCode);
     const roomRef = db.collection('rooms').doc(roomCode);
 
-    // Unsubscribe existing listeners if any
+    // Unsubscribe existing listeners, if any
     if (gameStateUnsub) gameStateUnsub();
     if (chatUnsub) chatUnsub();
 
-    // Listen to main room document
+    // Listen to the main room document
     gameStateUnsub = roomRef.onSnapshot(doc => {
       console.log("→ gameState onSnapshot fired, doc.exists =", doc.exists);
       if (!doc.exists) {
@@ -348,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateGameUI(data);
     });
 
-    // Listen to chat subcollection
+    // Listen to the chat subcollection
     chatUnsub = roomRef.collection('chatLog')
       .orderBy('timestamp')
       .onSnapshot(snapshot => {
@@ -422,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const cardColorClass = (card.color === 'wild') ? 'wild' : card.color;
       cardEl.className = `card ${cardColorClass}`;
       cardEl.textContent = card.value.toUpperCase();
-      // Add both touchstart and click for mobile responsiveness
+      // Add both touchstart and click for mobile
       cardEl.addEventListener('touchstart', () => handlePlayCard(card));
       cardEl.addEventListener('click', () => handlePlayCard(card));
       playerHand.appendChild(cardEl);
@@ -434,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
       logActivity(entry);
     });
 
-    // -------- Challenge Button Visibility (UNO only) --------
+    // -------- Challenge Button (UNO only) --------
     if (
       data.pendingUnoChallenge &&
       data.currentTurn === playerId &&
@@ -867,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  // ======================= FINISH WILD / WILD4 (COLOR + APPLY PENDING DRAW) =======================
+  // ======================= FINISH WILD / WILD4 (COLOR + APPLY DRAW) =======================
   async function finishWildCardPlay(chosenColor) {
     if (!pendingWildCard) return;
 
@@ -1129,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sfxUnoCall.currentTime = 0;
         sfxUnoCall.play();
       }
-      // Animate the final card when calling UNO
+      // Animate final card when calling UNO
       const handCards = Array.from(playerHand.children);
       if (handCards.length === 1) {
         handCards[0].classList.add('played');
@@ -1180,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // ======================= COLOR MODAL EVENT HANDLERS =======================
-  // Close modal if clicking outside its content
+  // Close if clicking outside modal content
   colorModal.addEventListener('click', (e) => {
     if (e.target === colorModal) {
       pendingWildCard = null;
@@ -1188,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Handle color selection buttons
+  // Handle color selection
   colorButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const chosenColor = btn.dataset.color;
@@ -1196,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Close modal via “×”
+  // Close modal when “×” is clicked
   closeModalBtn.addEventListener('click', () => {
     pendingWildCard = null;
     colorModal.classList.add('hidden');

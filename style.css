@@ -15,10 +15,21 @@ html, body {
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow: hidden; /* Prevent any outer scrolling */
+  /* Prevent any outer scrolling */
+  overflow: hidden;
 }
 
-/* Ensure our container (game area) fills full viewport */
+/*---------------------------*
+ |    Utility Classes        |
+ *---------------------------*/
+/* Now .hidden really hides elements */
+.hidden {
+  display: none !important;
+}
+
+/*---------------------------*
+ |  Room Info + Turn (fixed) |
+ *---------------------------*/
 #container {
   display: flex;
   flex-direction: column;
@@ -26,73 +37,11 @@ html, body {
   width: 100%;
 }
 
-/*---------------------------*
- |      LOBBY SECTION (100vh)   |
- *---------------------------*/
-#lobby {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-#lobby h1 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-}
-
-#createSection, #joinSection {
-  width: 90%;
-  max-width: 400px;
-  background: #222;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-#createSection h2, #joinSection h2 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-}
-
-#createSection input, #joinSection input,
-#createSection button, #joinSection button {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 5px;
-  border: none;
-  font-size: 1rem;
-}
-
-#createSection button, #joinSection button {
-  background-color: #1976d2;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#createSection button:hover, #joinSection button:hover {
-  background-color: #115293;
-}
-
-#lobbyMessage {
-  color: #f44336;
-  margin-top: 10px;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-/*---------------------------*
- |  Room Info + Turn (fixed height) |
- *---------------------------*/
 #roomInfoContainer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex: 0 0 60px; /* fixed ~60px top bar */
+  flex: 0 0 60px; /* fixed ~60px tall top bar */
   padding: 0 10px;
   background-color: #1e1e1e;
   border-bottom: 1px solid #333;
@@ -143,11 +92,11 @@ html, body {
 }
 
 /*---------------------------*
- |    Main Area (flexible)    |
+ |      Main Area (flex)     |
  *---------------------------*/
 #mainArea {
   display: flex;
-  flex: 1; /* fill remaining space between top & bottom bars */
+  flex: 1; /* fill leftover space */
 }
 
 /* Opponents Panel */
@@ -159,18 +108,24 @@ html, body {
   flex-direction: column;
 }
 
-/* Opponents List */
+#opponentsArea h3 {
+  text-align: center;
+  margin: 5px 0;
+  font-size: 1rem;
+}
+
 #opponentsList {
   list-style: none;
   padding: 5px;
   font-size: 0.9rem;
+  overflow-y: auto;
 }
 
 #opponentsList li {
   margin: 4px 0;
 }
 
-/* Discard Center Panel */
+/* Discard Pile Center */
 #centerArea {
   flex: 2;
   display: flex;
@@ -186,7 +141,6 @@ html, body {
   font-size: 1rem;
 }
 
-/* Discard Pile Card */
 #discardPile {
   width: 15vw;
   max-width: 60px;
@@ -213,7 +167,6 @@ html, body {
   font-size: 1rem;
 }
 
-/* Chat Log (scrollable) */
 #chatLog {
   flex: 1;
   background-color: #333;
@@ -223,11 +176,12 @@ html, body {
   font-size: 0.9rem;
   overflow-y: auto;
 }
+
 #chatLog p {
   margin-bottom: 4px;
 }
 
-/* New chat message fade-in */
+/* Fade‐in new chat messages */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -236,7 +190,6 @@ html, body {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Chat input area */
 #chatInputArea {
   display: flex;
   padding: 5px;
@@ -269,11 +222,11 @@ html, body {
 }
 
 /*---------------------------*
- | Hand & Controls (dynamic)  |
+ | Hand & Controls (dynamic) |
  *---------------------------*/
 #handControlsArea {
   display: flex;
-  flex-shrink: 0; /* auto height—content grows as needed */
+  flex-shrink: 0; /* auto height based on content */
   background-color: #2a2a2a;
   border-top: 1px solid #333;
 }
@@ -293,7 +246,7 @@ html, body {
   padding: 5px;
 }
 
-/* UNO cards */
+/* UNO card styling */
 .card {
   width: calc(100% / 5 - 8px);
   max-width: 60px;
@@ -321,7 +274,7 @@ html, body {
   transform: scale(1.05);
 }
 
-/* Control buttons */
+/* Control Buttons (Draw, UNO, Challenge) */
 #controlButtons {
   flex: 1;
   display: flex;
@@ -341,6 +294,7 @@ html, body {
   font-size: 1rem;
   cursor: pointer;
 }
+
 #controlButtons button:hover {
   opacity: 0.8;
 }
@@ -349,7 +303,7 @@ html, body {
  | Activity Log (fixed height) |
  *---------------------------*/
 #activityArea {
-  flex: 0 0 80px; /* fixed ~80px at bottom */
+  flex: 0 0 80px; /* fixed ~80px tall bottom bar */
   background-color: #2a2a2a;
   border-top: 1px solid #333;
   padding: 5px;
@@ -363,6 +317,7 @@ html, body {
   font-size: 0.8rem;
   overflow-y: auto;
 }
+
 #activityLog p {
   margin-bottom: 4px;
 }
@@ -423,7 +378,7 @@ html, body {
 .colorBtn.blue   { background-color: #1e88e5; }
 
 /*---------------------------*
- |  CSS KEYFRAME ANIMATIONS   |
+ |  CSS Keyframe Animations   |
  *---------------------------*/
 @keyframes popCard {
   0%   { transform: scale(1); }
