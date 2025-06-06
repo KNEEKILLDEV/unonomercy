@@ -338,20 +338,20 @@ html, body {
 }
 
 /* 
-   On desktop/tablet, allow wrapping of cards (up to two rows) 
-   and vertical scroll if too many; on mobile, force a single row
-   with horizontal scroll.
+   On all screen sizes, use a single row of cards with horizontal scroll.
+   The scrollbar appears only if the cards exceed the visible width.
 */
 #playerHand {
   display: flex;
-  flex-wrap: wrap;              /* desktop: let cards wrap */
-  justify-content: center;
+  flex-wrap: nowrap;      
+  justify-content: flex-start;
   gap: 8px;
-  max-height: calc(100vh - 340px); /* limit height so that it won't push controls too far */
-  overflow-y: auto;               /* vertical scroll when many cards */
+  overflow-x: auto;      
+  overflow-y: hidden;    
+  padding-bottom: 5px;   /* space for scrollbar */
 }
 
-/* For cards */
+/* UNO card styling */
 .card {
   width: min(100px, 15vw);
   aspect-ratio: 2 / 3;
@@ -623,11 +623,12 @@ html, body {
     display: flex;
   }
 
-  /* Hand area (desktop): allow wrap and vertical scroll */
+  /* Hand area (desktop): keep single‐row horizontal scroll */
   #playerHand {
-    flex-wrap: wrap;
-    overflow-x: hidden;
-    overflow-y: auto;
+    flex-wrap: nowrap;      /* force one row */
+    overflow-x: auto;       /* horizontal scroll beyond width */
+    overflow-y: hidden;     /* no vertical scroll on desktop either */
+    max-height: none;
   }
 
   /* Main area layout */
@@ -646,7 +647,5 @@ html, body {
 
 /*===== Larger Desktop (min-width: 1024px) =====*/
 @media (min-width: 1024px) {
-  #playerHand {
-    max-height: calc(100vh - 340px); /* more vertical space */
-  }
+  /* Nothing additional needed, same horizontal‐scroll behavior */
 }
