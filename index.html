@@ -1,15 +1,14 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Ensure correct scaling on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>UnoMercy Online UNO Game</title>
 
-  <!-- Link to our corrected CSS -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase JS SDKs (compat) -->
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -21,11 +20,8 @@
     <div id="createSection">
       <h2>Create Room</h2>
       <form id="createForm">
-        <!-- Player name -->
         <input type="text" id="createName" placeholder="Your Name" required />
-        <!-- Max players (2–10) -->
         <input type="number" id="maxPlayers" placeholder="Max Players (2–10)" min="2" max="10" required />
-        <!-- Must be type="submit" -->
         <button type="submit">Create Room</button>
       </form>
     </div>
@@ -33,9 +29,7 @@
     <div id="joinSection">
       <h2>Join Room</h2>
       <form id="joinForm">
-        <!-- Joiner’s name -->
         <input type="text" id="joinName" placeholder="Your Name" required />
-        <!-- Room code -->
         <input type="text" id="joinCode" placeholder="Room Code" required />
         <button type="submit">Join Room</button>
       </form>
@@ -46,7 +40,7 @@
 
   <!-- ======== GAME CONTAINER ======== -->
   <div id="container" class="hidden">
-    <!-- Room Info + Turn Indicator (fixed height) -->
+    <!-- Room Info + Turn Indicator -->
     <div id="roomInfoContainer">
       <div id="roomInfo">
         <p><strong>Room Code:</strong> <span id="roomCodeDisplay"></span></p>
@@ -61,7 +55,7 @@
       <div id="turnIndicator"></div>
     </div>
 
-    <!-- Main Area (flexible height) -->
+    <!-- Main Area -->
     <div id="mainArea">
       <!-- Opponents List -->
       <div id="opponentsArea">
@@ -86,7 +80,7 @@
       </div>
     </div>
 
-    <!-- Hand & Controls (dynamic height) -->
+    <!-- Hand & Controls -->
     <div id="handControlsArea">
       <div id="handArea">
         <h3>Your Hand</h3>
@@ -95,12 +89,11 @@
       <div id="controlButtons">
         <button id="drawCardBtn">Draw Card</button>
         <button id="callUnoBtn">Call UNO</button>
-        <!-- Challenge button (shown only when UNO can be challenged) -->
         <button id="challengeBtn" style="display: none;">Challenge UNO</button>
       </div>
     </div>
 
-    <!-- Activity Log (fixed height) -->
+    <!-- Activity Log -->
     <div id="activityArea">
       <h3>Activity Log</h3>
       <div id="activityLog"></div>
@@ -121,29 +114,23 @@
     </div>
   </div>
 
-  <!-- AUDIO ELEMENTS (preloaded) -->
+  <!-- AUDIO ELEMENTS -->
   <audio id="sfxCardPlay" preload="auto">
-    <source src="assets/card-play.ogg" type="audio/ogg" />
     <source src="assets/card-play.mp3" type="audio/mpeg" />
   </audio>
   <audio id="sfxCardDraw" preload="auto">
-    <source src="assets/card-draw.ogg" type="audio/ogg" />
     <source src="assets/card-draw.mp3" type="audio/mpeg" />
   </audio>
   <audio id="sfxUnoCall" preload="auto">
-    <source src="assets/uno-call.ogg" type="audio/ogg" />
     <source src="assets/uno-call.mp3" type="audio/mpeg" />
   </audio>
   <audio id="sfxWin" preload="auto">
-    <source src="assets/win.ogg" type="audio/ogg" />
     <source src="assets/win.mp3" type="audio/mpeg" />
   </audio>
   <audio id="sfxJoinRoom" preload="auto">
-    <source src="assets/slide-in.ogg" type="audio/ogg" />
     <source src="assets/slide-in.mp3" type="audio/mpeg" />
   </audio>
 
-  <!-- Main script.js (after the DOM) -->
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 // script.js
 
-// ======================= FIREBASE CONFIG & INITIALIZATION =======================
-// (measurementId is optional for JS SDK v7.20.0+)
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBWGBi2O3rRbt1bNFiqgCZ-oZ2FTRv0104",
   authDomain: "unonomercy-66ba7.firebaseapp.com",
@@ -15,17 +14,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Log right away to confirm we loaded the correct project
 console.log("👉 Firebase initialized. Current project:", firebase.app().options.projectId);
 
-// Wrap everything in DOMContentLoaded so that getElementById never returns null
 document.addEventListener('DOMContentLoaded', () => {
 
   // ======================= GLOBAL STATE =======================
   let currentRoomId   = null;
   let playerId        = null;
   let playerName      = null;
-  let pendingWildCard = null;   // Holds data when a Wild/Wild+4 is played (until color is chosen)
+  let pendingWildCard = null;
   let isCreator       = false;
   let gameStateUnsub  = null;
   let chatUnsub       = null;
@@ -73,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const sfxWin       = document.getElementById('sfxWin');
   const sfxJoinRoom  = document.getElementById('sfxJoinRoom');
 
-  // On first user touch/click, unlock audio (prevent autoplay issues)
   document.body.addEventListener('touchstart', () => {
     [sfxCardPlay, sfxCardDraw, sfxUnoCall, sfxWin, sfxJoinRoom].forEach(audio => {
       if (audio) {
@@ -84,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { once: true });
 
-  // Verify that our important elements actually exist
   console.log("Looking up DOM elements…",
     "createForm =", createForm,
     "createName =", document.getElementById("createName"),
@@ -93,17 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======================= UTILITY FUNCTIONS =======================
 
-  // Generate a random 5-character uppercase room code
   function generateRoomCode() {
     return Math.random().toString(36).substring(2, 7).toUpperCase();
   }
 
-  // Generate an 8-character player ID
   function generatePlayerId() {
     return Math.random().toString(36).substring(2, 10);
   }
 
-  // Fisher–Yates shuffle
   function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -112,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return array;
   }
 
-  // If deck runs low, reshuffle discard pile (except the top card) back into deck
   function reshuffleDiscardIntoDeck(deck, discardPile) {
     if (!Array.isArray(discardPile) || discardPile.length <= 1) return deck;
     const top = discardPile.pop();
@@ -123,14 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return extras;
   }
 
-  // Append a message to the activity log panel
   function logActivity(message) {
     const p = document.createElement('p');
     p.textContent = message;
     activityLog.appendChild(p);
   }
 
-  // Append a chat message to the chat panel
   function appendChatMessage({ playerName, message }) {
     const p = document.createElement('p');
     p.innerHTML = `<strong>${playerName}:</strong> ${message}`;
@@ -139,12 +128,10 @@ document.addEventListener('DOMContentLoaded', () => {
     p.addEventListener('animationend', () => p.classList.remove('newMessage'), { once: true });
   }
 
-  // Display a validation or error message in the lobby
   function showLobbyMessage(msg) {
     lobbyMessage.textContent = msg;
   }
 
-  // Build a standard UNO deck and shuffle it
   function generateDeck() {
     const colors = ['red', 'yellow', 'green', 'blue'];
     const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
@@ -166,11 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return shuffle(deck);
   }
 
-  // Determine if “card” can be played on top of “topCard” given the currentColor
-  // and pending draw conditions
   function canPlayCard(card, topCard, currentColor, pendingDrawCount, pendingDrawType) {
     if (pendingDrawCount > 0) {
-      // If there’s a stack in progress, only allow stacking the same draw card
       return card.value === pendingDrawType;
     }
     return (
@@ -182,17 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ======================= LOBBY: CREATE & JOIN HANDLERS =======================
 
-  // ------ CREATE ROOM ------
   createForm.addEventListener('submit', async (e) => {
     console.log("👉 Create Room handler invoked");
     e.preventDefault();
 
-    // Read inputs
     const nameVal    = document.getElementById('createName').value.trim();
     const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
     console.log("Raw inputs → nameVal:", nameVal, ", maxPlayers:", maxPlayers);
 
-    // Validate inputs
     if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
       console.log("❌ Create-Room validation failed");
       showLobbyMessage("Enter valid name and 2–10 players.");
@@ -200,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     console.log("✅ Create-Room validation passed");
 
-    // Set up player state
     playerName  = nameVal;
     playerId    = generatePlayerId();
     isCreator   = true;
@@ -208,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Generated roomCode =", roomCode);
     currentRoomId  = roomCode;
 
-    // Build initial deck + write Firestore document
     const deck = generateDeck();
     const roomRef = db.collection('rooms').doc(roomCode);
 
@@ -235,13 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Play join‐room sound (don’t await so UI toggles immediately)
     if (sfxJoinRoom) {
       sfxJoinRoom.currentTime = 0;
-      sfxJoinRoom.play().catch(() => { /* ignore autoplay issues */ });
+      sfxJoinRoom.play().catch(() => {});
     }
 
-    // Hide lobby, show game container
     console.log("➡️ Before hiding: lobby.classList =", Array.from(lobby.classList),
                 "container.classList =", Array.from(container.classList));
     lobby.classList.add('hidden');
@@ -254,11 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
       container.classList.remove('slideIn');
     }, { once: true });
 
-    // Begin listening for game state + chat
     subscribeToRoom(roomCode);
   });
 
-  // ------ JOIN ROOM ------
   joinForm.addEventListener('submit', async (e) => {
     console.log("👉 Join Room handler invoked");
     e.preventDefault();
@@ -307,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sfxJoinRoom) {
       sfxJoinRoom.currentTime = 0;
-      sfxJoinRoom.play().catch(() => { /* ignore autoplay issues */ });
+      sfxJoinRoom.play().catch(() => {});
     }
 
     lobby.classList.add('hidden');
@@ -320,17 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
     subscribeToRoom(currentRoomId);
   });
 
-
   // ======================= SUBSCRIBE TO ROOM UPDATES & CHAT =======================
   function subscribeToRoom(roomCode) {
     console.log("🔔 subscribeToRoom() called with roomCode =", roomCode);
     const roomRef = db.collection('rooms').doc(roomCode);
 
-    // Unsubscribe existing listeners, if any
     if (gameStateUnsub) gameStateUnsub();
     if (chatUnsub) chatUnsub();
 
-    // Listen to the main room document
     gameStateUnsub = roomRef.onSnapshot(doc => {
       console.log("→ gameState onSnapshot fired, doc.exists =", doc.exists);
       if (!doc.exists) {
@@ -342,7 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateGameUI(data);
     });
 
-    // Listen to the chat subcollection
     chatUnsub = roomRef.collection('chatLog')
       .orderBy('timestamp')
       .onSnapshot(snapshot => {
@@ -355,12 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-
   // ======================= UPDATE MAIN GAME UI =======================
   function updateGameUI(data) {
     console.log("📣 updateGameUI called with data:", data);
 
-    // Always show room code & your name
     roomCodeDisplay.textContent    = currentRoomId;
     yourNameDisplay.textContent    = playerName;
 
@@ -368,18 +337,15 @@ document.addEventListener('DOMContentLoaded', () => {
     playerCountDisplay.textContent = playerIds.length;
     maxPlayersDisplay.textContent  = data.maxPlayers;
 
-    // Show whose turn it is (or blank)
     if (data.currentTurn) {
       turnIndicator.textContent = `${data.players[data.currentTurn].name}'s Turn`;
     } else {
       turnIndicator.textContent = '';
     }
 
-    // Show/hide Start & Restart buttons
     startGameBtn.style.display   = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
     restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended')  ? 'inline-block' : 'none';
 
-    // Render opponents list
     opponentsList.innerHTML = '';
     playerIds.forEach(pid => {
       if (pid === playerId) return;
@@ -388,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
       opponentsList.appendChild(li);
     });
 
-    // -------- Discard Pile --------
     const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
     const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
     if (topCard) {
@@ -408,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
       discardPileEl.className = 'card';
     }
 
-    // -------- Player’s Hand --------
     const myHand = data.players[playerId]?.hand || [];
     playerHand.innerHTML = '';
     myHand.forEach(card => {
@@ -416,19 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const cardColorClass = (card.color === 'wild') ? 'wild' : card.color;
       cardEl.className = `card ${cardColorClass}`;
       cardEl.textContent = card.value.toUpperCase();
-      // Add both touchstart and click for mobile
       cardEl.addEventListener('touchstart', () => handlePlayCard(card));
       cardEl.addEventListener('click', () => handlePlayCard(card));
       playerHand.appendChild(cardEl);
     });
 
-    // -------- Activity Log --------
     activityLog.innerHTML = '';
     (Array.isArray(data.activityLog) ? data.activityLog : []).forEach(entry => {
       logActivity(entry);
     });
 
-    // -------- Challenge Button (UNO only) --------
     if (
       data.pendingUnoChallenge &&
       data.currentTurn === playerId &&
@@ -441,9 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-
   // ======================= START / RESTART / LEAVE ROOM =======================
-
   startGameBtn.addEventListener('click', async () => {
     if (!currentRoomId) return;
     const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -452,7 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = roomDoc.data();
     const playerIds = Object.keys(data.players);
 
-    // Must have at least 2 players
     if (playerIds.length < 2) {
       alert("Need at least 2 players to start.");
       return;
@@ -472,7 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    // Ensure first face-up card is non-wild
     let firstCard;
     do {
       firstCard = deck.shift();
@@ -545,11 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
     delete updatedPlayers[playerId];
 
     if (Object.keys(updatedPlayers).length === 0) {
-      // Last player leaving: delete room entirely
       await roomRef.delete();
     } else {
       await roomRef.update({ players: updatedPlayers });
-      // If the leaving player was currentTurn, pass turn to next
       if (data.currentTurn === playerId) {
         const playerIds = Object.keys(updatedPlayers);
         const idx = playerIds.indexOf(playerId) === -1 ? 0 : playerIds.indexOf(playerId);
@@ -586,7 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
     turnIndicator.textContent = '';
     challengeBtn.style.display = 'none';
   }
-
 
   // ======================= PLAY CARD + SPECIAL CARD LOGIC =======================
   async function handlePlayCard(card) {
@@ -636,13 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle stacking scenario
     if (pendingDrawCount > 0 && (card.value === 'draw2' || card.value === 'wild4')) {
       if (card.value === pendingDrawType) {
-        // For draw2 stacking, play sound now
         if (card.value === 'draw2' && sfxCardPlay) {
           sfxCardPlay.currentTime = 0;
           sfxCardPlay.play();
         }
         if (card.value === 'draw2') {
-          // Animate the played draw2 card
           const el = Array.from(playerHand.children).find(el =>
             el.textContent.toLowerCase() === card.value.toLowerCase() && el.classList.contains(card.color)
           );
@@ -665,7 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextTurnId = playerIds[(currentIndex + data.direction + playerIds.length) % playerIds.length];
 
         if (card.value === 'draw2') {
-          // Update room with stacked draw2
           await roomRef.update({
             players: updatedPlayers,
             discardPile: newDiscardPile,
@@ -677,7 +628,6 @@ document.addEventListener('DOMContentLoaded', () => {
             )
           });
         } else {
-          // Wild4 stacking: defer until color chosen
           pendingWildCard = {
             data, roomRef, updatedPlayers, newDiscardPile,
             playerId, card, activityEntry: `${playerData.name} stacked Wild +4`,
@@ -756,7 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
           sfxCardPlay.currentTime = 0;
           sfxCardPlay.play();
         }
-        // Update room with draw2
         await roomRef.update({
           players: updatedPlayers,
           discardPile: newDiscardPile,
@@ -826,7 +775,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Player wins
       await roomRef.update({
         players: updatedPlayers,
         discardPile: newDiscardPile,
@@ -846,7 +794,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Normal update
     await roomRef.update({
       players: updatedPlayers,
       discardPile: newDiscardPile,
@@ -860,8 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
-  // ======================= FINISH WILD / WILD4 (COLOR + APPLY DRAW) =======================
+  // ======================= FINISH WILD / WILD4 =======================
   async function finishWildCardPlay(chosenColor) {
     if (!pendingWildCard) return;
 
@@ -941,7 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Normal wild play
     await roomRef.update({
       players: updatedPlayers,
       discardPile: mergedDiscardPile,
@@ -963,8 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
     colorModal.classList.add('hidden');
   }
 
-
-  // ======================= CHALLENGE BUTTON LOGIC (UNO only) =======================
+  // ======================= CHALLENGE BUTTON LOGIC =======================
   challengeBtn.addEventListener('click', async () => {
     if (!currentRoomId || !playerId) return;
     const roomRef = db.collection('rooms').doc(currentRoomId);
@@ -1001,7 +945,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
-
 
   // ======================= DRAW CARD BUTTON =======================
   drawCardBtn.addEventListener('click', async () => {
@@ -1055,7 +998,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Standard single-card draw
     if (sfxCardDraw) {
       sfxCardDraw.currentTime = 0;
       sfxCardDraw.play();
@@ -1094,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingUnoChallenge: null
     });
 
-    // Animate newly drawn card
     setTimeout(() => {
       const allCards = Array.from(playerHand.children);
       if (allCards.length) {
@@ -1106,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 200);
   });
-
 
   // ======================= CALL UNO BUTTON =======================
   callUnoBtn.addEventListener('click', async () => {
@@ -1123,7 +1063,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sfxUnoCall.currentTime = 0;
         sfxUnoCall.play();
       }
-      // Animate final card when calling UNO
       const handCards = Array.from(playerHand.children);
       if (handCards.length === 1) {
         handCards[0].classList.add('played');
@@ -1146,7 +1085,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert("You can only call UNO when you have exactly one card!");
     }
   });
-
 
   // ======================= CHAT FUNCTIONALITY =======================
   sendChatBtn.addEventListener('click', async () => {
@@ -1172,9 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-
   // ======================= COLOR MODAL EVENT HANDLERS =======================
-  // Close if clicking outside modal content
   colorModal.addEventListener('click', (e) => {
     if (e.target === colorModal) {
       pendingWildCard = null;
@@ -1182,7 +1118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Handle color selection
   colorButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const chosenColor = btn.dataset.color;
@@ -1190,11 +1125,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Close modal when “×” is clicked
   closeModalBtn.addEventListener('click', () => {
     pendingWildCard = null;
     colorModal.classList.add('hidden');
   });
 
-  // ======================= END OF DOMContentLoaded WRAPPER =======================
 });
