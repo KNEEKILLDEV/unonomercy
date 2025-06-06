@@ -15,9 +15,10 @@ html, body {
   background-color: #121212;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden; /* Prevent any outer scrolling */
 }
 
-/* Container fills full height */
+/* Ensure our container (game area) fills full viewport */
 #container {
   display: flex;
   flex-direction: column;
@@ -146,7 +147,7 @@ html, body {
  *---------------------------*/
 #mainArea {
   display: flex;
-  flex: 1; /* fill remaining space */
+  flex: 1; /* fill remaining space between top & bottom bars */
 }
 
 /* Opponents Panel */
@@ -158,7 +159,7 @@ html, body {
   flex-direction: column;
 }
 
-/* Opponents list */
+/* Opponents List */
 #opponentsList {
   list-style: none;
   padding: 5px;
@@ -185,6 +186,7 @@ html, body {
   font-size: 1rem;
 }
 
+/* Discard Pile Card */
 #discardPile {
   width: 15vw;
   max-width: 60px;
@@ -211,7 +213,7 @@ html, body {
   font-size: 1rem;
 }
 
-/* Chat log can scroll if overflowing */
+/* Chat Log (scrollable) */
 #chatLog {
   flex: 1;
   background-color: #333;
@@ -271,7 +273,7 @@ html, body {
  *---------------------------*/
 #handControlsArea {
   display: flex;
-  flex-shrink: 0; /* auto height */
+  flex-shrink: 0; /* auto height—content grows as needed */
   background-color: #2a2a2a;
   border-top: 1px solid #333;
 }
@@ -291,6 +293,7 @@ html, body {
   padding: 5px;
 }
 
+/* UNO cards */
 .card {
   width: calc(100% / 5 - 8px);
   max-width: 60px;
