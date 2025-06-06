@@ -82,7 +82,7 @@ html, body {
   background: linear-gradient(135deg, #2c3e50, #4ca1af);
 }
 
-#lobby h1 {
+.logo {
   font-size: 3rem;
   margin-bottom: 20px;
   color: #f1f1f1;
@@ -329,14 +329,14 @@ html, body {
 
 /* UNO card styling */
 .card {
-  width: min(100px, 15vw);
+  width: min(100px, 15vw);        /* Dynamic width: max 100px or 15% of viewport */
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.8rem, 1.5vw, 1.2rem);  /* Responsive font-size */
   text-transform: uppercase;
   cursor: pointer;
   user-select: none;

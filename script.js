@@ -17,7 +17,6 @@ const db = firebase.firestore();
 console.log("👉 Firebase initialized. Current project:", firebase.app().options.projectId);
 
 document.addEventListener('DOMContentLoaded', () => {
-
   // ======================= GLOBAL STATE =======================
   let currentRoomId   = null;
   let playerId        = null;
@@ -68,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sfxWin       = document.getElementById('sfxWin');
   const sfxJoinRoom  = document.getElementById('sfxJoinRoom');
 
+  // On first touch, “unlock” all audio elements so they can play without error
   document.body.addEventListener('touchstart', () => {
     [sfxCardPlay, sfxCardDraw, sfxUnoCall, sfxWin, sfxJoinRoom].forEach(audio => {
       if (audio) {
@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return extras;
   }
 
+  // Appends either a chat message (isChat = true) or an activity entry (isChat = false)
   function appendLog(message, isChat = false, playerName = "") {
     const p = document.createElement('p');
     if (isChat) {
@@ -350,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
       opponentsList.appendChild(li);
     });
 
+    // Update discard pile
     const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
     const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
     if (topCard) {
@@ -369,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       discardPileEl.className = 'card';
     }
 
+    // Render player's hand
     const myHand = data.players[playerId]?.hand || [];
     playerHand.innerHTML = '';
     myHand.forEach(card => {
@@ -381,12 +384,15 @@ document.addEventListener('DOMContentLoaded', () => {
       playerHand.appendChild(cardEl);
     });
 
+    // Show last few activity entries
     if (data.activityLog && data.activityLog.length) {
+      // Only display last 5 entries
       data.activityLog.slice(-5).forEach(entry => {
         appendLog(entry, false);
       });
     }
 
+    // Show/hide challenge button
     if (
       data.pendingUnoChallenge &&
       data.currentTurn === playerId &&
@@ -586,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle stacking scenario
     if (pendingDrawCount > 0 && (card.value === 'draw2' || card.value === 'wild4')) {
       if (card.value === pendingDrawType) {
+        // Play the stacking card
         if (card.value === 'draw2' && sfxCardPlay) {
           sfxCardPlay.currentTime = 0;
           sfxCardPlay.play();
@@ -624,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             )
           });
         } else {
+          // Wild +4 stacking
           pendingWildCard = {
             data, roomRef, updatedPlayers, newDiscardPile,
             playerId, card, activityEntry: `${playerData.name} stacked Wild +4`,
@@ -639,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Normal play when no pending draw
+    // Normal (non-stacking) play if no pending draw
     if (card.value !== 'wild' && card.value !== 'wild4' && card.value !== 'draw2') {
       if (sfxCardPlay) {
         sfxCardPlay.currentTime = 0;
@@ -958,6 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pendingDrawCount = data.pendingDrawCount || 0;
     const pendingDrawType  = data.pendingDrawType;
 
+    // If there is a pending draw (from stacked Draw2/Wild4)
     if (pendingDrawCount > 0) {
       let deck = Array.isArray(data.deck) ? [...data.deck] : [];
       let discardPile = Array.isArray(data.discardPile) ? [...data.discardPile] : [];
@@ -994,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Normal single-card draw
     if (sfxCardDraw) {
       sfxCardDraw.currentTime = 0;
       sfxCardDraw.play();
@@ -1032,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingUnoChallenge: null
     });
 
+    // Animate the newly drawn card
     setTimeout(() => {
       const allCards = Array.from(playerHand.children);
       if (allCards.length) {
@@ -1101,7 +1112,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-
       e.preventDefault();
       sendChatBtn.click();
     }
@@ -1126,5 +1136,4 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingWildCard = null;
     colorModal.classList.add('hidden');
   });
-
 });
