@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentRoomId   = null;
   let playerId        = null;
   let playerName      = null;
-  let pendingWildCard = null;
+  let pendingWildCard = null;   // Also used for Swap and Shuffle
   let isCreator       = false;
   let gameStateUnsub  = null;
   let chatUnsub       = null;
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sfxWin       = document.getElementById('sfxWin');
   const sfxJoinRoom  = document.getElementById('sfxJoinRoom');
 
-  // On first touch, “unlock” audio
+  // On first touch, “unlock” audio elements
   document.body.addEventListener('touchstart', () => {
     [sfxCardPlay, sfxCardDraw, sfxUnoCall, sfxWin, sfxJoinRoom].forEach(audio => {
       if (audio) {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return extras;
   }
 
-  // Appends chat (isChat = true) or activity (isChat = false)
+  // Append chat (isChat=true) or activity (isChat=false) to #logArea
   function appendLog(message, isChat = false, playerName = "") {
     const p = document.createElement('p');
     if (isChat) {
@@ -123,53 +123,49 @@ document.addEventListener('DOMContentLoaded', () => {
     lobbyMessage.textContent = msg;
   }
 
-  // Build a standard UNO deck + Swap + Wild Shuffle
+  // Build a standard UNO deck plus Swap + Wild Shuffle
   function generateDeck() {
     const colors = ['red', 'yellow', 'green', 'blue'];
     const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
     let deck = [];
 
-    // Standard colored cards
+    // Standard colored cards + one Swap per color
     colors.forEach(color => {
-      // One 0
       deck.push({ color, value: '0' });
-      // Two of each 1–9, Skip, Reverse, Draw Two
       values.slice(1).forEach(val => {
         deck.push({ color, value: val });
         deck.push({ color, value: val });
       });
-      // ADD one Swap Hands card per color:
-      deck.push({ color, value: 'swap' });
+      deck.push({ color, value: 'swap' }); // Swap Hands card
     });
 
-    // Four Wilds and Wild Draw Four
+    // Wilds, Wild Draw Four, and four Wild Shuffle Hands
     for (let i = 0; i < 4; i++) {
       deck.push({ color: 'wild', value: 'wild' });
       deck.push({ color: 'wild', value: 'wild4' });
-      // ADD four Wild Shuffle Hands (value 'shuffle')
-      deck.push({ color: 'wild', value: 'shuffle' });
+      deck.push({ color: 'wild', value: 'shuffle' }); // Wild Shuffle Hands
     }
 
     return shuffle(deck);
   }
 
-  // Determine if “card” can be played on “topCard” under currentColor & pending draws
+  // Determine if a card can be played onto topCard under currentColor + pending draws
   function canPlayCard(card, topCard, currentColor, pendingDrawCount, pendingDrawType) {
-    // Stacking: Draw Two only on Draw Two, Wild4 only on Wild4
+    // If a draw penalty is pending, only same type can stack
     if (pendingDrawCount > 0) {
       return card.value === pendingDrawType;
     }
-    // Swap: matches by color or value if topCard.value === 'swap'
+    // Swap Hands is wild-like: playable any time
     if (card.value === 'swap') {
-      return card.color === currentColor || topCard.value === 'swap';
+      return true;
     }
-    // Wild Shuffle: always playable (wild)
+    // Wild Shuffle is wild-like: playable any time
     if (card.value === 'shuffle') {
       return true;
     }
-    // Regular Wild or Wild4
+    // Standard Wild/Wild4
     if (card.color === 'wild') return true;
-    // Match color or match value
+    // Otherwise match color or value
     return (card.color === currentColor || card.value === topCard.value);
   }
 
@@ -359,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       opponentsList.appendChild(li);
     });
 
-    // Update discard pile
+    // Update discard pile display
     const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
     const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
     if (topCard) {
@@ -384,10 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
     playerHand.innerHTML = '';
     myHand.forEach(card => {
       const cardEl = document.createElement('div');
-      const cardColorClass = (card.color === 'wild' && card.value === 'shuffle') ? 'shuffle'
-                            : (card.color === 'wild') ? 'wild'
-                            : (card.value === 'swap') ? 'swap'
-                            : card.color;
+      const cardColorClass = 
+        (card.value === 'swap') ? 'swap'
+        : (card.value === 'shuffle') ? 'shuffle'
+        : (card.color === 'wild') ? 'wild'
+        : card.color;
       cardEl.className = `card ${cardColorClass} ${card.value}`;
       cardEl.textContent = card.value.toUpperCase();
       cardEl.addEventListener('touchstart', () => handlePlayCard(card));
@@ -447,9 +444,12 @@ document.addEventListener('DOMContentLoaded', () => {
     do {
       firstCard = deck.shift();
       deck.push(firstCard);
-    } while (firstCard.color === 'wild' && firstCard.value !== 'swap' && firstCard.value !== 'shuffle');
+    } while (
+      // Ensure first card is not Wild4 or Wild Shuffle or Swap
+      (firstCard.color === 'wild' && (firstCard.value === 'wild4' || firstCard.value === 'shuffle')) ||
+      firstCard.value === 'swap'
+    );
 
-    // If the starter is a swap or shuffle, treat as a regular color card:
     const starterColor = (firstCard.color === 'wild') ? 'red' : firstCard.color;
     const currentColor = starterColor;
     const currentTurn  = playerIds[0];
@@ -601,54 +601,31 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Handle Swap Hands
+    // *** HANDLE SWAP HANDS as WILD-LIKE ***
     if (card.value === 'swap') {
-      // Remove card from hand
+      // Remove swap card from hand
       hand.splice(cardIndex, 1);
       let updatedPlayers = { ...data.players };
       updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
-      // Prompt user to pick an opponent to swap with
-      const playerIds = Object.keys(data.players).filter(pid => pid !== playerId);
-      const names = playerIds.map(pid => data.players[pid].name);
-      const choice = prompt(
-        `Choose opponent to swap with (enter exact name):\n${names.join('\n')}`
-      );
-      if (!choice) {
-        alert("Swap canceled. You lose your turn.");
-        // Even if canceled, the card is consumed and turn passes
-      } else {
-        const targetPid = playerIds.find(pid => data.players[pid].name === choice.trim());
-        if (!targetPid) {
-          alert("Invalid name. No swap occurs. Turn still ends and card is consumed.");
-        } else {
-          // Perform swap
-          const targetHand = data.players[targetPid].hand;
-          updatedPlayers[playerId].hand = [...targetHand];
-          updatedPlayers[targetPid].hand = [...playerData.hand];
-          appendLog(`${playerData.name} swapped hands with ${data.players[targetPid].name}.`, false);
-        }
-      }
-
-      // Update discard pile & currentColor (card.color)
-      const newDiscardPile = [...discardArr, card];
-      const nextTurnId = computeNextTurn(data, playerId);
-      await roomRef.update({
-        players: updatedPlayers,
-        discardPile: newDiscardPile,
-        currentColor: card.color,
-        currentTurn: nextTurnId,
-        activityLog: firebase.firestore.FieldValue.arrayUnion(
-          `${playerData.name} played ${card.color} SWAP`
-        ),
+      // Prepare pending object for swap + color choice
+      pendingWildCard = {
+        data, roomRef, updatedPlayers,
+        newDiscardPile: [...discardArr, card],
+        playerId, card,
+        playerIds: Object.keys(data.players),
+        direction: data.direction,
+        handSnapshot, colorBefore,
         pendingDrawCount: 0,
         pendingDrawType: null,
-        pendingUnoChallenge: null
-      });
+        pendingUnoChallenge: data.pendingUnoChallenge
+      };
+      // Show color modal first (choose new color)
+      colorModal.classList.remove('hidden');
       return;
     }
 
-    // Handle stacking scenario for Draw Two and Wild Draw Four
+    // *** HANDLE STACKING for Draw Two and Wild Draw Four ***
     if (pendingDrawCount > 0 && (card.value === 'draw2' || card.value === 'wild4')) {
       if (card.value === pendingDrawType) {
         // Stacking valid
@@ -688,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
             )
           });
         } else {
-          // Wild +4 stacking
+          // Wild +4 stacking (handle color after)
           pendingWildCard = {
             data, roomRef, updatedPlayers, newDiscardPile,
             playerId, card, activityEntry: `${playerData.name} stacked Wild +4`,
@@ -704,9 +681,70 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Normal play / other specials
-    // Play animations for non-wild cards
-    if (card.value !== 'wild' && card.value !== 'wild4' && card.value !== 'swap' && card.value !== 'shuffle' && card.value !== 'draw2') {
+    // *** HANDLE WILD, WILD4, and WILD SHUFFLE ***
+    if (card.value === 'wild') {
+      hand.splice(cardIndex, 1);
+      let updatedPlayers = { ...data.players };
+      updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
+
+      pendingWildCard = {
+        data, roomRef, updatedPlayers,
+        newDiscardPile: [...discardArr, card],
+        playerId, card, activityEntry: `${playerData.name} played Wild`,
+        playerIds: Object.keys(data.players),
+        direction: data.direction,
+        handSnapshot, colorBefore,
+        pendingDrawCount: 0,
+        pendingDrawType: null,
+        pendingUnoChallenge: data.pendingUnoChallenge
+      };
+      colorModal.classList.remove('hidden');
+      return;
+    }
+
+    if (card.value === 'wild4') {
+      hand.splice(cardIndex, 1);
+      let updatedPlayers = { ...data.players };
+      updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
+
+      pendingWildCard = {
+        data, roomRef, updatedPlayers,
+        newDiscardPile: [...discardArr, card],
+        playerId, card, activityEntry: `${playerData.name} played Wild Draw Four`,
+        playerIds: Object.keys(data.players),
+        direction: data.direction,
+        handSnapshot, colorBefore,
+        pendingDrawCount: 4,
+        pendingDrawType: 'wild4',
+        pendingUnoChallenge: data.pendingUnoChallenge
+      };
+      colorModal.classList.remove('hidden');
+      return;
+    }
+
+    if (card.value === 'shuffle') {
+      // Wild Shuffle Hands
+      hand.splice(cardIndex, 1);
+      let updatedPlayers = { ...data.players };
+      updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
+
+      pendingWildCard = {
+        data, roomRef, updatedPlayers,
+        newDiscardPile: [...discardArr, card],
+        playerId, card, activityEntry: `${playerData.name} played Wild Shuffle Hands`,
+        playerIds: Object.keys(data.players),
+        direction: data.direction,
+        handSnapshot: null, colorBefore: null,
+        pendingDrawCount: 0,
+        pendingDrawType: null,
+        pendingUnoChallenge: null
+      };
+      colorModal.classList.remove('hidden');
+      return;
+    }
+
+    // *** NORMAL CARD & DRAW2 ***
+    if (card.value !== 'draw2') {
       if (sfxCardPlay) {
         sfxCardPlay.currentTime = 0;
         sfxCardPlay.play();
@@ -726,11 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let updatedPlayers = { ...data.players };
     updatedPlayers[playerId] = { ...playerData, hand, calledUno: false };
 
-    let newDiscardPile = [...discardArr];
-    if (!['wild', 'wild4', 'shuffle'].includes(card.value)) {
-      newDiscardPile = [...discardArr, card];
-    }
-
+    const newDiscardPile = [...discardArr, card];
     const nextTurnId = computeNextTurn(data, playerId);
     let activityEntry = `${playerData.name} played ${card.color} ${card.value}`;
 
@@ -741,111 +775,32 @@ document.addEventListener('DOMContentLoaded', () => {
       updatedPendingUno = { offender: playerId };
     }
 
-    switch (card.value) {
-      case 'skip':
-        await roomRef.update({
-          players: updatedPlayers,
-          discardPile: [...newDiscardPile, card],
-          currentColor: card.color,
-          currentTurn: computeSkip(data, playerId),
-          direction: data.direction,
-          activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} played Skip`),
-          pendingDrawCount: 0,
-          pendingDrawType: null,
-          pendingUnoChallenge: updatedPendingUno
-        });
-        return;
-
-      case 'reverse':
-        let newDirection = -data.direction;
-        let nextId;
-        if (Object.keys(data.players).length === 2) {
-          // Acts like skip
-          nextId = computeSkip(data, playerId);
-        } else {
-          nextId = computeNextInDirection(data, playerId, newDirection);
-        }
-        await roomRef.update({
-          players: updatedPlayers,
-          discardPile: [...newDiscardPile, card],
-          currentColor: card.color,
-          currentTurn: nextId,
-          direction: newDirection,
-          activityLog: firebase.firestore.FieldValue.arrayUnion(`${playerData.name} played Reverse`),
-          pendingDrawCount: 0,
-          pendingDrawType: null,
-          pendingUnoChallenge: updatedPendingUno
-        });
-        return;
-
-      case 'draw2':
-        const draw2Count = 2;
-        if (sfxCardPlay) {
-          sfxCardPlay.currentTime = 0;
-          sfxCardPlay.play();
-        }
-        await roomRef.update({
-          players: updatedPlayers,
-          discardPile: [...newDiscardPile, card],
-          currentColor: card.color,
-          pendingDrawCount: draw2Count,
-          pendingDrawType: 'draw2',
-          currentTurn: nextTurnId,
-          direction: data.direction,
-          activityLog: firebase.firestore.FieldValue.arrayUnion(
-            `${activityEntry}. Pending draw: ${draw2Count}.`
-          ),
-          pendingUnoChallenge: updatedPendingUno
-        });
-        return;
-
-      case 'wild':
-        pendingWildCard = {
-          data, roomRef, updatedPlayers, newDiscardPile,
-          playerId, card, activityEntry, playerIds: Object.keys(data.players), direction: data.direction,
-          handSnapshot, colorBefore,
-          pendingDrawCount: 0,
-          pendingDrawType: null,
-          pendingUnoChallenge: updatedPendingUno
-        };
-        colorModal.classList.remove('hidden');
-        return;
-
-      case 'wild4':
-        pendingWildCard = {
-          data, roomRef, updatedPlayers, newDiscardPile,
-          playerId, card, activityEntry, playerIds: Object.keys(data.players), direction: data.direction,
-          handSnapshot, colorBefore,
-          pendingDrawCount: 4,
-          pendingDrawType: 'wild4',
-          pendingUnoChallenge: updatedPendingUno
-        };
-        colorModal.classList.remove('hidden');
-        return;
-
-      case 'shuffle':
-        // Wild Shuffle Hands: show color picker first
-        pendingWildCard = {
-          data, roomRef, updatedPlayers, newDiscardPile,
-          playerId, card, activityEntry: `${playerData.name} played Wild Shuffle Hands`,
-          playerIds: Object.keys(data.players), direction: data.direction,
-          handSnapshot: null, colorBefore: null,
-          pendingDrawCount: 0,
-          pendingDrawType: null,
-          pendingUnoChallenge: null
-        };
-        colorModal.classList.remove('hidden');
-        return;
-
-      default:
-        // Normal card
-        break;
+    if (card.value === 'draw2') {
+      const draw2Count = 2;
+      if (sfxCardPlay) {
+        sfxCardPlay.currentTime = 0;
+        sfxCardPlay.play();
+      }
+      await roomRef.update({
+        players: updatedPlayers,
+        discardPile: newDiscardPile,
+        currentColor: card.color,
+        pendingDrawCount: draw2Count,
+        pendingDrawType: 'draw2',
+        currentTurn: nextTurnId,
+        direction: data.direction,
+        activityLog: firebase.firestore.FieldValue.arrayUnion(
+          `${activityEntry}. Pending draw: ${draw2Count}.`
+        ),
+        pendingUnoChallenge: updatedPendingUno
+      });
+      return;
     }
 
-    // Check if this play empties hand
+    // Check for win
     if (newHandLength === 0) {
       if (hadCalledUno === false) {
-        // Penalty for no-UNO
+        // Penalty for not calling UNO
         let deck = Array.isArray(data.deck) ? [...data.deck] : [];
         if (deck.length < 2) deck = reshuffleDiscardIntoDeck(deck, newDiscardPile);
         const drawn2Penalty = deck.splice(0, Math.min(2, deck.length));
@@ -872,7 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await roomRef.update({
         players: updatedPlayers,
         discardPile: newDiscardPile,
-        currentColor: (card.color === 'wild') ? data.currentColor : card.color,
+        currentColor: card.color,
         currentTurn: null,
         gameState: 'ended',
         direction: data.direction,
@@ -892,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await roomRef.update({
       players: updatedPlayers,
       discardPile: newDiscardPile,
-      currentColor: (card.color === 'wild') ? data.currentColor : card.color,
+      currentColor: card.color,
       currentTurn: nextTurnId,
       direction: data.direction,
       activityLog: firebase.firestore.FieldValue.arrayUnion(activityEntry),
@@ -902,14 +857,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Compute next player (non-skipped) in current direction
+  // Compute next player in current direction
   function computeNextTurn(data, pid) {
     const playerIds = Object.keys(data.players);
     const idx = playerIds.indexOf(pid);
     return playerIds[(idx + data.direction + playerIds.length) % playerIds.length];
   }
 
-  // Compute the player to skip to (skip one player)
+  // Helper for skip (Skip card)
   function computeSkip(data, pid) {
     const playerIds = Object.keys(data.players);
     const idx = playerIds.indexOf(pid);
@@ -917,14 +872,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return playerIds[skipIdx];
   }
 
-  // Helper: next in a given direction
+  // Helper: next in arbitrary direction
   function computeNextInDirection(data, pid, direction) {
     const playerIds = Object.keys(data.players);
     const idx = playerIds.indexOf(pid);
     return playerIds[(idx + direction + playerIds.length) % playerIds.length];
   }
 
-  // ======================= FINISH WILD / WILD4 / SHUFFLE =======================
+  // ======================= FINISH WILD / WILD4 / SHUFFLE / SWAP =======================
   async function finishWildCardPlay(chosenColor) {
     if (!pendingWildCard) return;
 
@@ -934,10 +889,61 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingDrawCount, pendingDrawType
     } = pendingWildCard;
 
-    // Add the card to the discard pile
-    const mergedDiscardPile = [...newDiscardPile, card];
+    // Add this card to discard
+    const mergedDiscardPile = [...newDiscardPile];
 
-    // If Wild Draw Four stacking
+    // SWAP HANDS handling
+    if (card.value === 'swap') {
+      // mergedDiscardPile already contains swap card
+      // Prompt for opponent
+      const names = playerIds.filter(pid => pid !== playerId).map(pid => data.players[pid].name);
+      const choice = prompt(
+        `You played SWAP. Choose opponent to swap hands with (type exact name):\n${names.join('\n')}`
+      );
+      let swapLog;
+      if (!choice) {
+        swapLog = `${data.players[playerId].name} played SWAP but canceled. Card consumed.`;
+      } else {
+        const targetPid = playerIds.find(pid => data.players[pid].name === choice.trim());
+        if (!targetPid) {
+          swapLog = `${data.players[playerId].name} played SWAP but entered invalid name. Card consumed.`;
+        } else {
+          // Perform swap
+          const targetHand = data.players[targetPid].hand;
+          const playerHandBefore = data.players[playerId].hand;
+          updatedPlayers[playerId].hand = [...targetHand];
+          updatedPlayers[targetPid].hand = [...playerHandBefore];
+          swapLog = `${data.players[playerId].name} swapped hands with ${data.players[targetPid].name}.`;
+        }
+      }
+
+      // Update discard and currentColor = chosenColor
+      const nextTurnId = computeNextTurn(data, playerId);
+      await roomRef.update({
+        players: updatedPlayers,
+        discardPile: mergedDiscardPile,
+        currentColor: chosenColor,
+        currentTurn: nextTurnId,
+        direction,
+        activityLog: firebase.firestore.FieldValue.arrayUnion(
+          `${activityEntry} – color chosen: ${chosenColor}. ${swapLog}`
+        ),
+        pendingDrawCount: 0,
+        pendingDrawType: null,
+        pendingUnoChallenge: null
+      });
+
+      if (sfxCardPlay) {
+        sfxCardPlay.currentTime = 0;
+        sfxCardPlay.play();
+      }
+
+      pendingWildCard = null;
+      colorModal.classList.add('hidden');
+      return;
+    }
+
+    // WILD DRAW FOUR handling
     if (card.value === 'wild4') {
       let deck = Array.isArray(data.deck) ? [...data.deck] : [];
       if (deck.length < pendingDrawCount) deck = reshuffleDiscardIntoDeck(deck, mergedDiscardPile);
@@ -975,9 +981,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // If Wild Shuffle Hands
+    // WILD SHUFFLE HANDS handling
     if (card.value === 'shuffle') {
-      // Rotate all players’ hands one step in current direction
+      // Rotate all hands one step in current direction
       const oldPlayers = { ...data.players };
       const newPlayers = {};
       const ids = playerIds;
@@ -990,7 +996,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       }
 
-      // Save updated hands & update discard and turn
       const nextTurnId = computeNextTurn(data, playerId);
       await roomRef.update({
         players: newPlayers,
@@ -1016,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // If plain Wild (no +4)
+    // PLAIN WILD handling
     const nextTurnId = computeNextTurn(data, playerId);
     await roomRef.update({
       players: updatedPlayers,
@@ -1093,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pendingDrawCount = data.pendingDrawCount || 0;
     const pendingDrawType  = data.pendingDrawType;
 
-    // If pending draw from Draw Two or Wild Draw Four stack
+    // Handle pending draw
     if (pendingDrawCount > 0) {
       let deck = Array.isArray(data.deck) ? [...data.deck] : [];
       let discardPile = Array.isArray(data.discardPile) ? [...data.discardPile] : [];
