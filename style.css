@@ -266,12 +266,12 @@ html, body {
   font-size: 0.9rem;
   color: #ddd;
 
-  /* Display as column, bottom‐aligned */
+  /* Display as column, bottom-aligned */
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 
-  /* No scrollbar, older entries will be out of view */
+  /* No scrollbar */
   overflow: hidden;
 }
 
@@ -352,12 +352,18 @@ html, body {
   color: white;
 }
 
+/* Standard UNO colors */
 .card.red    { background-color: #e53935; }
 .card.yellow { background-color: #fdd835; color: #333; }
 .card.green  { background-color: #43a047; }
 .card.blue   { background-color: #1e88e5; }
 .card.wild   { background-color: #7c4dff; }
 
+/* New Special Cards */
+.card.swap    { background-color: #ff5722; } /* Swap Hands (color-specific) */
+.card.shuffle { background-color: #9c27b0; } /* Wild Shuffle Hands (wild-like) */
+
+/* Hover animations */
 .card:hover {
   transform: scale(1.05);
 }
