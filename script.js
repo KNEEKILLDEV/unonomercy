@@ -166,53 +166,63 @@ function canPlayCard(card, topCard, currentColor, pendingDrawCount, pendingDrawT
 
 // ======================= LOBBY: CREATE & JOIN HANDLERS =======================
 
-createForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const nameVal    = document.getElementById('createName').value.trim();
-  const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
+ createForm.addEventListener('submit', async (e) => {
+   e.preventDefault();
+   const nameVal    = document.getElementById('createName').value.trim();
+   const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
 
-  if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
-    showLobbyMessage("Enter valid name and 2–10 players.");
-    return;
-  }
+   if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
+     showLobbyMessage("Enter valid name and 2–10 players.");
+     return;
+   }
 
-  playerName  = nameVal;
-  playerId    = generatePlayerId();
-  isCreator   = true;
-  const roomCode = generateRoomCode();
-  currentRoomId  = roomCode;
+   playerName  = nameVal;
+   playerId    = generatePlayerId();
+   isCreator   = true;
+   const roomCode = generateRoomCode();
+   currentRoomId  = roomCode;
 
-  const deck = generateDeck();
-  const roomRef = db.collection('rooms').doc(roomCode);
-  await roomRef.set({
-    creator: playerId,
-    maxPlayers,
-    players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
-    gameState: 'waiting',
-    currentTurn: null,
-    discardPile: [],
-    currentColor: null,
-    direction: 1,
-    activityLog: [],
-    deck,
-    pendingDrawCount: 0,
-    pendingDrawType: null,
-    pendingUnoChallenge: null
-  });
+   const deck = generateDeck();
+   const roomRef = db.collection('rooms').doc(roomCode);
+   await roomRef.set({
+     creator: playerId,
+     maxPlayers,
+     players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
+     gameState: 'waiting',
+     currentTurn: null,
+     discardPile: [],
+     currentColor: null,
+     direction: 1,
+     activityLog: [],
+     deck,
+     pendingDrawCount: 0,
+     pendingDrawType: null,
+     pendingUnoChallenge: null
+   });
 
-  if (sfxJoinRoom) {
-    sfxJoinRoom.currentTime = 0;
-    sfxJoinRoom.play();
-  }
-  lobby.classList.add('hidden');
-  container.classList.remove('hidden');
-  container.classList.add('slideIn');
-  container.addEventListener('animationend', () => {
-    container.classList.remove('slideIn');
-  }, { once: true });
+-  if (sfxJoinRoom) {
+-    sfxJoinRoom.currentTime = 0;
+-    sfxJoinRoom.play();
+-  }
++  if (sfxJoinRoom) {
++    sfxJoinRoom.currentTime = 0;
++    try {
++      await sfxJoinRoom.play();
++    } catch {
++      /* ignore any autoplay errors */
++    }
++  }
 
-  subscribeToRoom(roomCode);
-});
+   lobby.classList.add('hidden');
+   container.classList.remove('hidden');
+   container.classList.add('slideIn');
+   container.addEventListener('animationend', () => {
+     container.classList.remove('slideIn');
+   }, { once: true });
+
+   subscribeToRoom(roomCode);
+ });
+
 
 joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
