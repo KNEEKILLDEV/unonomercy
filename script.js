@@ -66,7 +66,7 @@ const sfxUnoCall   = document.getElementById('sfxUnoCall');
 const sfxWin       = document.getElementById('sfxWin');
 const sfxJoinRoom  = document.getElementById('sfxJoinRoom');
 
-// Unlock audio on first interaction
+// Unlock audio on first interaction to prevent autoplay errors
 document.body.addEventListener('touchstart', () => {
   [sfxCardPlay, sfxCardDraw, sfxUnoCall, sfxWin, sfxJoinRoom].forEach(audio => {
     if (audio) {
@@ -166,63 +166,59 @@ function canPlayCard(card, topCard, currentColor, pendingDrawCount, pendingDrawT
 
 // ======================= LOBBY: CREATE & JOIN HANDLERS =======================
 
- createForm.addEventListener('submit', async (e) => {
-   e.preventDefault();
-   const nameVal    = document.getElementById('createName').value.trim();
-   const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
+createForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nameVal    = document.getElementById('createName').value.trim();
+  const maxPlayers = parseInt(document.getElementById('maxPlayers').value, 10);
 
-   if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
-     showLobbyMessage("Enter valid name and 2–10 players.");
-     return;
-   }
+  if (!nameVal || isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
+    showLobbyMessage("Enter valid name and 2–10 players.");
+    return;
+  }
 
-   playerName  = nameVal;
-   playerId    = generatePlayerId();
-   isCreator   = true;
-   const roomCode = generateRoomCode();
-   currentRoomId  = roomCode;
+  playerName  = nameVal;
+  playerId    = generatePlayerId();
+  isCreator   = true;
+  const roomCode = generateRoomCode();
+  currentRoomId  = roomCode;
 
-   const deck = generateDeck();
-   const roomRef = db.collection('rooms').doc(roomCode);
-   await roomRef.set({
-     creator: playerId,
-     maxPlayers,
-     players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
-     gameState: 'waiting',
-     currentTurn: null,
-     discardPile: [],
-     currentColor: null,
-     direction: 1,
-     activityLog: [],
-     deck,
-     pendingDrawCount: 0,
-     pendingDrawType: null,
-     pendingUnoChallenge: null
-   });
+  const deck = generateDeck();
+  const roomRef = db.collection('rooms').doc(roomCode);
+  await roomRef.set({
+    creator: playerId,
+    maxPlayers,
+    players: { [playerId]: { name: playerName, hand: [], calledUno: false } },
+    gameState: 'waiting',
+    currentTurn: null,
+    discardPile: [],
+    currentColor: null,
+    direction: 1,
+    activityLog: [],
+    deck,
+    pendingDrawCount: 0,
+    pendingDrawType: null,
+    pendingUnoChallenge: null
+  });
 
--  if (sfxJoinRoom) {
--    sfxJoinRoom.currentTime = 0;
--    sfxJoinRoom.play();
--  }
-+  if (sfxJoinRoom) {
-+    sfxJoinRoom.currentTime = 0;
-+    try {
-+      await sfxJoinRoom.play();
-+    } catch {
-+      /* ignore any autoplay errors */
-+    }
-+  }
+  // Wrap play() in try/catch so exceptions don’t block room creation
+  if (sfxJoinRoom) {
+    sfxJoinRoom.currentTime = 0;
+    try {
+      await sfxJoinRoom.play();
+    } catch {
+      /* ignore any autoplay errors */
+    }
+  }
 
-   lobby.classList.add('hidden');
-   container.classList.remove('hidden');
-   container.classList.add('slideIn');
-   container.addEventListener('animationend', () => {
-     container.classList.remove('slideIn');
-   }, { once: true });
+  lobby.classList.add('hidden');
+  container.classList.remove('hidden');
+  container.classList.add('slideIn');
+  container.addEventListener('animationend', () => {
+    container.classList.remove('slideIn');
+  }, { once: true });
 
-   subscribeToRoom(roomCode);
- });
-
+  subscribeToRoom(roomCode);
+});
 
 joinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -259,8 +255,13 @@ joinForm.addEventListener('submit', async (e) => {
 
   if (sfxJoinRoom) {
     sfxJoinRoom.currentTime = 0;
-    sfxJoinRoom.play();
+    try {
+      await sfxJoinRoom.play();
+    } catch {
+      /* ignore autoplay errors */
+    }
   }
+
   lobby.classList.add('hidden');
   container.classList.remove('hidden');
   container.classList.add('slideIn');
@@ -307,16 +308,18 @@ function updateGameUI(data) {
   playerCountDisplay.textContent = playerIds.length;
   maxPlayersDisplay.textContent  = data.maxPlayers;
 
+  // Show whose turn it is
   if (data.currentTurn) {
     turnIndicator.textContent = `${data.players[data.currentTurn].name}'s Turn`;
   } else {
     turnIndicator.textContent = '';
   }
 
+  // Show/hide Start & Restart buttons
   startGameBtn.style.display   = (data.creator === playerId && data.gameState === 'waiting') ? 'inline-block' : 'none';
   restartGameBtn.style.display = (data.creator === playerId && data.gameState === 'ended')  ? 'inline-block' : 'none';
 
-  // Render opponents
+  // Render opponents list
   opponentsList.innerHTML = '';
   playerIds.forEach(pid => {
     if (pid === playerId) return;
@@ -325,7 +328,7 @@ function updateGameUI(data) {
     opponentsList.appendChild(li);
   });
 
-  // Discard pile
+  // Discard Pile
   const discardArr = Array.isArray(data.discardPile) ? data.discardPile : [];
   const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
   if (topCard) {
@@ -345,7 +348,7 @@ function updateGameUI(data) {
     discardPileEl.className = 'card';
   }
 
-  // Player’s hand
+  // Player’s Hand
   const myHand = data.players[playerId]?.hand || [];
   playerHand.innerHTML = '';
   myHand.forEach(card => {
@@ -359,13 +362,13 @@ function updateGameUI(data) {
     playerHand.appendChild(cardEl);
   });
 
-  // Activity log
+  // Activity Log
   activityLog.innerHTML = '';
   (Array.isArray(data.activityLog) ? data.activityLog : []).forEach(entry => {
     logActivity(entry);
   });
 
-  // Challenge button (UNO only)
+  // Show Challenge button only for UNO-no-mercy
   if (
     data.pendingUnoChallenge &&
     data.currentTurn === playerId &&
