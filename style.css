@@ -35,7 +35,6 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .primaryBtn:hover {
   background-color: #115293;
 }
@@ -50,7 +49,6 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .secondaryBtn:hover {
   background-color: #357a38;
 }
@@ -65,7 +63,6 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .dangerBtn:hover {
   background-color: #921a1a;
 }
@@ -596,7 +593,7 @@ html, body {
   flex-direction: column;
 }
 
-/* When chat is tall, limit its height so it does not push buttons off-screen */
+/* When chat is tall, limit its height so it does not push controls off-screen */
 #logAreaMobile {
   max-height: 200px;
 }

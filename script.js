@@ -368,9 +368,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const topCard    = discardArr.length ? discardArr[discardArr.length - 1] : null;
     if (topCard) {
       discardPileEl.textContent = topCard.value.toUpperCase();
-      const displayColor = (topCard.color === 'wild') ? data.currentColor : topCard.color;
-      discardPileEl.className = `card ${displayColor} ${topCard.value}`;
-      const newTopKey = `${topCard.color}${topCard.value}`;
+
+      // Choose displayColor: if wild, use data.currentColor
+      let displayColor;
+      if (topCard.color === 'wild') {
+        displayColor = data.currentColor;
+      } else {
+        displayColor = topCard.color;
+      }
+
+      // Build className carefully so that "wild" does not override the chosen color
+      if (topCard.value === 'wild') {
+        // For a plain Wild, omit the "wild" class; use only chosenColor
+        discardPileEl.className = `card ${displayColor}`;
+      } else {
+        // For all other values (including wild4, shuffle, etc.), append value as a class
+        discardPileEl.className = `card ${displayColor} ${topCard.value}`;
+      }
+
+      const newTopKey = `${topCard.color}${topCard.value}${displayColor}`;
       if (discardPileEl.dataset.lastTop !== newTopKey) {
         discardPileEl.dataset.lastTop = newTopKey;
         discardPileEl.classList.add('newTop');
@@ -388,10 +404,10 @@ document.addEventListener('DOMContentLoaded', () => {
     playerHand.innerHTML = "";
     myHand.forEach(card => {
       const cardEl = document.createElement('div');
-      const cardColorClass = 
-        (card.value === 'swap')    ? 'swap'
+      const cardColorClass =
+        (card.value === 'swap')      ? 'swap'
         : (card.value === 'shuffle') ? 'shuffle'
-        : (card.color === 'wild')   ? 'wild'
+        : (card.color === 'wild')    ? 'wild'
         : card.color;
       cardEl.className = `card ${cardColorClass} ${card.value}`;
       cardEl.textContent = card.value.toUpperCase();
@@ -555,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isCreator     = false;
 
     container.classList.add('hidden');
+    lobby.classList.remove('visible'); // ensure lobby is visible again
     lobby.classList.remove('hidden');
     resetGameUI();
   });
@@ -949,14 +966,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const skipIdx = (idx + dir + playerIds.length) % playerIds.length;
     return playerIds[skipIdx];
   }
-  // Return that skipped player's name
-  function computeSkipName(data, pid) {
-    const sid = computeSkipId(data, pid);
-    const playersObj = data.players || {};
-    return playersObj[sid]?.name || "";
-  }
 
-  // ======================= FINISH WILD / WILD4 / SHUFFLE / SWAP =======================
+  // ======================= FINISH WILD CARD / WILD4 / SHUFFLE / SWAP =======================
   async function finishWildCardPlay(chosenColor) {
     if (!pendingWildCard) return;
 
@@ -985,9 +996,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!targetPid) {
           swapLog = `${data.players[playerId].name} entered invalid name. Card consumed.`;
         } else {
-          // Perform swap
-          const targetHand = data.players[targetPid]?.hand || [];
-          const myOldHand = data.players[playerId]?.hand || [];
+          // Perform swap on updatedPlayers (which already had the Swap removed)
+          const targetHand = updatedPlayers[targetPid]?.hand || [];
+          const myOldHand = updatedPlayers[playerId]?.hand || [];
           updatedPlayers[playerId].hand = [...targetHand];
           updatedPlayers[targetPid].hand = [...myOldHand];
           swapLog = `${data.players[playerId].name} swapped hands with ${data.players[targetPid].name}.`;
@@ -1057,8 +1068,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== WILD SHUFFLE HANDS ==========
     if (card.value === "shuffle") {
-      // Rotate everyone’s hands one seat in current direction
-      const oldPlayers = { ...data.players };
+      // Rotate everyone’s hands one seat in current direction, using updatedPlayers as the source
+      const oldPlayers = { ...updatedPlayers };
       const newPlayers = {};
       const ids = playerIds;
       for (let i = 0; i < ids.length; i++) {
