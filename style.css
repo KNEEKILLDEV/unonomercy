@@ -275,11 +275,9 @@ html, body {
   padding: 10px;
   font-size: 0.9rem;
   color: #ddd;
-
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-
   overflow: hidden;
 }
 
@@ -322,13 +320,16 @@ html, body {
   background-color: #2a2a2a;
   border-top: 1px solid #333;
   padding: 10px;
+
+  /* Clip any overflow (so hover-zoom never shows vertical scroll) */
+  overflow: hidden;
 }
 
 #handArea {
   flex: 2;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch; /* make #playerHand span full width */
 }
 
 #handArea h3 {
@@ -339,16 +340,18 @@ html, body {
 
 /* 
    On all screen sizes, use a single row of cards with horizontal scroll.
-   The scrollbar appears only if the cards exceed the visible width.
+   The scrollbar appears only when there are more cards than fit.
 */
 #playerHand {
   display: flex;
   flex-wrap: nowrap;      
   justify-content: flex-start;
   gap: 8px;
-  overflow-x: auto;      
-  overflow-y: hidden;    
-  padding-bottom: 5px;   /* space for scrollbar */
+  overflow-x: auto;       /* horizontal scroll when needed */
+  overflow-y: hidden;     /* prevent vertical scroll */
+  width: 100%;            /* span entire parent’s width */
+  padding-bottom: 5px;    /* space for scrollbar */
+  touch-action: pan-x;    /* on mobile, allow swipe-to-scroll */
 }
 
 /* UNO card styling */
@@ -366,6 +369,7 @@ html, body {
   user-select: none;
   box-shadow: 0 0 4px rgba(0,0,0,0.5);
   color: white;
+  transform-origin: center center; /* zoom from center to avoid pushing layout */
 }
 
 .card.red    { background-color: #e53935; }
@@ -579,6 +583,7 @@ html, body {
   flex-wrap: nowrap;       /* one row only */
   overflow-x: auto;        /* horizontal scroll for extra cards */
   overflow-y: hidden;      /* no vertical scroll on mobile */
+  touch-action: pan-x;     /* on mobile, allow swipe-to-scroll */
 }
 
 /* Opponents + Discard hidden on mobile: */
@@ -628,7 +633,6 @@ html, body {
     flex-wrap: nowrap;      /* force one row */
     overflow-x: auto;       /* horizontal scroll beyond width */
     overflow-y: hidden;     /* no vertical scroll on desktop either */
-    max-height: none;
   }
 
   /* Main area layout */
